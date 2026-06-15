@@ -1,8 +1,8 @@
 /**
  * @name C.L.I.E.N.T.
  * @version 0.39.8
- * @todo [issue 101](https://github.com/Hastral-org/MAGPIE_Server/issues/101)
- * @desc client terminal
+ * @todo @desc client terminal
+ * [issue 101](https://github.com/Hastral-org/MAGPIE_Server/issues/101)
  * @desc connects to:
  * - [account](../../handlers/account.js)
  */
@@ -178,7 +178,7 @@ function initSocket() {
     await printLine(message);
   });
   // MAGPIE_CLI.socket.on(MAGPIE.KEY.SERVER.EVENT_REQUEST, async (data) => {
-  //   //@todo cli socket.on event request
+  //   //@note [DEPRECATE] cli socket.on event request
   //   const ePrefix = "[SOCKET REQUEST] ";
   //   try {
 
@@ -187,7 +187,7 @@ function initSocket() {
   //   }
   // });
   // MAGPIE_CLI.socket.on(MAGPIE.KEY.SERVER.EVENT_RESPONSE, async (data) => {
-  //   //@todo cli socket.on event response
+  //   //@note [DEPRECATE] cli socket.on event response
   //   const ePrefix = "[SOCKET RESPONSE] ";
   //   /** @type {ticket_payload} */
   //   const ticket_payload = data;
@@ -569,7 +569,8 @@ cliInput.addEventListener("keydown", async (e) => {
 // #region > Router
 //------------------------------------------------------------------------
 /**
- * @audit deprecate
+ * @audit router deprecate
+ * [issue 103](https://github.com/Hastral-org/MAGPIE_Server/issues/103)
  * @param {ticket_payload} payload
  */
 MAGPIE_CLI.triggerEvent = async function triggerCliEvent(payload) {
@@ -584,11 +585,11 @@ MAGPIE_CLI.triggerEvent = async function triggerCliEvent(payload) {
   }
 };
 /**
- * @todo MAGPIE_CLI.events
+ * MAGPIE_CLI.events
  */
 MAGPIE_CLI.events = {
   /**
-   * @todo @desc username probe error event -- edit line with 403
+   * @desc username probe error event -- edit line with 403
    * then => await resetStep("Please, wait...")
    * @param {ticket_payload} payload
    */
@@ -596,7 +597,7 @@ MAGPIE_CLI.events = {
     //
   },
   /**
-   * @todo @desc username available event -- edit line with 200
+   * @desc username available event -- edit line with 200
    * then => nextStep("username confirmed")
    * @param {ticket_payload} payload
    */
@@ -604,7 +605,7 @@ MAGPIE_CLI.events = {
     //
   },
   /**
-   * @todo @desc username unavailable event -- edit line with 409
+   * @desc username unavailable event -- edit line with 409
    * then => resetStep("try another username")
    * @param {ticket_payload} payload
    */
