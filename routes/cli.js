@@ -149,6 +149,7 @@ function disconnectSocket() {
 }
 /**
  * @todo @desc MAGPIE_SERVER.INBOX.handles
+ * [issue 102](https://github.com/Hastral-org/MAGPIE_Server/issues/102)
  */
 MAGPIE_CLI.handles = {
   0: "runtime",
