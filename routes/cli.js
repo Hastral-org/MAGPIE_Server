@@ -625,7 +625,7 @@ MAGPIE_CLI.events = {
 //========================================================================
 /**
  * @name
- * @desc
+ * @todo @desc boot
  *
  */
 //========================================================================
@@ -634,12 +634,11 @@ MAGPIE_CLI.events = {
 async function boot() {
   await printLine(`M.A.G.P.I.E. OS v${MAGPIE_CLI.meta.version}`);
   await printLine("Loading kernel modules...", "info", 500);
-  // @todo replace the arbitrary delay with delay due to loading the CLI modules
+  //  replace the arbitrary delay with delay due to loading the CLI modules
   await printLine("Establishing secure link to MAGPIE_Server...", "info", 500);
   // @todo add a loading spinner here
   // Initialize socket connection
   initSocket();
-
   await printLine("Link established. Welcome, 'user'.", "success", 2000);
   await printLine(MAGPIE_CLI.UI.SEPARATOR, "info", 2000);
 

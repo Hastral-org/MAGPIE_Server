@@ -21,7 +21,8 @@
  *
  * @desc current
  *
- * @version 0.39.8 2026 06 15
+ * @version 0.39.9 2026 06 15
+ * - TWEAKED: cli.js
  * - TWEAKED: adopted egyptian style and 2-space indentation
  *
  * @version 0.39.7 2026 06 14
@@ -504,7 +505,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 8],
+  version: [0, 39, 9],
   firmwareName: "MAGPIE",
   firmwareDate: "20260615",
 };
