@@ -402,6 +402,9 @@ body {
 
 /* #region views */
 
+.view-common {
+    display: block;
+}
 
 #view-logo {
     white-space: pre;

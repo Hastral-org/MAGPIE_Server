@@ -6,8 +6,7 @@
   "main": "SERVER.js",
   "scripts": {
     "dev-start": "node --watch SERVER.js",
-    "start": "node --watch restart.txt MAGPIE_SERVER.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node run_server.js"
   },
   "keywords": [],
   "author": "",

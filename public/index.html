@@ -13,18 +13,22 @@
     <body style="background-color: black;">
         <nav id="nav-breadcrumbs">
             <span id="nav-buttons">
-                <button onclick="router.go('home')" class="nav-button">HOME</button>
-                <button onclick="router.go('test')" class="nav-button">TEST</button>
-                <button onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
-                <button onclick="router.go('login')" class="nav-button">LOGIN</button>
+                <button id="nav-buttom-home" onclick="router.go('home')" class="nav-button">HOME</button>
+                <!-- <button id="nav-button-test" onclick="router.go('test')" class="nav-button">TEST</button> -->
+                <button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
+                <button id="nav-button-login" onclick="router.go('login')" class="nav-button">LOGIN</button>
+                <button id="nav-button-account" onclick="router.request('account')" class="nav-button" style="display: none;">ACCOUNT</button>
             </span>
             <span id="nav-title" class="retro-counter">M.A.G.P.I.E.™ Shelder Evolution™</span>
         </nav>
         <nav id="view-crt" class="crt-scrollable" style="display: block;">
-            <!-- "crt-style" body -->
-             <section id="view-home" style="display: block;">
+            <!-- "crt-style" body | 'view-' sections -->
+            <main id="view-container">
                 <img src="SEtitle.png" alt="ShelderEvolution">
-             </section>
+            </main>
+            <template id="view-home" style="display: block;">
+            <img src="SEtitle.png" alt="ShelderEvolution">
+            </template>
         </nav>
         <nav id="nav-status">
             <span id="metadate" class="cli-status">Waiting for server...</span>

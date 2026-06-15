@@ -339,6 +339,8 @@ MAGPIE_SERVER.PUBLIC.loginLimiter = ratelimit.rateLimit({
 MAGPIE_SERVER.SOCKET.meta = {
   //
 };
+MAGPIE_SERVER.SOCKET.queue = [];
+
 io.use((socket, next) => {
   /**
    *

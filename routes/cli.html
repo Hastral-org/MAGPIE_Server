@@ -1,0 +1,23 @@
+<!-- public/cli/index.html version 0.32.0-->
+ <!DOCTYPE html>
+ <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>M.A.G.P.I.E. CLI | Command-Line Interface</title>
+        <link rel="stylesheet" href="../cli.css">
+    </head>
+    <body>
+        <div id="crt-screen">
+            <div id="terminal-output">
+                <!-- terminal lines will be injected here by cli.js -->
+            </div>
+            <div class="input-line">
+                <span class="prompt">USER@MAGPIE:></span>
+                <input type="text" id="cli-input" autofocus spellcheck="false" autocomplete="off">
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="cli.js"></script>
+    </body>
+ </html>

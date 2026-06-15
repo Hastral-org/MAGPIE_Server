@@ -13,6 +13,33 @@ const mailer = require("./email_api");
 const crypto = require("../src/services/crypto");
 // const { MAGPIE } = require("../core/index")
 const ePrefix = "[ACCOUNT HANDLER] ";
+const http = MAGPIE.KEY.HTTP;
+/**
+ * @name
+ * @desc
+ * @typedef {import("../src/player").playerID} playerID
+ * @typedef {import("../src/player").username} username
+ * @typedef {import("../src/services/crypto").email} email
+ * @typedef {import("../src/services/crypto").email_encrypted} email_encrypted
+ * @typedef {import("../src/services/crypto").email_hashed} email_hashed
+ * @typedef {import("../src/player").MAGPIE_PLAYER} MAGPIE_PLAYER
+ */
+//------------------------------------------------------------------------
+// #region > Utility
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {playerID} ID
+ * @param {email} email
+ * @param {username} username
+ * @returns {String}
+ */
+const printPlayer = function (ID, email, username) {
+  const handle = email ? email : username;
+  return `[PLAYER-${ID} | ${handle}] `;
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  * @name
  * @desc
@@ -86,20 +113,30 @@ account.register = async function (data, socket, server) {
     });
   }
 };
+/**
+ *
+ * @param {String} token
+ * @param {*} server
+ * @returns {Promise<MAGPIE_PLAYER>}
+ */
 account.processEmailConfirmation = async function (token, server) {
   try {
-    const decoded = jwt.verify(token, server.config.jwtSecret);
-    if (!decoded?.isRegistrationToken) throw new Error("Invalid token type");
-    const email = decoded?.email;
-    const emailHash = crypto.EmailSecurity.hashEmail(email);
-    const emailEncrypted = crypto.EmailSecurity.encryptEmail(email);
+    const db = server.DATABASE;
+    const decoded = server.JWT.verify(token, server.config.jwtSecret);
+    if (!decoded?.isRegistrationToken) return invalidToken();
+    const emailHash = crypto.EmailSecurity.hashEmail(decoded.email);
+    const emailEncrypted = crypto.EmailSecurity.encryptEmail(decoded.email);
     const newPlayer = {
       username: decoded.username,
       PASS: decoded.PASS,
       email_hash: emailHash,
       email_encrypted: emailEncrypted,
     };
-    const PLAYER = await server.DATABASE.createPlayer(newPlayer);
+    const existingPlayer = await db.getPlayerByEmail(decoded.email);
+    /** @type {MAGPIE_PLAYER} */
+    const PLAYER = !!existingPlayer
+      ? existingPlayer
+      : await db.createPlayer(newPlayer);
     return PLAYER;
   } catch (e) {
     server.error(ePrefix + e.message, e);
@@ -349,9 +386,39 @@ account.processPasswordReset = async function (token, newPassword, server) {
  *
  */
 //------------------------------------------------------------------------
+// #region > Helpers
+//------------------------------------------------------------------------
+const invalidToken = () => {
+  res.status(http.STATUS_401.code).send(`<h1>Invalid credentials</h1>
+    <p>Please, request a new email confirmation link.`);
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
 // #region > Socket
 //------------------------------------------------------------------------
 module.exports.account = function (io, socket, server) {
+  socket.on("PROBE_USERNAME", async (data) => {
+    const now = Date.now();
+    /**
+     * @audit @desc [C.L.I.E.N.T.](../src/cli/client.js)
+     * */
+    const cooldown = 1000;
+    const lastProbe = socket.data?.lastProbe || 0;
+    if (now - lastProbe < cooldown)
+      return socket.emit("PROBE_USERNAME_ERROR", {
+        message: "Please, wait...",
+      });
+    socket.data.lastProbe = now;
+    const isAvailableUsername = server.DATABASE.isUsernameAvailable(
+      data?.username,
+    );
+  });
   socket.on("REGISTER", async (data) => {
     await account.register(data, socket, server);
   });
@@ -388,19 +455,50 @@ module.exports.routes = function (app, server) {
     const level = "[POST /login] ";
     try {
       const { email, pass } = req.body;
-      if (!email || !pass) return res.status(MAGPIE.KEY.HTTP.STATUS_401.code);
+      if (!email || !pass) throw new Error("Invalid credentials");
       const { token } = await account.verifyCredentials(email, pass, server);
       server.log(
         ePrefix + level + " login passed. ",
         "console",
-        MAGPIE.config.devMode,
+        MAGPIE.KEY.SERVER.IS_DEV,
       );
-      return res.status(MAGPIE.KEY.HTTP.STATUS_200.code).json({ token });
+      return res.status(http.STATUS_200.code).json({ token });
     } catch (e) {
-      server.error(ePrefix + level + e.message, e);
+      const status = e.message?.includes("Invalid credentials")
+        ? http.STATUS_401.code
+        : e.message?.includes("Account is frozen")
+          ? http.STATUS_403.code
+          : http.STATUS_500.code;
+      if (status === 500) server.error(ePrefix + e.message, e);
+      return res.status(status);
     }
   });
-  app.get("");
+  app.get("/verify-email", async (req, res) => {
+    /** @audit @desc email confirmation */
+    const level = "[GET /verify-email] ";
+    try {
+      const { token } = req.query;
+      if (!token) return invalidToken();
+      const PLAYER = await account.processEmailConfirmation(token, server);
+      const handle = printPlayer(PLAYER.ID, null, PLAYER.username);
+      if (!PLAYER?.ID) throw new Error(`${handle} is invalid `);
+      server.log(
+        ePrefix + level + `${handle}registered.`,
+        "console",
+        MAGPIE.KEY.SERVER.IS_DEV,
+      );
+      const successMessage = `<h1>Success!</h1>
+        <p>Your account has been activated.</p>
+        <p>You may now close this window.</p>`;
+      res.status(http.STATUS_200.code).send(successMessage);
+      return PLAYER;
+    } catch (e) {
+      server.error(ePrefix + level + e.message, e);
+      res
+        .status(http.STATUS_500.code)
+        .send(MAGPIE.KEY.SERVER.MESSAGE.INTERNAL_ERROR);
+    }
+  });
 };
 // #endregion
 //------------------------------------------------------------------------

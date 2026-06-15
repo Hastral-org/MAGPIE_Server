@@ -6,6 +6,8 @@ ssh-key.*
 ./run_server.ps1
 *.sql
 
+.vscode/
+
 # admin 
 .admin/
 scratchpad.js
