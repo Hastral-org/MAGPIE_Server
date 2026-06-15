@@ -152,7 +152,9 @@ MAGPIE_SERVER.perf = {
 /**
  * @name
  * @desc
- *
+ * @typedef {import("./src/index").urgency} urgency
+ * @typedef {import("./src/index").gravity} gravity
+ * @typedef {import("./src/index").ambiguity} ambiguity
  */
 //========================================================================
 // #region - SERVER
@@ -319,6 +321,85 @@ MAGPIE_SERVER.PUBLIC.loginLimiter = ratelimit.rateLimit({
 /**
  * @name
  * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Inbox
+//------------------------------------------------------------------------
+MAGPIE_SERVER.INBOX = {};
+MAGPIE_SERVER.INBOX.handles = {
+  runtime: 0,
+  hive: 1,
+  account: 2,
+  ux: 3,
+  message: 4,
+  log: 5,
+};
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.runtime = new Map();
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.hive = new Map();
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.account = new Map();
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.ux = new Map();
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.message = new Map();
+/** @type {Map<ticketID, MAGPIE_TICKET>} */
+MAGPIE_SERVER.INBOX.log = new Map();
+/**
+ * @typedef {import("socket.io").Event} socketEvent
+ * @typedef {import("./src/component").ticket_payload} ticket_payload
+ * @typedef {import("./src/component").ticket_data} ticket_data
+ * @typedef {import("./src/component").ticketID} ticketID
+ *
+ * @param {socket} socket
+ * @param {socketEvent} event
+ * @param {Number} queue
+ */
+MAGPIE_SERVER.INBOX.route = function routeSocketEvent(socket, event) {
+  const ePrefix = "[INBOX] ";
+  try {
+    if (!event || typeof event !== "object")
+      throw new Error(`${event} is invalid socketEvent. `);
+    const handle = event[1]?.handle;
+    /** @type {Map<ticketID, MAGPIE_TICKET>} */
+    const queue = MAGPIE_SERVER.INBOX[handle];
+    if (!queue || Object.prototype.toString.call(queue) !== "[Object map]")
+      throw new Error(`${handle} is invalid INBOX handle. `);
+    /** @type {ticket_data} */
+    const ticket_data = {
+      event: socketEvent[0],
+      payload: socketEvent[1],
+      arguments: socketEvent.slice(2),
+      urgency: Number(event?.urgency),
+      gravity: Number(event?.gravity),
+      ambiguity: Number(event?.ambiguity),
+    };
+    const ticket = new MAGPIE_TICKET(ticket_data);
+    queue.set(ticket.ID, ticket);
+    MAGPIE_SERVER.log(ePrefix + `[SOCKET-${socket.id}]: ${event[0]}`);
+  } catch {
+    MAGPIE_SERVER.error(ePrefix + e.message, e);
+  }
+};
+/**
+ * @typedef {import("./src/component").MAGPIE_TICKET} MAGPIE_TICKET
+ * @param {MAGPIE_TICKET} ticket
+ * @param {Number} queue
+ */
+MAGPIE_SERVER.INBOX.assign = function assignTicket(ticket, queue) {
+  const ePrefix = "[INBOX] ";
+  try {
+  } catch {
+    MAGPIE_SERVER.error(ePrefix + e.message, e);
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
  * @typedef {import("socket.io").Socket} socket
  * @typedef {String} socketID
  * @typedef {String} jwt_token
@@ -339,8 +420,6 @@ MAGPIE_SERVER.PUBLIC.loginLimiter = ratelimit.rateLimit({
 MAGPIE_SERVER.SOCKET.meta = {
   //
 };
-MAGPIE_SERVER.SOCKET.queue = [];
-
 io.use((socket, next) => {
   /**
    *
@@ -391,6 +470,24 @@ io.on("connection", (socket) => {
   Object.values(MAGPIE_SERVER.handlers).forEach((handler) => {
     if (typeof handler === "function") handler(io, socket, MAGPIE_SERVER);
   });
+  socket.on(MAGPIE.KEY.SERVER.EVENT_REQUEST, (event) => {
+    try {
+      if (!event) throw new Error(`${event} is invalid socketEvent. `);
+      /** @type {MAGPIE_TICKET} */
+      const ticket = MAGPIE_SERVER.INBOX.route(socket, event);
+      /** @type {ticket_payload} */
+      const ticket_payload = {
+        code: MAGPIE.KEY.HTTP.STATUS_200.code,
+        event: "REQUEST_ERROR",
+        handleID: MAGPIE_SERVER.INBOX.handles.log,
+        message: `[TICKET-${ticket?.ID}] queued. `,
+      };
+      socket.emit(MAGPIE.KEY.SERVER.EVENT_RESPONSE, ticket_payload);
+    } catch {
+      MAGPIE_SERVER.error(ePrefix + e.message, e);
+    }
+  });
+  socket.on(MAGPIE.KEY.SERVER.EVENT_RESPONSE, (event) => {});
   socket.on("disconnect", (reason) => {
     if (playerID !== 0)
       MAGPIE_SERVER.log(

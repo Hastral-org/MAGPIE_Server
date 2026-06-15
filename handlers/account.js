@@ -402,6 +402,12 @@ const invalidToken = () => {
 //------------------------------------------------------------------------
 // #region > Socket
 //------------------------------------------------------------------------
+/**
+ *
+ * @param {import("socket.io").Server} io
+ * @param {import("socket.io").Socket} socket
+ * @param {import("../SERVER").MAGPIE_SERVER} server
+ */
 module.exports.account = function (io, socket, server) {
   socket.on("PROBE_USERNAME", async (data) => {
     const now = Date.now();
@@ -412,12 +418,24 @@ module.exports.account = function (io, socket, server) {
     const lastProbe = socket.data?.lastProbe || 0;
     if (now - lastProbe < cooldown)
       return socket.emit("PROBE_USERNAME_ERROR", {
+        code: MAGPIE.KEY.HTTP.STATUS_403.code,
         message: "Please, wait...",
       });
     socket.data.lastProbe = now;
     const isAvailableUsername = server.DATABASE.isUsernameAvailable(
       data?.username,
     );
+    const not = isAvailableUsername ? " " : " not ";
+    const message = ePrefix + `[USERNAME-${data.username}] is${not}available. `;
+    if (isAvailableUsername)
+      return socket.emit("PROBE_USERNAME_AVAILABLE", {
+        code: MAGPIE.KEY.HTTP.STATUS_200.code,
+        message: message,
+      });
+    return socket.emit("PROBE_USERNAME_UNAVAILABLE", {
+      code: MAGPIE.KEY.HTTP.STATUS_409.code,
+      message: message,
+    });
   });
   socket.on("REGISTER", async (data) => {
     await account.register(data, socket, server);

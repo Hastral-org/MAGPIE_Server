@@ -1,5 +1,7 @@
 /**
  * @name C.L.I.E.N.T.
+ * @version 0.39.8
+ * @todo [issue 101](https://github.com/Hastral-org/MAGPIE_Server/issues/101)
  * @desc client terminal
  * @desc connects to:
  * - [account](../../handlers/account.js)
@@ -14,7 +16,17 @@ const client = {};
  * @version 0.32.0
  *
  */
-const MAGPIE_CLI = {};
+class MAGPIE_CLI {
+  //
+}
+class MAGPIE {
+  //
+}
+MAGPIE_CLI.meta = {
+  name: "M.A.G.P.I.E. C.L.I.E.N.T",
+  desc: "",
+  version: "0.32.0",
+};
 /**
  *
  * @desc back to {@link }
@@ -23,13 +35,6 @@ const MAGPIE_CLI = {};
 //========================================================================
 // #endregion -
 //========================================================================
-
-MAGPIE_CLI.meta = {
-  name: "M.A.G.P.I.E. C.L.I.E.N.T",
-  desc: "",
-  version: "0.32.0",
-};
-const MAGPIE = {};
 /**
  * @name
  * @desc
@@ -142,6 +147,20 @@ function disconnectSocket() {
     console.log("[SYSTEM] Socket disconnected.");
   }
 }
+/**
+ * @todo @desc MAGPIE_SERVER.INBOX.handles
+ */
+MAGPIE_CLI.handles = {
+  0: "runtime",
+  1: "hive",
+  2: "account",
+  3: "ux",
+  4: "message",
+  5: "log",
+};
+/**
+ * @typedef {import("../src/component").ticket_payload} ticket_payload
+ */
 function initSocket() {
   disconnectSocket();
   const token = localStorage.getItem("jwt_token");
@@ -157,8 +176,42 @@ function initSocket() {
     console.log(message);
     await printLine(message);
   });
+  // MAGPIE_CLI.socket.on(MAGPIE.KEY.SERVER.EVENT_REQUEST, async (data) => {
+  //   //@todo cli socket.on event request
+  //   const ePrefix = "[SOCKET REQUEST] ";
+  //   try {
+
+  //   } catch (e) {
+  //     printLine(ePrefix + e.message, "error");
+  //   }
+  // });
+  // MAGPIE_CLI.socket.on(MAGPIE.KEY.SERVER.EVENT_RESPONSE, async (data) => {
+  //   //@todo cli socket.on event response
+  //   const ePrefix = "[SOCKET RESPONSE] ";
+  //   /** @type {ticket_payload} */
+  //   const ticket_payload = data;
+  //   try {
+  //     if (!ticket_payload)
+  //       throw new Error(`${ticket_payload} is invalid ticket_payload. `);
+  //     const code = Number(ticket_payload?.code);
+  //     if (!code) throw new Error(`${code} is invalid HTTP code. `);
+  //     const handleID = Number(ticket_payload?.handleID);
+  //     if (!handleID) throw new Error(`${handleID} is invalid handleID. `);
+  //     const event = String(ticket_payload?.event);
+  //     if (!event) throw new Error(`${event} is invalid socketEvent. `);
+  //     MAGPIE_CLI.triggerEvent(ticket_payload);
+  //   } catch (e) {
+  //     console.error(ePrefix + message + e.message, e);
+  //   }
+  // });
   MAGPIE_CLI.socket.on("PROBE_USERNAME_ERROR", async (data) => {
-    //@todo probe username error
+    await MAGPIE_CLI.events.PROBE_USERNAME_ERROR(data);
+  });
+  MAGPIE_CLI.socket.on("PROBE_USERNAME_AVAILABLE", async (data) => {
+    await MAGPIE_CLI.events.PROBE_USERNAME_AVAILABLE(data);
+  });
+  MAGPIE_CLI.socket.on("PROBE_USERNAME_UNAVAILABLE", async (data) => {
+    await MAGPIE_CLI.events.PROBE_USERNAME_UNAVAILABLE(data);
   });
   MAGPIE_CLI.socket.on("REGISTER_SUCCESS", async (data) => {
     await printLine(
@@ -480,6 +533,14 @@ MAGPIE_CLI.modules.account = {
 //========================================================================
 // #region - EVENTS
 //========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > cliInput
+//------------------------------------------------------------------------
 cliInput.focus();
 cliInput.addEventListener("keydown", async (e) => {
   if (e.key === "Enter") {
@@ -496,6 +557,62 @@ cliInput.addEventListener("keydown", async (e) => {
     }
   }
 });
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Router
+//------------------------------------------------------------------------
+/**
+ * @audit deprecate
+ * @param {ticket_payload} payload
+ */
+MAGPIE_CLI.triggerEvent = async function triggerCliEvent(payload) {
+  const ePrefix = "[CLI ROUTER] ";
+  try {
+    const event = MAGPIE_CLI.events[payload.event];
+    if (!event || typeof event !== "function")
+      throw new Error(`${payload.event} is invalid CLI_event. `);
+    event(payload);
+  } catch (e) {
+    printLine(ePrefix + e.message, "error");
+  }
+};
+/**
+ * @todo MAGPIE_CLI.events
+ */
+MAGPIE_CLI.events = {
+  /**
+   * @todo @desc username probe error event -- edit line with 403
+   * then => await resetStep("Please, wait...")
+   * @param {ticket_payload} payload
+   */
+  PROBE_USERNAME_ERROR: async (payload) => {
+    //
+  },
+  /**
+   * @todo @desc username available event -- edit line with 200
+   * then => nextStep("username confirmed")
+   * @param {ticket_payload} payload
+   */
+  PROBE_USERNAME_AVAILABLE: async (payload) => {
+    //
+  },
+  /**
+   * @todo @desc username unavailable event -- edit line with 409
+   * then => resetStep("try another username")
+   * @param {ticket_payload} payload
+   */
+  PROBE_USERNAME_UNAVAILABLE: async (payload) => {
+    //
+  },
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  *
  * @desc back to {@link }

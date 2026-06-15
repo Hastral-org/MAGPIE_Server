@@ -754,6 +754,10 @@ MAGPIE.KEY.SERVER.NO_REPLY = `noreply@${MAGPIE.KEY.SERVER.DOMAIN_STRIPPED}`;
 MAGPIE.KEY.SERVER.GRACE_TIMER_DISCONNECTION = 10_000;
 /** @desc development mode: debugging, testing, placeholders... */
 MAGPIE.KEY.SERVER.IS_DEV = !!MAGPIE.config.devMode && !MAGPIE.config.production;
+/** @desc socketEvent name for socket.on() */
+MAGPIE.KEY.SERVER.EVENT_REQUEST = "REQUEST";
+/** @desc socketEvent name for socket.emit() */
+MAGPIE.KEY.SERVER.EVENT_RESPONSE = "RESPONSE";
 /**
  * @desc server preset messages
  *
