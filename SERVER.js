@@ -195,7 +195,7 @@ MAGPIE_SERVER.log = function serverLog(message, prefix, logToConsole) {
  */
 MAGPIE_SERVER.sysLog = function systemLog(message, prefix, error = null) {
   MAGPIE_SYSTEM.sysLog(message, prefix, error);
-  r.displayPrompt(true);
+  r?.displayPrompt(true);
 };
 /**
  *
@@ -260,14 +260,21 @@ MAGPIE_SERVER.SYSTEM = {};
 //------------------------------------------------------------------------
 // #region > Handlers
 //------------------------------------------------------------------------
-MAGPIE_SERVER.handlers = {};
-MAGPIE_SERVER.SYSTEM._handlersPath = process.cwd() + "\\handlers";
-fs.readdirSync(MAGPIE_SERVER.SYSTEM._handlersPath).forEach((file) => {
-  const filename = file.replace(".js", "");
-  const handler = require(`./handlers/${filename}`);
-  const handlerName = filename;
-  MAGPIE_SERVER.handlers[handlerName] = handler;
-});
+MAGPIE_SERVER.handlers = {
+  account_socket: require("./handlers/account").account.init,
+  client: require("./handlers/client"),
+  email_api: require("./handlers/email_api"),
+  entities: require("./handlers/entities"),
+  players: require("./handlers/players"),
+  session: require("./handlers/session"),
+};
+// MAGPIE_SERVER.SYSTEM._handlersPath = process.cwd() + "\\handlers";
+// fs.readdirSync(MAGPIE_SERVER.SYSTEM._handlersPath).forEach((file) => {
+//   const filename = file.replace(".js", "");
+//   const handler = require(`./handlers/${filename}`);
+//   const handlerName = filename;
+//   MAGPIE_SERVER.handlers[handlerName] = handler;
+// });
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -305,6 +312,12 @@ app.use(express.static(static));
 console.log(static);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const accountRouter = require("./handlers/account").router;
+app.use((req, res, next) => {
+  req.server = MAGPIE_SERVER;
+  next();
+});
+app.use("/account", accountRouter);
 /**
  *
  *
@@ -346,6 +359,7 @@ MAGPIE_SERVER.PUBLIC.registerLimit = ratelimit.rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -504,9 +518,11 @@ io.on("connection", (socket) => {
     }
     next();
   });
-  Object.values(MAGPIE_SERVER.handlers).forEach((handler) => {
-    if (typeof handler === "function") handler(io, socket, MAGPIE_SERVER);
-  });
+  MAGPIE_SERVER.handlers.account_socket(io, socket, MAGPIE_SERVER);
+  MAGPIE_SERVER.handlers.client(io, socket, MAGPIE_SERVER);
+  MAGPIE_SERVER.handlers.entities(io, socket, MAGPIE_SERVER);
+  MAGPIE_SERVER.handlers.players(io, socket, MAGPIE_SERVER);
+  MAGPIE_SERVER.handlers.session(io, socket, MAGPIE_SERVER);
   socket.on(MAGPIE.KEY.SERVER.EVENT_REQUEST, (event) => {
     try {
       if (!event) throw new Error(`${event} is invalid socketEvent. `);
@@ -547,6 +563,17 @@ MAGPIE_SERVER.SOCKET.auth_dev = function auth_dev(socketID) {
     "[AUTH] [DEV] Dev-mode active. bypassing JWT for " + `[SOCKET-${socketID}]`,
   );
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Routes
+//------------------------------------------------------------------------
+
 // #endregion
 //------------------------------------------------------------------------
 /**

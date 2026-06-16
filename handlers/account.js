@@ -6,6 +6,8 @@
  * @typedef {import("socket.io").Socket} Socket
  */
 const account = {};
+const express = require("express");
+const router = express.Router();
 const { MAGPIE } = require("../src/index");
 const jwt = require("jsonwebtoken");
 const mailer = require("./email_api");
@@ -436,7 +438,8 @@ const invalidToken = () => {
  * @param {import("socket.io").Socket} socket
  * @param {import("../SERVER").MAGPIE_SERVER} server
  */
-module.exports.account = function (io, socket, server) {
+account.init = function (io, socket, server) {
+  console.log(ePrefix + "initialized. ");
   socket.on("PROBE_USERNAME", async (data) => {
     const now = Date.now();
     /**
@@ -491,93 +494,96 @@ module.exports.account = function (io, socket, server) {
 //------------------------------------------------------------------------
 // #region > Http
 //------------------------------------------------------------------------
+router.post("/login", async (req, res) => {
+  const level = "[POST /login] ";
+  try {
+    const { email, pass } = req.body;
+    if (!email || !pass) throw new Error("Invalid credentials");
+    const { token } = await account.verifyCredentials(email, pass, server);
+    server.log(
+      ePrefix + level + " login passed. ",
+      "console",
+      MAGPIE.KEY.SERVER.IS_DEV,
+    );
+    return res.status(http.STATUS_200.code).json({ token });
+  } catch (e) {
+    const status = e.message?.includes("Invalid credentials")
+      ? http.STATUS_401.code
+      : e.message?.includes("Account is frozen")
+        ? http.STATUS_403.code
+        : http.STATUS_500.code;
+    if (status === 500) server.error(ePrefix + e.message, e);
+    return res.status(status);
+  }
+});
 /**
- * @audit-issue
- * @param {import("express").Express} app
- * @param {import("../SERVER").MAGPIE_SERVER} server
- */
-module.exports.routes = function (app, server) {
-  app.post("/login", server?.PUBLIC?.loginLimiter, async (req, res) => {
-    const level = "[POST /login] ";
-    try {
-      const { email, pass } = req.body;
-      if (!email || !pass) throw new Error("Invalid credentials");
-      const { token } = await account.verifyCredentials(email, pass, server);
-      server.log(
-        ePrefix + level + " login passed. ",
-        "console",
-        MAGPIE.KEY.SERVER.IS_DEV,
-      );
-      return res.status(http.STATUS_200.code).json({ token });
-    } catch (e) {
-      const status = e.message?.includes("Invalid credentials")
-        ? http.STATUS_401.code
-        : e.message?.includes("Account is frozen")
-          ? http.STATUS_403.code
-          : http.STATUS_500.code;
-      if (status === 500) server.error(ePrefix + e.message, e);
-      return res.status(status);
+ * @todo server.public.registerLimiter
+ * @desc
+ * */
+router.post("/register", async (req, res) => {
+  const level = "[POST /register] ";
+  const server = req.server;
+  try {
+    const { email, username, password } = req.body;
+    console.log(
+      ePrefix + level + `initiating registration for [PLAYER-${username}]`,
+    );
+    if (!email || !username || !password) {
+      res.status(http.STATUS_401);
+      throw new Error("Invalid credentials");
     }
-  });
-  /**
-   * @todo server.public.registerLimiter
-   * @desc
-   * */
-  app.post("/register", server.PUBLIC.registerLimiter, async (req, res) => {
-    const level = "[POST /register] ";
-    try {
-      const { email, username, password } = req.body;
-      if (!email || !username || !password) {
-        res.status(http.STATUS_401);
-        throw new Error("Invalid credentials");
-      }
-      const { player, token, sent } = account.register(
-        { email, username, password },
-        server,
-      );
-      if (!token || token === "") {
-        res.status(http.STATUS_401);
-        throw new Error(`${token} is invalid token. `);
-      }
-      const success = "registration successful. ";
-      server.sysLog(ePrefix + level + success, "server");
-      return res.status(http.STATUS_200.code).json({ message: success, token });
-    } catch (e) {
-      server.sysLog(ePrefix + level + e.message, "error", e);
+    const { player, token, sent } = account.register(
+      { email, username, password },
+      server,
+    );
+    if (!token || token === "") {
+      res.status(http.STATUS_401);
+      throw new Error(`${token} is invalid token. `);
     }
-  });
-  /** {@link account.register} */
-  app.get("/verify-email", async (req, res) => {
-    /** @audit @desc email confirmation */
-    const level = "[GET /verify-email] ";
-    try {
-      res.setHeader(
-        MAGPIE.KEY.SERVER.CSP.name,
-        `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
-      );
-      const { token } = req.query;
-      if (!token) return invalidToken();
-      const PLAYER = await account.processEmailConfirmation(token, server);
-      const handle = printPlayer(PLAYER.ID, null, PLAYER.username);
-      if (!PLAYER?.ID) throw new Error(`${handle} is invalid `);
-      server.log(
-        ePrefix + level + `${handle}registered.`,
-        "console",
-        MAGPIE.KEY.SERVER.IS_DEV,
-      );
-      const successMessage = `<h1>Success!</h1>
-        <p>Your account has been activated.</p>
-        <p>You may now close this window.</p>`;
-      res.status(http.STATUS_200.code).send(successMessage);
-      return PLAYER;
-    } catch (e) {
-      server.error(ePrefix + level + e.message, e);
-      res
-        .status(http.STATUS_500.code)
-        .send(MAGPIE.KEY.SERVER.MESSAGE.INTERNAL_ERROR);
-    }
-  });
-};
+    const success = "registration successful. ";
+    server.sysLog(ePrefix + level + success, "server");
+    return res.status(http.STATUS_200.code).json({ message: success, token });
+  } catch (e) {
+    server.sysLog(ePrefix + level + e.message, "error", e);
+  }
+});
+/** {@link account.register} */
+router.get("/verify-email", async (req, res) => {
+  /** @audit @desc email confirmation */
+  const level = "[GET /verify-email] ";
+  const server = req.server;
+  try {
+    res.setHeader(
+      MAGPIE.KEY.SERVER.CSP.name,
+      `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
+    );
+    const { token } = req.query;
+    if (!token) return invalidToken();
+    const PLAYER = await account.processEmailConfirmation(token, server);
+    const handle = printPlayer(PLAYER.ID, null, PLAYER.username);
+    if (!PLAYER?.ID) throw new Error(`${handle} is invalid `);
+    server.log(
+      ePrefix + level + `${handle}registered.`,
+      "console",
+      MAGPIE.KEY.SERVER.IS_DEV,
+    );
+    const successMessage = `<h1>Success!</h1>
+      <p>Your account has been activated.</p>
+      <p>You may now close this window.</p>`;
+    res.status(http.STATUS_200.code).send(successMessage);
+    return PLAYER;
+  } catch (e) {
+    server.error(ePrefix + level + e.message, e);
+    res
+      .status(http.STATUS_500.code)
+      .send(MAGPIE.KEY.SERVER.MESSAGE.INTERNAL_ERROR);
+  }
+});
+router.get("/test", (req, res) => {
+  const server = req.server;
+  res.send("hello");
+  server.log(ePrefix + "hello");
+});
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -596,3 +602,4 @@ module.exports.routes = function (app, server) {
 //========================================================================
 // END OF FILE
 //========================================================================
+module.exports = { account, router };

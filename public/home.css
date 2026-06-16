@@ -386,6 +386,7 @@ body {
 .cli-status {
     color: var(--crt-green);
     font-family: var(--crt-font-main);
+    padding-left: 15px;
 }
 
 /* #endregion */
