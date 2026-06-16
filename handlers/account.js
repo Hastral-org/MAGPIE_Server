@@ -1,7 +1,7 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.36.0
+ * @version 0.39.91
  *
  * @typedef {import("socket.io").Socket} Socket
  */
@@ -23,6 +23,7 @@ const http = MAGPIE.KEY.HTTP;
  * @typedef {import("../src/services/crypto").email_encrypted} email_encrypted
  * @typedef {import("../src/services/crypto").email_hashed} email_hashed
  * @typedef {import("../src/player").MAGPIE_PLAYER} MAGPIE_PLAYER
+ * @typedef {import("../src/database").MAGPIE_DATABASE} MAGPIE_DATABASE
  */
 //------------------------------------------------------------------------
 // #region > Utility
@@ -84,27 +85,22 @@ account.register = async function (data, socket, server) {
   try {
     if (!data) throw new Error("Invalid socket registration data");
     const { username, password, email } = data;
+
     // const storedHash = await hashPassword(passwordHash);
     const securedPassword = await hashPassword(password);
-    const pendingRegistrationToken = jwt.sign(
+    const token = jwt.sign(
       {
         username,
-        PASS: securedPassword,
-        email,
         isRegistrationToken: true,
       },
       server.config.jwtSecret,
       { expiresIn: server.config.jwtExpire },
     );
-    try {
-      server.log(
-        `[USER-${data.email} | ${data.username}] requested a register link`,
-      );
-      await mailer.sendConfirmation(email, pendingRegistrationToken);
-    } catch (e) {
-      server.error(ePrefix + "Mail delivery failed: " + e.message, e);
+    const player = await account.reserveRegistration(token, server);
+    server.log(`[USER-${username}] requested a registration link`);
+    const sent = await mailer.sendConfirmation(email, token);
+    if (!sent || !sent?.accepted)
       throw new Error("Could not deliver verification email.");
-    }
     socket.emit("REGISTER_AWAITING_VERIFICATION", { email });
   } catch (e) {
     server.error(ePrefix + e.message, e);
@@ -119,8 +115,9 @@ account.register = async function (data, socket, server) {
  * @param {*} server
  * @returns {Promise<MAGPIE_PLAYER>}
  */
-account.processEmailConfirmation = async function (token, server) {
+account.reserveRegistration = async function (token, server) {
   try {
+    /** @type {MAGPIE_DATABASE} */
     const db = server.DATABASE;
     const decoded = server.JWT.verify(token, server.config.jwtSecret);
     if (!decoded?.isRegistrationToken) return invalidToken();
@@ -131,6 +128,7 @@ account.processEmailConfirmation = async function (token, server) {
       PASS: decoded.PASS,
       email_hash: emailHash,
       email_encrypted: emailEncrypted,
+      isFrozen: true,
     };
     const existingPlayer = await db.getPlayerByEmail(decoded.email);
     /** @type {MAGPIE_PLAYER} */
@@ -139,6 +137,26 @@ account.processEmailConfirmation = async function (token, server) {
       : await db.createPlayer(newPlayer);
     return PLAYER;
   } catch (e) {
+    server.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
+ * @param {String} token
+ * @param {*} server
+ * @returns
+ */
+account.processEmailConfirmation = async function (token, server) {
+  try {
+    const db = server.DATABASE;
+    const decoded = server.JWT.verify(token, server.config.jwtSecret);
+    if (!decoded?.isRegistrationToken) return invalidToken();
+    const username = decoded?.username;
+    const player = await db.getPlayerByUsername(username);
+    if (!player) throw new Error(`unable to fetch [PLAYER-${username}]`);
+    player.isFrozen = false;
+    return player;
+  } catch {
     server.error(ePrefix + e.message, e);
   }
 };
@@ -491,10 +509,39 @@ module.exports.routes = function (app, server) {
       return res.status(status);
     }
   });
+  app.post("/register", server.public.registerLimiter, async (req, res) => {
+    const level = "[POST /register] ";
+    try {
+      const { email, username, password } = req.body;
+      if (!email || !username || !password) {
+        res.status(http.STATUS_401);
+        throw new Error("Invalid credentials");
+      }
+      const { player, token } = await account.verifyCredentials(
+        email,
+        password,
+        server,
+      );
+      if (!token || token === "") {
+        res.status(http.STATUS_401);
+        throw new Error(`${token} is invalid token. `);
+      }
+      const success = "registration successful. ";
+      server.sysLog(ePrefix + level + success, "server");
+      return res.status(http.STATUS_200.code).json({ message: success, token });
+    } catch (e) {
+      server.sysLog(ePrefix + level + e.message, "error", e);
+    }
+  });
+  /** {@link account.register} */
   app.get("/verify-email", async (req, res) => {
     /** @audit @desc email confirmation */
     const level = "[GET /verify-email] ";
     try {
+      res.setHeader(
+        MAGPIE.KEY.SERVER.CSP.name,
+        `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
+      );
       const { token } = req.query;
       if (!token) return invalidToken();
       const PLAYER = await account.processEmailConfirmation(token, server);

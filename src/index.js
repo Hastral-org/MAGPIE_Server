@@ -16,10 +16,19 @@
  * - repl
  * - cli-spinner
  * - cli-progress
+ * @desc primary files:
+ * - [SERVER.js](../SERVER.js)
+ * - [index.html](../public/index.html)
+ * - [account handler](../handlers/account.js)
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
  * @desc current
+ *
+ * @version 0.39.91 2026 06 16
+ * - FIXED: account.js /verify-email embeds sensitive data in token
+ * - FIXED: account.js account.register called via socket.emit
+ * - FIXED: intent of registration is to minimize db calls at the expense of security
  *
  * @version 0.39.9 2026 06 15
  * - TWEAKED: cli.js
@@ -505,9 +514,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 9],
+  version: [0, 39, 91],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260615",
+  firmwareDate: "20260616",
 };
 /**
  *
@@ -745,6 +754,9 @@ MAGPIE.KEY.SERVER.LOGIN_COOLDOWN = 15;
 MAGPIE.KEY.SERVER.DOMAIN_STRIPPED = MAGPIE.config.domain.slice(
   MAGPIE.config.domain.indexOf(":") + 3,
 );
+MAGPIE.KEY.SERVER.CSP = {
+  name: "Content-Security-Policy",
+};
 /**
  * @desc admin email route via
  * {@link [Cloudflare](https://dash.cloudflare.com/f9be63832257af6f7644accd541a4bca/shelderevolution.org/email/routing/routes)}

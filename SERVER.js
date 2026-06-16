@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.0
+ * @version 0.39.91
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -28,6 +28,7 @@ MAGPIE_SERVER.config = require("./config/server_config");
 const { timeEnd } = require("node:console");
 const express = require("express");
 const ratelimit = require("express-rate-limit");
+const http = require("node:http");
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 const { instrument } = require("@socket.io/admin-ui");
@@ -183,7 +184,17 @@ MAGPIE_SERVER.SESSION = {};
  * @param {Boolean} logToConsole
  */
 MAGPIE_SERVER.log = function serverLog(message, prefix, logToConsole) {
-  MAGPIE_SYSTEM.log.call(this, message, prefix, logToConsole);
+  MAGPIE_SYSTEM.log(message, prefix, logToConsole);
+  r.displayPrompt(true);
+};
+/**
+ *
+ * @param {String} message
+ * @param {String} prefix
+ * @param {Error} error
+ */
+MAGPIE_SERVER.sysLog = function systemLog(message, prefix, error = null) {
+  MAGPIE_SYSTEM.sysLog(message, prefix, error);
   r.displayPrompt(true);
 };
 /**
@@ -300,7 +311,7 @@ app.use(express.urlencoded({ extended: true }));
 MAGPIE_SERVER.PUBLIC = {};
 MAGPIE_SERVER.PUBLIC.loginLimiter = ratelimit.rateLimit({
   windowMs: MAGPIE.KEY.SERVER.LOGIN_COOLDOWN * 60 * 1000,
-  max: MAGPIE.KEY.SERVER.LOGIN_COOLDOWN * 60 * 1000,
+  max: MAGPIE.KEY.SERVER.LOGIN_MAX_ATTEMPTS,
   handler: (req, res, next, options) => {
     const code = MAGPIE.KEY.HTTP.STATUS_429.code;
     const resetTime = req.rateLimit.resetTime;
@@ -446,8 +457,15 @@ io.use((socket, next) => {
     next();
   } catch (e) {
     socket.data.playerID = 0;
-    MAGPIE_SERVER.SOCKET.auth_failed(socket.id, e.message);
-    next(new Error(`[${code}]: invalid token`));
+    const err = new Error(errorMessage);
+    const code = MAGPIE.KEY.HTTP.STATUS_401.code;
+    socket.emit("AUTH_EXPIRED", {
+      code: code,
+      message: errorMessage,
+    });
+    const message = `[AUTH - ${code}] [SOCKET-${socket.id}] ${err.message}. `;
+    MAGPIE_SERVER.silentLog(message, "console");
+    next(new Error(message));
   }
 });
 io.on("connection", (socket) => {
@@ -501,19 +519,6 @@ io.on("connection", (socket) => {
   });
 });
 MAGPIE_SERVER.status = {};
-/**
- *
- * @param {String} socketID
- * @param {String} errorMessage
- * @returns
- */
-MAGPIE_SERVER.SOCKET.auth_failed = function (socketID, errorMessage) {
-  const err = new Error(errorMessage);
-  return MAGPIE_SERVER.error(
-    `[AUTH] [FAIL] [SOCKET-${socketID}] ` + `invalid: ${err.message}`,
-    err,
-  );
-};
 /**
  *
  * @param {String} socketID

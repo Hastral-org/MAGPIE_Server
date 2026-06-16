@@ -40,6 +40,8 @@
     - [CLI-progress](#cli-progress)
     - [CLI-spinner](#cli-spinner)
   - [Lore](#lore)
+  - [Prototype 0.40.0](#prototype-0400)
+    - [Plan](#plan)
 
 [Back to Top ⤴️](#top)
 
@@ -382,6 +384,18 @@ Once the planet is colonized and the first scientific study programs are launche
 Thus, a rivalry forms between the majority of the digital minds (the pro-tech/anti-AI faction), the pro-AI minority alongside the drones, and the naturalist minority (anti-tech/anti-AI). This trilateral rivalry will be the fulcrum of all the main conflicts of the saga, also extending to the local fauna, thanks to a 'small oversight' involving the 'accidental' implementation of a technological perk designed to help monitor the fauna—a runaway process that grants 'intelligence' to the test subjects and gives life to a fourth faction: the 'chips', or intelligent fauna.
 
 [Back to Top ⤴️](#top)
+
+---
+
+## Prototype 0.40.0
+
+### Plan
+
+[Prototype plan](./.private/docs/prototype_0_40_0_plan.md)
+
+[Structural analysis](./.private/docs/blueprint/STRUCTURAL_ANALYSIS.md)
+
+[Progress](./.private/.progress.md)
 
 ---
 

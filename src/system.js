@@ -363,6 +363,18 @@ MAGPIE_SYSTEM.log = function systemLog(message, prefix = "console", logToConsole
 		MAGPIE_IO.workerAppend(filename, timestamp, level, log)
 	}
 }
+/**
+ * 
+ * @param {String} message 
+ * @param {String} prefix 
+ * @param {Error} error 
+ */
+MAGPIE_SYSTEM.sysLog = function systemLog(message, prefix, error = null) {
+	MAGPIE_SYSTEM.log(message, prefix, !error)
+	if(error) {
+		MAGPIE_SYSTEM.error(message, error)
+	}
+}
 MAGPIE_SYSTEM.silentLog = function systemSilentLog(message, prefix)
 {
 	MAGPIE_LOG.pushConsole(message)
