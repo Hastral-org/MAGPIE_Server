@@ -2034,6 +2034,8 @@ fs.watchFile(MAGPIE_SERVER.PAD.file, { interval: 1000 }, (curr, prev) => {
     MAGPIE_SERVER.PAD.load("scratchpad.js");
   }
 });
+// global.SERVER = MAGPIE_SERVER;
+// global.r = r;
 // #endregion
 //------------------------------------------------------------------------
 /**
