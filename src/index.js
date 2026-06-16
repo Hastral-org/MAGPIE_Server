@@ -25,10 +25,12 @@
  *
  * @desc current
  *
- * @version 0.39.91 2026 06 16
+ * @version 0.39.92 2026 06 16
  * - FIXED: account.js /verify-email embeds sensitive data in token
  * - FIXED: account.js account.register called via socket.emit
  * - FIXED: intent of registration is to minimize db calls at the expense of security
+ * - FIXED: main.socket not working due to obsolete code
+ * - FIXED: main.monitor not working due to obsolete code
  *
  * @version 0.39.9 2026 06 15
  * - TWEAKED: cli.js
@@ -514,7 +516,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 91],
+  version: [0, 39, 92],
   firmwareName: "MAGPIE",
   firmwareDate: "20260616",
 };

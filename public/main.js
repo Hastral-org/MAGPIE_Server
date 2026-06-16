@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Client
  * @author Matheraptor
  * @licence GPL-3.0
- * @version 0.39.0
+ * @version 0.39.92
  *
  */
 class MAGPIE_CLIENT {
@@ -11,13 +11,18 @@ class MAGPIE_CLIENT {
 MAGPIE_CLIENT.meta = {
   name: "M.A.G.P.I.E. WebClient",
   desc: "",
-  version: [0, 39, 0],
+  version: [0, 39, 92],
   firmwareName: "MAGPIE_Client",
-  firmwareDate: "20260611",
+  firmwareDate: "20260616",
 };
 MAGPIE_CLIENT.params = new URLSearchParams(window.location.search);
 MAGPIE_CLIENT.pathParts = window.location.pathname.split("/");
 MAGPIE_CLIENT.secure_socket = window.location.href.includes("https");
+MAGPIE_CLIENT.elements = {
+  monitor: {
+    status: "monitor-status",
+  },
+};
 /**
  * @static
  */
@@ -36,7 +41,7 @@ class router {
  *
  */
 //========================================================================
-// #region - SOCKET
+// #region - Socket
 //========================================================================
 /** @type {import("socket.io-client").Socket} */
 const socket = io(window.location.origin, {
@@ -65,12 +70,22 @@ socket.on("connect", () => {
   );
   const entityID = MAGPIE_CLIENT.params.get("entityID");
   if (entityID) {
-    const target = document.getElementById("targetID");
-    if (target) target.value = entityID;
-    MAGPIE_CLIENT.MONITOR.currentID = Number(entityID);
+    const entity = document.getElementById("entityID");
+    if (entity) entity.value = entityID;
     router.go("monitor");
+    MAGPIE_MONITOR.subscribe(entityID);
   }
 });
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Metastate
+//------------------------------------------------------------------------
 socket.on("metastate", (data) => {
   // Update your HTML elements
   const pad = (num, length = 2) => {
@@ -100,7 +115,10 @@ socket.on("metastate", (data) => {
 // #region > Entity upd
 //------------------------------------------------------------------------
 socket.on("entity_update", (data) => {
-  MAGPIE_CLIENT.inspector.handleUpdate(data);
+  MAGPIE_MONITOR.handleUpdate(data);
+});
+socket.on("subscribed_entity", (entityID) => {
+  MAGPIE_MONITOR.handleSubscription(entityID);
 });
 // #endregion
 //------------------------------------------------------------------------
@@ -118,13 +136,118 @@ socket.on("entity_update", (data) => {
  *
  */
 //========================================================================
-// #region - MONITOR
+// #region - Monitor
 //========================================================================
 MAGPIE_MONITOR.meta = {
   name: MAGPIE_CLIENT.meta.name + " monitor",
   desc: "",
   firmwareName: "MAGPIE_MONITOR",
 };
+//------------------------------------------------------------------------
+//#region > subscribe
+//------------------------------------------------------------------------
+MAGPIE_MONITOR.currentID = null;
+MAGPIE_MONITOR.MESSAGE = {};
+MAGPIE_MONITOR.MESSAGE.STATUS = {
+  off: "[OFF]",
+  error: "[ERROR]",
+  pending: "[SUBSCRIBING...]",
+  on: "[ON-LISTENING...]",
+  live: "[ON-FEEDING...]",
+};
+/**
+ *
+ * @param {Number} entityID
+ */
+MAGPIE_MONITOR.subscribe = function monitorSubscribe(entityID) {
+  this.unsubscribe(); // Clear previous link first
+  socket.emit("subscribe_entity", entityID);
+  console.log(`[SOCKET] subscribing to [ENTITY-${entityID}]...`);
+  document.getElementById("monitor-status").innerText =
+    MAGPIE_MONITOR.MESSAGE.STATUS.pending;
+  this.currentID = entityID;
+};
+MAGPIE_MONITOR.unsubscribe = function () {
+  if (!this.currentID) return;
+  socket.emit("unsubscribe_entity", this.currentID);
+  this.currentID = null;
+  // Clear all spans instead of overwriting the whole div
+  document
+    .querySelectorAll("#physics-stream span")
+    .forEach((s) => (s.innerText = "---"));
+  document.getElementById("monitor-status").innerText =
+    MAGPIE_MONITOR.MESSAGE.STATUS.off;
+};
+MAGPIE_MONITOR.handleSubscription = function (entityID) {
+  update(
+    MAGPIE_CLIENT.elements.monitor.status,
+    MAGPIE_MONITOR.MESSAGE.STATUS.on,
+  );
+  console.log(`[SOCKET] subscribed to [ROOM-${entityID}]`);
+};
+//#endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Update
+//------------------------------------------------------------------------
+MAGPIE_MONITOR.handleUpdate = function (data) {
+  // if (data.entityID !== this.currentID) return;
+  // Helper function to safely update text without breaking selection
+  update("monitor-status", MAGPIE_MONITOR.MESSAGE.STATUS.live);
+  const C0_lat = data.coords[0]?.toFixed(10);
+  const C0_lon = data.coords[1]?.toFixed(10);
+  const Ct_lat = data.targetCoords[0]?.toFixed(10);
+  const Ct_lon = data.targetCoords[1]?.toFixed(10);
+  update("val-id", data.entityID);
+  update("val-name", data.entityName);
+  update("val-C0", `${C0_lat}, ${C0_lon}`);
+  // update('val-lat', data.coords[0].toFixed(10));
+  // update('val-lon', data.coords[1].toFixed(10));
+  update("val-asl", Math.floor(data.coords[2]));
+  update("val-Vmag", data.Vmag.toFixed(3));
+  update("val-knots", Math.floor(data.Vknots));
+  if (!isNaN(data?.Amag)) update("val-Amag", data.Amag?.toFixed(3));
+  update("val-Tmag", data.Tmag?.toFixed(3));
+  update("val-Rmag", data.Rmag.toFixed(3));
+  update("val-states", data.states);
+  if (data?.dR_mag && !isNaN(data.dR_mag))
+    update("val-dR_mag", Number(data.dR_mag)?.toFixed(3));
+  if (Number(data?.heading)) update("val-heading", data.heading?.toFixed(1));
+  if (Number(data?.pitch)) update("val-pitch", data.pitch?.toFixed(1));
+  if (Number(data?.roll)) update("val-roll", data?.roll?.toFixed(1));
+  update("val-body", data.CelestialBody);
+  update("val-meta", data.metadate);
+  update("val-targetID", data?.targetID);
+  update("val-targetName", data?.targetName);
+  update("val-Ct", `${Ct_lat}, ${Ct_lon}`);
+  // update('val-tlat', data.targetCoords[0].toFixed(10));
+  // update('val-tlon', data.targetCoords[1].toFixed(10));
+  update("val-dist", Math.floor(data.distanceTo));
+  update("val-eta", data.ETA);
+  //
+  if (data?.dR && data.dR.every((n) => !isNaN(n))) update("val-dR", data.dR);
+  if (data?.Bdist && data.Bdist.every((n) => !isNaN(n)))
+    update("val-Bdist", data.Bdist);
+  if (data?.R1) update("val-R1", data.R1);
+  if (data?.T1) update("val-T1", data.T1);
+};
+MAGPIE_MONITOR.copyToClipboard = function copyToClipboard(buttonElement) {
+  const monitor = document.getElementById("physics-stream");
+  const text = monitor.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    // alert("Telemetry copied to clipboard!");
+    const originalText = buttonElement.innerText;
+    buttonElement.innerText = "Copied";
+    setTimeout(() => (buttonElement.innerText = originalText), 2000);
+  });
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  *
  * @desc back to {@link }
@@ -139,7 +262,7 @@ MAGPIE_MONITOR.meta = {
  *
  */
 //========================================================================
-// #region - ROUTER
+// #region - Router
 //========================================================================
 /**
  * @name
@@ -158,6 +281,42 @@ router.handlers = {};
 router.on = function routerOn(viewName, setupCallback) {
   router.handlers[viewName] = setupCallback;
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > togglers
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {String} elementId
+ * @param {String} value
+ * @returns {String}
+ */
+const update = (elementId, value) => {
+  const element = document.getElementById(elementId);
+  if (element && element.innerText !== String(value)) element.innerText = value;
+  return value;
+};
+router.update = update;
+/**
+ *
+ * @param {String} elementId
+ * @param {Boolean} boolean
+ * @returns {String}
+ */
+const toggle = (elementId, boolean) => {
+  if (!elementId || typeof boolean !== "boolean") return;
+  const element = document.getElementById(elementId);
+  value = boolean ? "block" : "none";
+  element.style.display = value;
+  return value;
+};
+router.toggle = toggle;
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -210,6 +369,22 @@ router.on("adoption", (content, data) => {
 });
 // #endregion
 //------------------------------------------------------------------------
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - UTILITY
+//========================================================================
 /**
  *
  * @desc back to {@link }

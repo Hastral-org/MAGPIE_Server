@@ -1,4 +1,4 @@
-<!-- version 0.39.0 -->
+<!-- version 0.39.92 -->
  <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -16,6 +16,7 @@
                 <button id="nav-buttom-home" onclick="router.go('home')" class="nav-button">HOME</button>
                 <!-- <button id="nav-button-test" onclick="router.go('test')" class="nav-button">TEST</button> -->
                 <button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
+                <button id="nav-button-monitor" onclick="router.go('monitor')" class="nav-button">MONITOR</button>
                 <button id="nav-button-login" onclick="router.go('login')" class="nav-button">LOGIN</button>
                 <button id="nav-button-account" onclick="router.request('account')" class="nav-button" style="display: none;">ACCOUNT</button>
             </span>
@@ -29,6 +30,66 @@
             <template id="view-home" style="display: block;">
             <img src="SEtitle.png" alt="ShelderEvolution">
             </template>
+            <template id="view-monitor" class="monitor-box">
+				<h1 class="view-heading">ENTITY Data Monitor</h1>
+				<div>
+					<form onsubmit="event.preventDefault(); window.location.href='?entityID=' + document.getElementById('entityID').value;">
+						<input type="text" id="entityID" placeholder="Enter entityID (e.g. 101)" 
+							title="Enter the exact ID of the desired entity to monitor" class="input-box" style="display: inline-block;">
+							<button onclick="MAGPIE_MONITOR.subscribe()" class="nav-button">Subscribe</button>
+							<button onclick="MAGPIE_MONITOR.unsubscribe()" class="nav-button">Disconnect</button>
+							<button onclick="MAGPIE_MONITOR.copyToClipboard(this)" class="nav-button">Copy Telemetry</button>
+					</form>
+				</div>
+				<div class="monitor-box">
+					<h2 class="view-heading">Live Feed: <span id="monitor-status">[DISCONNECTED]</span></h2>
+					<div id="physics-stream" class="monitor-grid">
+						<!-- Row 1: Primary ID and Full Name -->
+						<div class="grid-item">ID: <span id="val-id">---</span></div>
+						<div class="grid-item full-width">Name: <span id="val-name">---</span></div>
+						
+						<!-- Row 2: Location Data -->
+						<div class="grid-item full-width">Coords: </div>
+						<div class="grid-item full-width"><span id="val-C0">---</span></div>
+						
+						<!-- Row 3: Flight/Motion Telemetry -->
+						<div class="grid-item">Body: <span id="val-body">---</span></div>
+						<div class="grid-item">Meta: <span id="val-meta">---</span></div>
+						<div class="grid-item">ASL: <span id="val-asl">---</span>m</div>
+						<div class="grid-item full-width">States: [<span id="val-states">---</span>]</div>
+						<div class="grid-item">velocity: <span id="val-Vmag">---</span> m/s - </div>
+						<div class="grid-item"><span id="val-knots">---</span> kts</div>
+						<div class="grid-item">Accel: <span id="val-Amag">---</span> m/s²</div>
+						<div class="grid-item full-width"></div>
+						<div class="grid-item">Omega: <span id="val-Rmag">---</span> rad/s</div>
+						<div class="grid-item">Alpha: <span id="val-Tmag">---</span> rad/s²</div>
+						<div class="grid-item">dR_mag: <span id="val-dR_mag">---</span> rad</div>
+						<div class="grid-item">Heading: <span id="val-heading">---</span>°</div>
+						<div class="grid-item">Pitch: <span id="val-pitch">---</span>°</div>
+						<div class="grid-item">Roll: <span id="val-roll">---</span>°</div>
+	
+						<!-- Row 4: Physics Metadata -->
+						<div class="grid-item full-width"></div>
+						<div class="grid-item-vector">R1: <span id="val-R1">---</span> rad/s</div> 
+						<div class="grid-item-vector">T1: <span id="val-T1">---</span> rad/s²</div> 
+						<div class="grid-item-vector">dR: <span id="val-dR">---</span> rad</div> 
+						<div class="grid-item-vector">Bdist: <span id="val-Bdist">---</span> rad/s</div>
+						<!-- Row 5: Navigation Targets -->
+						<div class="grid-item full-width"></div>
+						<div class="grid-item">[TARGET-
+							<span id="val-targetID">n/a</span>]: 
+							"<span id="val-targetName">n/a</span>"
+						</div>
+						<div class="grid-item full-width"></div>
+						<div class="grid-item">Target coords: [
+							<span id="val-Ct">---</span>]
+							Dist: <span id="val-dist">---</span> m
+							ETA: <span id="val-eta">---</span>
+						</div>
+						<div class="grid-item"></div>
+					</div>
+				</div>
+			</template>
         </nav>
         <nav id="nav-status">
             <span id="metadate" class="cli-status">Waiting for server...</span>

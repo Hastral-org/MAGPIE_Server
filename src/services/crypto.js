@@ -11,6 +11,8 @@ const HASH_SALT = MAGPIE.KEY.SERVER.HASH_SALT;
  */
 const EmailSecurity = {
   /**
+   * @audit-ok [EmailSecuriry] Keep them synchronous. They are high-performance,
+   * low-latency operations that do not risk blocking your server.
    * @desc Creates a deterministic hash for database lookups.
    * Use this for: SELECT * FROM users WHERE email_hash = ?
    * @param {email} email
@@ -61,7 +63,11 @@ function hashKey(bytes = 32, base = "hex") {
   return crypto.randomBytes(bytes).toString(base);
 }
 /**
- * Utility to hash passwords using native Node.js scrypt.
+ * @audit-ok [crypto.hashPassword] hashPassword uses crypto.scrypt,
+ * which is a computationally expensive "slow" hash designed
+ * to thwart brute-force attacks. Because it is CPU-intensive,
+ * Node.js provides an asynchronous version to avoid blocking the Event Loop.
+ * @desc Utility to hash passwords using native Node.js scrypt.
  * @param {string} password - The password to hash.
  * @returns {Promise<string>} - The hashed password with salt (format: salt:hash).
  */

@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.91
+ * @version 0.39.92
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -261,10 +261,11 @@ MAGPIE_SERVER.SYSTEM = {};
 // #region > Handlers
 //------------------------------------------------------------------------
 MAGPIE_SERVER.handlers = {};
-MAGPIE_SERVER.SYSTEM._handlersPath = path.join(__dirname, "handlers");
+MAGPIE_SERVER.SYSTEM._handlersPath = process.cwd() + "\\handlers";
 fs.readdirSync(MAGPIE_SERVER.SYSTEM._handlersPath).forEach((file) => {
-  const handler = require(path.join(MAGPIE_SERVER.SYSTEM._handlersPath, file));
-  const handlerName = path.parse(file);
+  const filename = file.replace(".js", "");
+  const handler = require(`./handlers/${filename}`);
+  const handlerName = filename;
   MAGPIE_SERVER.handlers[handlerName] = handler;
 });
 // #endregion
@@ -310,6 +311,24 @@ app.use(express.urlencoded({ extended: true }));
  */
 MAGPIE_SERVER.PUBLIC = {};
 MAGPIE_SERVER.PUBLIC.loginLimiter = ratelimit.rateLimit({
+  windowMs: MAGPIE.KEY.SERVER.LOGIN_COOLDOWN * 60 * 1000,
+  max: MAGPIE.KEY.SERVER.LOGIN_MAX_ATTEMPTS,
+  handler: (req, res, next, options) => {
+    const code = MAGPIE.KEY.HTTP.STATUS_429.code;
+    const resetTime = req.rateLimit.resetTime;
+    const remainingMs = resetTime - Date.now();
+    const minutes = Math.ceil(remainingMs / (60 * 1000));
+    res.status(code).json({
+      status: code,
+      error: MAGPIE.KEY.SERVER.LOGIN_MAX_ATTEMPTS,
+      message: `Please, wait ${minutes} minute(s) before trying again.`,
+      retryAfter: minutes,
+    });
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+MAGPIE_SERVER.PUBLIC.registerLimit = ratelimit.rateLimit({
   windowMs: MAGPIE.KEY.SERVER.LOGIN_COOLDOWN * 60 * 1000,
   max: MAGPIE.KEY.SERVER.LOGIN_MAX_ATTEMPTS,
   handler: (req, res, next, options) => {
@@ -1695,9 +1714,9 @@ MAGPIE_SERVER.CLI._stop = function stopLoadbar(name = "bar1") {
 // #region - PAD
 //========================================================================
 MAGPIE_SERVER.PAD = {};
-MAGPIE_SERVER.PAD.file = `${process.cwd() + "\\plugins\\scratchpad.js"}`;
+MAGPIE_SERVER.PAD.file = `${process.cwd() + "\\src\\plugins\\scratchpad.js"}`;
 MAGPIE_SERVER.PAD.load = async function load(fileName) {
-  const filePath = path.join(__dirname, "plugins", fileName);
+  const filePath = MAGPIE_SERVER.PAD.file;
   const prefix = "[SCRATCHPAD].load: ";
   try {
     const { content, startMarker, startIndex, endIndex } =
@@ -1742,7 +1761,7 @@ MAGPIE_SERVER.PAD.load = async function load(fileName) {
   }
 };
 MAGPIE_SERVER.PAD.read = function read() {
-  const filePath = path.join(__dirname, "plugins", "scratchpad.js");
+  const filePath = MAGPIE_SERVER.PAD.file;
   const content = fs.readFileSync(filePath, "utf-8");
   const startMarker = "// #region - Scratchpad";
   const endMarker = "// #endregion";
@@ -1752,7 +1771,7 @@ MAGPIE_SERVER.PAD.read = function read() {
 };
 MAGPIE_SERVER.PAD.log = function log(input) {
   const prefix = "[SCRATCHPAD].load: ";
-  const filePath = path.join(__dirname, "plugins", "scratchpad.js");
+  const filePath = MAGPIE_SERVER.PAD.file;
   fs.appendFileSync(filePath, `\n\n${input}\n`);
   console.log(prefix + `[PUNCH-OUT: ${filePath}] logged`);
 };

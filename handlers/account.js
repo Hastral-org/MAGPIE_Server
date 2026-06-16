@@ -1,16 +1,16 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.39.91
+ * @version 0.39.92
  *
  * @typedef {import("socket.io").Socket} Socket
  */
 const account = {};
 const { MAGPIE } = require("../src/index");
 const jwt = require("jsonwebtoken");
-const { hashPassword, verifyPassword } = require("../src/services/crypto");
 const mailer = require("./email_api");
 const crypto = require("../src/services/crypto");
+const { hashPassword, verifyPassword } = crypto;
 // const { MAGPIE } = require("../core/index")
 const ePrefix = "[ACCOUNT HANDLER] ";
 const http = MAGPIE.KEY.HTTP;
@@ -77,17 +77,18 @@ account.printPlayerAuth = function (player) {
 //------------------------------------------------------------------------
 /**
  * @desc Handles incoming player registration events over network sockets
- * @param {Object} data
- * @param {Object} socket
+ * @param {{
+ * email: email,
+ * username: username,
+ * password: String
+ * }} data
  * @param {Object} server
+ * @returns {Promise<{player: MAGPIE_PLAYER, token: String, sent: }}
  */
-account.register = async function (data, socket, server) {
+account.register = async function (data, server) {
   try {
     if (!data) throw new Error("Invalid socket registration data");
     const { username, password, email } = data;
-
-    // const storedHash = await hashPassword(passwordHash);
-    const securedPassword = await hashPassword(password);
     const token = jwt.sign(
       {
         username,
@@ -96,41 +97,50 @@ account.register = async function (data, socket, server) {
       server.config.jwtSecret,
       { expiresIn: server.config.jwtExpire },
     );
-    const player = await account.reserveRegistration(token, server);
-    server.log(`[USER-${username}] requested a registration link`);
+    const emailHash = crypto.EmailSecurity.hashEmail(data.email);
+    const emailEncrypted = crypto.EmailSecurity.encryptEmail(data.email);
+    const securedPassword = await hashPassword(password);
+    const payload = {
+      email: email,
+      email_hashed: emailHash,
+      email_encrypted: emailEncrypted,
+      password_encrypted: securedPassword,
+    };
+    const player = await account.reserveRegistration(payload, server);
+    if (!player) throw new Error(`${player} is invalid account:reservation. `);
+    server.log(`[USER-${username}] requested a registration link. `);
     const sent = await mailer.sendConfirmation(email, token);
     if (!sent || !sent?.accepted)
       throw new Error("Could not deliver verification email.");
-    socket.emit("REGISTER_AWAITING_VERIFICATION", { email });
+    return { player, token, sent };
   } catch (e) {
     server.error(ePrefix + e.message, e);
-    socket.emit("REGISTER_ERROR", {
-      message: e.message || "Registration failed.",
-    });
   }
 };
 /**
  *
- * @param {String} token
+ * @param {{
+ * email: email,
+ * email_hashed: email_hashed,
+ * email_encrypted: email_encrypted,
+ * username: username,
+ * password_encrypted: String
+ * }} data
  * @param {*} server
  * @returns {Promise<MAGPIE_PLAYER>}
  */
-account.reserveRegistration = async function (token, server) {
+account.reserveRegistration = async function (data, server) {
   try {
     /** @type {MAGPIE_DATABASE} */
     const db = server.DATABASE;
-    const decoded = server.JWT.verify(token, server.config.jwtSecret);
-    if (!decoded?.isRegistrationToken) return invalidToken();
-    const emailHash = crypto.EmailSecurity.hashEmail(decoded.email);
-    const emailEncrypted = crypto.EmailSecurity.encryptEmail(decoded.email);
     const newPlayer = {
-      username: decoded.username,
-      PASS: decoded.PASS,
-      email_hash: emailHash,
-      email_encrypted: emailEncrypted,
+      username: data.username,
+      PASS: data.password_encrypted,
+      email_hash: data.email_hashed,
+      email_encrypted: data.email_encrypted,
       isFrozen: true,
     };
-    const existingPlayer = await db.getPlayerByEmail(decoded.email);
+    const existingPlayer = await db.getPlayerByEmail(data.email);
     /** @type {MAGPIE_PLAYER} */
     const PLAYER = !!existingPlayer
       ? existingPlayer
@@ -455,9 +465,9 @@ module.exports.account = function (io, socket, server) {
       message: message,
     });
   });
-  socket.on("REGISTER", async (data) => {
-    await account.register(data, socket, server);
-  });
+  // socket.on("REGISTER", async (data) => {
+  //   await account.register(data, socket, server);
+  // });
   socket.on("LOGIN", async (data) => {
     await account.login(data, socket, server);
   });
@@ -482,12 +492,12 @@ module.exports.account = function (io, socket, server) {
 // #region > Http
 //------------------------------------------------------------------------
 /**
- *
+ * @audit-issue
  * @param {import("express").Express} app
  * @param {import("../SERVER").MAGPIE_SERVER} server
  */
 module.exports.routes = function (app, server) {
-  app.post("/login", server.public.loginLimiter, async (req, res) => {
+  app.post("/login", server?.PUBLIC?.loginLimiter, async (req, res) => {
     const level = "[POST /login] ";
     try {
       const { email, pass } = req.body;
@@ -509,7 +519,11 @@ module.exports.routes = function (app, server) {
       return res.status(status);
     }
   });
-  app.post("/register", server.public.registerLimiter, async (req, res) => {
+  /**
+   * @todo server.public.registerLimiter
+   * @desc
+   * */
+  app.post("/register", server.PUBLIC.registerLimiter, async (req, res) => {
     const level = "[POST /register] ";
     try {
       const { email, username, password } = req.body;
@@ -517,9 +531,8 @@ module.exports.routes = function (app, server) {
         res.status(http.STATUS_401);
         throw new Error("Invalid credentials");
       }
-      const { player, token } = await account.verifyCredentials(
-        email,
-        password,
+      const { player, token, sent } = account.register(
+        { email, username, password },
         server,
       );
       if (!token || token === "") {
