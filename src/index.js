@@ -23,7 +23,10 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @desc current
+ * @version 0.39.93 2026 06 17
+ * - ADDED: Express.routing
+ * - FIXED: account.register
+ * - FIXED: handler registration
  *
  * @version 0.39.92 2026 06 16
  * - FIXED: account.js /verify-email embeds sensitive data in token
@@ -746,7 +749,10 @@ MAGPIE.KEY.SERVER.meta = {
 MAGPIE.KEY.SERVER.DOMAIN = MAGPIE.config.domain;
 MAGPIE.KEY.SERVER.JWT_SECRET = MAGPIE.config.jwtSecret;
 MAGPIE.KEY.SERVER.PORT = MAGPIE.config.PORT;
-MAGPIE.KEY.SERVER.EMAIL_MASTER_KEY = MAGPIE.config.EMAIL_MASTER_KEY;
+MAGPIE.KEY.SERVER.EMAIL_MASTER_KEY = Buffer.from(
+  MAGPIE.config.EMAIL_MASTER_KEY,
+  "hex",
+);
 MAGPIE.KEY.SERVER.HASH_SALT = MAGPIE.config.HASH_SALT;
 /** @desc 20 max login attemps within cooldown window */
 MAGPIE.KEY.SERVER.LOGIN_MAX_ATTEMPTS = 20;

@@ -577,6 +577,38 @@ MAGPIE_SERVER.SOCKET.auth_dev = function auth_dev(socketID) {
 // #endregion
 //------------------------------------------------------------------------
 /**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Tests
+//------------------------------------------------------------------------
+MAGPIE_SERVER.TEST = {};
+MAGPIE_SERVER.TEST.meta = {
+  name: MAGPIE.meta.name + "testing",
+};
+MAGPIE_SERVER.TEST.Path = "\\.private\\tmp\\tests";
+MAGPIE_SERVER.TEST.list = fs
+  .readdirSync(process.cwd() + MAGPIE_SERVER.TEST.Path)
+  .filter((string) => string.includes(".js"));
+if (MAGPIE_SERVER.TEST.list && MAGPIE_SERVER.TEST.list.length > 0) {
+  MAGPIE_SERVER.TEST.list.forEach((testFile) => {
+    const testName = testFile.replace(".js", "");
+    console.log(`[TEST] processing ${testName}...`);
+    const directory = `${MAGPIE_SERVER.TEST.Path}\\${testFile}`;
+    MAGPIE_SERVER.TEST[testName] = require(`.${directory}`);
+  });
+}
+
+//   tests.forEach((testFile) => {
+//     const testName = testFile.replace(".js", "");
+//     MAGPIE_SERVER.TEST[testName] = require(`${testPath}\\${testFile}`);
+//   });
+// }
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -1895,10 +1927,7 @@ MAGPIE_SERVER.NODE_HTTP = {};
 MAGPIE_SERVER.BOOT.connect = async function serverConnect() {
   const S = MAGPIE.KEY.SERVER;
   MAGPIE_SERVER.NODE_HTTP = server.listen(S.PORT, "0.0.0.0", () => {
-    const port = MAGPIE_SERVER.config.domain.includes("localhost")
-      ? `:${MAGPIE.KEY.SERVER.PORT}`
-      : "";
-    const domain = `${MAGPIE_SERVER.config.domain}${port}`;
+    const domain = `${MAGPIE.KEY.SERVER.DOMAIN}`;
     const message = `${S.MESSAGE.BOOTED}${domain}...`;
     MAGPIE_SERVER.log(message);
   });

@@ -494,7 +494,14 @@ account.init = function (io, socket, server) {
 //------------------------------------------------------------------------
 // #region > Http
 //------------------------------------------------------------------------
-router.post("/login", async (req, res) => {
+const resolveLimiter = function (key) {
+  return (req, res, next) => {
+    const limiter = req.server?.PUBLIC?.[key];
+    if (limiter) return limiter(req, res, next);
+    next();
+  };
+};
+router.post("/login", resolveLimiter("loginLimiter"), async (req, res) => {
   const level = "[POST /login] ";
   try {
     const { email, pass } = req.body;
@@ -520,33 +527,39 @@ router.post("/login", async (req, res) => {
  * @todo server.public.registerLimiter
  * @desc
  * */
-router.post("/register", async (req, res) => {
-  const level = "[POST /register] ";
-  const server = req.server;
-  try {
-    const { email, username, password } = req.body;
-    console.log(
-      ePrefix + level + `initiating registration for [PLAYER-${username}]`,
-    );
-    if (!email || !username || !password) {
-      res.status(http.STATUS_401);
-      throw new Error("Invalid credentials");
+router.post(
+  "/register",
+  resolveLimiter("registerLimiter"),
+  async (req, res) => {
+    const level = "[POST /register] ";
+    const server = req.server;
+    try {
+      const { email, username, password } = req.body;
+      console.log(
+        ePrefix + level + `initiating registration for [PLAYER-${username}]`,
+      );
+      if (!email || !username || !password) {
+        res.status(http.STATUS_401.code);
+        throw new Error("Invalid credentials");
+      }
+      const { player, token, sent } = await account.register(
+        { email, username, password },
+        server,
+      );
+      if (!player || player?.constructor?.name !== "MAGPIE_PLAYER")
+        throw new Error(`${player} is invalid MAGPIE_PLAYER`);
+      if (!token || token === "") {
+        res.status(http.STATUS_401.code);
+        throw new Error(`${token} is invalid token. `);
+      }
+      const success = "registration successful. ";
+      server.sysLog(ePrefix + level + success, "server");
+      return res.status(http.STATUS_200.code).json({ message: success, token });
+    } catch (e) {
+      server.sysLog(ePrefix + level + e.message, "error", e);
     }
-    const { player, token, sent } = account.register(
-      { email, username, password },
-      server,
-    );
-    if (!token || token === "") {
-      res.status(http.STATUS_401);
-      throw new Error(`${token} is invalid token. `);
-    }
-    const success = "registration successful. ";
-    server.sysLog(ePrefix + level + success, "server");
-    return res.status(http.STATUS_200.code).json({ message: success, token });
-  } catch (e) {
-    server.sysLog(ePrefix + level + e.message, "error", e);
-  }
-});
+  },
+);
 /** {@link account.register} */
 router.get("/verify-email", async (req, res) => {
   /** @audit @desc email confirmation */
@@ -584,6 +597,7 @@ router.get("/test", (req, res) => {
   res.send("hello");
   server.log(ePrefix + "hello");
 });
+
 // #endregion
 //------------------------------------------------------------------------
 /**
