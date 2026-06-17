@@ -1,7 +1,7 @@
 /**
  * @namespace player
  * @author Matheraptor
- * @version 0.32.0
+ * @version 0.39.92
  *
  */
 //========================================================================
@@ -137,17 +137,14 @@ MAGPIE_PLAYER.__hiveSync = function __hiveSync(method, arguments) {
  * @returns {Promise<database_result>}
  */
 MAGPIE_PLAYER.prototype.set = async function set() {
-  return await MAGPIE_PLAYER.__hive("_set_database", "savePlayer", this);
+  return await MAGPIE_PLAYER.__hive("_set_player", [this]);
 };
 /**
  *
  * @returns {database_result}
  */
 MAGPIE_PLAYER.prototype.setSync = function setSync() {
-  return MAGPIE_PLAYER.__hiveSync("_set_databaseSync", [
-    "savePlayerSync",
-    [this],
-  ]);
+  return MAGPIE_PLAYER.__hiveSync("_set_playerSync", [this]);
 };
 // #endregion
 //------------------------------------------------------------------------

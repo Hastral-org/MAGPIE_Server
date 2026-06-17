@@ -545,7 +545,7 @@ io.on("connection", (socket) => {
     if (playerID !== 0)
       MAGPIE_SERVER.log(
         `${ePrefix}${ePlayer} disconnected: ${reason}`,
-        "concole",
+        "console",
         false,
       );
   });

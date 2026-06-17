@@ -103,6 +103,7 @@ account.register = async function (data, server) {
     const emailEncrypted = crypto.EmailSecurity.encryptEmail(data.email);
     const securedPassword = await hashPassword(password);
     const payload = {
+      username: username,
       email: email,
       email_hashed: emailHash,
       email_encrypted: emailEncrypted,
@@ -110,10 +111,15 @@ account.register = async function (data, server) {
     };
     const player = await account.reserveRegistration(payload, server);
     if (!player) throw new Error(`${player} is invalid account:reservation. `);
-    server.log(`[USER-${username}] requested a registration link. `);
+    server.sysLog(
+      ePrefix +
+        `[PLAYER-${player?.ID}] reserved for [USER-${username}].\n` +
+        `Registration link sent to user's email. `,
+    );
     const sent = await mailer.sendConfirmation(email, token);
     if (!sent || !sent?.accepted)
       throw new Error("Could not deliver verification email.");
+    server.sysLog(ePrefix + `registration link sent to [USER-${username}]`);
     return { player, token, sent };
   } catch (e) {
     server.error(ePrefix + e.message, e);
@@ -153,12 +159,13 @@ account.reserveRegistration = async function (data, server) {
   }
 };
 /**
- *
+ * @param {Request} req
+ * @param {Response} res
  * @param {String} token
- * @param {*} server
- * @returns
+ * @param {MAGPIE_SERVER} server
+ * @returns {Promise<MAGPIE_PLAYER>}
  */
-account.processEmailConfirmation = async function (token, server) {
+account.processEmailConfirmation = async function (req, res, token, server) {
   try {
     const db = server.DATABASE;
     const decoded = server.JWT.verify(token, server.config.jwtSecret);
@@ -167,8 +174,15 @@ account.processEmailConfirmation = async function (token, server) {
     const player = await db.getPlayerByUsername(username);
     if (!player) throw new Error(`unable to fetch [PLAYER-${username}]`);
     player.isFrozen = false;
+    await player.set();
     return player;
-  } catch {
+  } catch (e) {
+    if (e.message.includes("jwt expired")) {
+      const expired =
+        "<p>The email confirmation token has expired.</p>" +
+        "<p>Please, request a new registration link.</p>";
+      res.status(MAGPIE.KEY.HTTP.STATUS_410.code).send(expired);
+    }
     server.error(ePrefix + e.message, e);
   }
 };
@@ -524,7 +538,7 @@ router.post("/login", resolveLimiter("loginLimiter"), async (req, res) => {
   }
 });
 /**
- * @todo server.public.registerLimiter
+ *
  * @desc
  * */
 router.post(
@@ -553,8 +567,11 @@ router.post(
         throw new Error(`${token} is invalid token. `);
       }
       const success = "registration successful. ";
-      server.sysLog(ePrefix + level + success, "server");
-      return res.status(http.STATUS_200.code).json({ message: success, token });
+      const responseBody = { message: success, token };
+      const successMessage = ePrefix + level + success;
+      res.status(http.STATUS_200.code).json(responseBody);
+      server.sysLog(successMessage, "server");
+      return responseBody;
     } catch (e) {
       server.sysLog(ePrefix + level + e.message, "error", e);
     }
@@ -572,14 +589,20 @@ router.get("/verify-email", async (req, res) => {
     );
     const { token } = req.query;
     if (!token) return invalidToken();
-    const PLAYER = await account.processEmailConfirmation(token, server);
-    const handle = printPlayer(PLAYER.ID, null, PLAYER.username);
-    if (!PLAYER?.ID) throw new Error(`${handle} is invalid `);
+    const PLAYER = await account.processEmailConfirmation(
+      req,
+      res,
+      token,
+      server,
+    );
+    const handle = printPlayer(PLAYER?.ID, null, PLAYER?.username);
+    if (!PLAYER?.ID) throw new Error(`${handle}is invalid MAGPIE_PLAYER. `);
     server.log(
       ePrefix + level + `${handle}registered.`,
       "console",
       MAGPIE.KEY.SERVER.IS_DEV,
     );
+    /** @todo unified html responses */
     const successMessage = `<h1>Success!</h1>
       <p>Your account has been activated.</p>
       <p>You may now close this window.</p>`;

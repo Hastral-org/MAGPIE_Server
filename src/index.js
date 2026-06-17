@@ -619,7 +619,11 @@ MAGPIE.KEY.NODE_ENV = MAGPIE.config.NODE_ENV;
 // #region > Http
 //------------------------------------------------------------------------
 MAGPIE.KEY.HTTP.meta = {
-  //
+  name: "HTTP cheat sheet",
+  status_codes: "https://http.dev/status",
+  headers: "https://http.dev/headers",
+  methods: "https://http.dev/methods",
+  tools: "https://http.dev/tools",
 };
 /**
  * @desc Successful
@@ -699,6 +703,18 @@ MAGPIE.KEY.HTTP.STATUS_409 = {
     "database) is 409 Conflict. Using 409 tells the client specifically " +
     "that the server understands the request, but it cannot be completed " +
     "due to an asset collision.",
+};
+MAGPIE.KEY.HTTP.STATUS_410 = {
+  code: 410,
+  message: "Gone",
+  desc:
+    "Best for Expired Content/Links. " +
+    "Use this standard code if a URL, link, or resource " +
+    "(like a limited-time promotional page or an archive) " +
+    "has expired permanently. " +
+    "It tells the client and search engines that the resource " +
+    "existed in the past but is now intentionally deleted " +
+    "and will not return.",
 };
 /**
  * @desc Internal Server Error

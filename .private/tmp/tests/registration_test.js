@@ -31,5 +31,6 @@ module.exports = async function () {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  test.log("response received:\n " + Object.entries(response.json()));
+  const data = await response.json();
+  test.log("response received:\n " + JSON.stringify(data, null, 2));
 };

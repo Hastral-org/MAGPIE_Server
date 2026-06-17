@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.0 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.92 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -2552,6 +2552,23 @@ MAGPIE_HIVE._set_contextSync = function setContextSync(context) {
     entry = context;
   }
   return MAGPIE_HIVE._set_databaseSync("saveContextSync", [context]);
+};
+/**
+ *
+ * @param {MAGPIE_PLAYER} player
+ * @returns {Promise<database_result>}
+ */
+MAGPIE_HIVE._set_player = async function hiveSetPlayer(player) {
+  const result = await MAGPIE_HIVE._set_database("savePlayer", [player]);
+  return result;
+};
+/**
+ *
+ * @param {MAGPIE_PLAYER} player
+ * @returns {database_result}
+ */
+MAGPIE_HIVE._set_playerSync = function hiveSetPlayerSync(player) {
+  return MAGPIE_HIVE._set_databaseSync("savePlayerSync", [player]);
 };
 // #endregion
 //------------------------------------------------------------------------

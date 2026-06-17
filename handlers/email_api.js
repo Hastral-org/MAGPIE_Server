@@ -41,7 +41,7 @@ mailer.sendRecovery = async function (email, token) {
 mailer.sendConfirmation = async function (email, token) {
   const line1 =
     "Welcome to ShelderEvolution MMORPG! To enable your login access, confirm your registration";
-  const link = `${domain}/verify-email?token=${token}`;
+  const link = `${domain}/account/verify-email?token=${token}`;
   const follow = "Follow this link ";
   const clickhere = "Click here ";
   const verify = "to verify your email address";

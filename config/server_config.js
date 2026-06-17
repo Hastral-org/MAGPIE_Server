@@ -1,12 +1,13 @@
-// require("dotenv").config()
 /**
+ * @version 0.39.92
+ *
  * @desc [env](../.env)
  */
 const env = "";
 module.exports = {
   PORT: process.env.PORT,
   jwtSecret: process.env.jwtSecret,
-  jwtExpire: "15",
+  jwtExpire: "15d",
   domain: process.env.domain,
   project_id: process.env.project_id,
   instance_name: process.env.instance_name,
