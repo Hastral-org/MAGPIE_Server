@@ -14,9 +14,9 @@ test.error = function (error) {
 };
 module.exports = async function () {
   const payload = {
-    email: "hamedahastral@gmail.com",
-    username: "admin",
-    password: "administrator",
+    email: "tricksterswitch@gmail.com",
+    username: "vice-admin",
+    password: "elvinlambert4026",
   };
   test.log(
     `initiating request. Payload:\n` +
