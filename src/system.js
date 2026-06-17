@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.92 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.93 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -205,15 +205,12 @@ MAGPIE_LOG.errors = [];
 MAGPIE_LOG.console = [];
 /**
  * @param {Error} error
- * @param {urgency} urgency
- * @param {gravity} gravity
+ * @param {{ urgency: urgency, gravity: gravity }} options
  * @returns {new MAGPIE_LOG}
  */
-MAGPIE_LOG.pushError = function pushErrorLog(
-  error,
-  urgency = -1,
-  gravity = -1,
-) {
+MAGPIE_LOG.pushError = function pushErrorLog(error, options = {}) {
+  if (!options?.gravity) options.gravity = -1;
+  if (!options?.urgency) options.urgency = -1;
   /** @type {log_data} */
   const data = { contents: error, urgency: urgency, gravity: gravity };
   const log = new MAGPIE_LOG(data);
@@ -223,20 +220,31 @@ MAGPIE_LOG.pushError = function pushErrorLog(
 
 /**
  * @param {String} message
- * @param {urgency} urgency
- * @param {gravity} gravity
+ * @param {{ urgency: urgency, gravity: gravity }} options
  * @returns {new MAGPIE_LOG}
  */
-MAGPIE_LOG.pushConsole = function pushConsoleLog(
-  message,
-  urgency = -1,
-  gravity = -1,
-) {
+MAGPIE_LOG.pushConsole = function pushConsoleLog(message, options = {}) {
+  if (!options?.gravity) options.gravity = -1;
+  if (!options?.urgency) options.urgency = -1;
   /** @type {log_data} */
   const data = { contents: message, urgency: urgency, gravity: gravity };
   const log = new MAGPIE_LOG(data);
   MAGPIE_LOG.console.push(log);
   return log;
+};
+/**
+ *
+ * @param {String} message
+ * @param {{
+ * prefix: String,
+ * urgency: urgency,
+ * gravity: gravity
+ * }} options
+ * @returns
+ */
+MAGPIE_LOG.pushLog = function pushLog(message, options = {}) {
+  const callback = MAGPIE_LOG[`push${options?.prefix}`];
+  return callback(message, options);
 };
 /**
  *
@@ -363,8 +371,13 @@ MAGPIE_SYSTEM.sysLog = function systemLog(message, prefix, error = null) {
     MAGPIE_SYSTEM.error(message, error);
   }
 };
+/**
+ *
+ * @param {String} message
+ * @param {String} prefix
+ */
 MAGPIE_SYSTEM.silentLog = function systemSilentLog(message, prefix) {
-  MAGPIE_LOG.pushConsole(message);
+  MAGPIE_LOG.pushLog(message, { prefix: prefix });
   const logToConsole = false;
   MAGPIE_SYSTEM.log(message, prefix, logToConsole);
 };
