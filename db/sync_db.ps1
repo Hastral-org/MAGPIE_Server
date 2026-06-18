@@ -26,7 +26,7 @@ if (-not (Test-Path $LogDir)) {
 }
 
 # Logging function
-function Log-Message {
+function LogMessage {
     param([string]$Message)
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogEntry = "[$Timestamp] $Message"
@@ -34,10 +34,10 @@ function Log-Message {
     Add-Content -Path $LogFile -Value $LogEntry -ErrorAction SilentlyContinue
 }
 
-Log-Message "=== sync_db.ps1 START ==="
+LogMessage "=== sync_db.ps1 START ==="
 
 # Step 1: Force journal drop to override background locks and smash WAL data into main binaries
-Log-Message "📦 1/5 Forcing absolute WAL integration into main files..."
+LogMessage "📦 1/5 Forcing absolute WAL integration into main files..."
 Set-Location $ProjectDir
 
 # Switching to DELETE mode forces full data integration and completely deletes local wal/shm files
@@ -45,59 +45,59 @@ sqlite3 $WorldDbPath "PRAGMA journal_mode = DELETE;"
 sqlite3 $ServerDbPath "PRAGMA journal_mode = DELETE;"
 
 if ($LASTEXITCODE -ne 0) {
-    Log-Message "❌ Failed to toggle journal mode to DELETE. Aborting."
+    LogMessage "❌ Failed to toggle journal mode to DELETE. Aborting."
     Exit 1
 }
 
 # Step 2: Create local time-stamped backups
-Log-Message "🗄️ 2/5 Creating local archival snapshots..."
+LogMessage "🗄️ 2/5 Creating local archival snapshots..."
 sqlite3 $WorldDbPath ".backup $WorldBackupFile"
 sqlite3 $ServerDbPath ".backup $ServerBackupFile"
 
 if ($LASTEXITCODE -ne 0) {
-    Log-Message "❌ Failed to create local backups. Aborting."
+    LogMessage "❌ Failed to create local backups. Aborting."
     Exit 1
 }
-Log-Message "✅ Local backups created: world_$CTZ.db, server_$CTZ.db"
+LogMessage "✅ Local backups created: world_$CTZ.db, server_$CTZ.db"
 
 # Step 3: Confirm server is stopped
-Log-Message "⚠️  3/5 Preparation: Ensure your server app is STOPPED (Ctrl+C on Ubuntu)!"
+LogMessage "⚠️  3/5 Preparation: Ensure your server app is STOPPED (Ctrl+C on Ubuntu)!"
 Read-Host "Press [ENTER] to confirm the remote server is stopped and begin the clean sync"
 
 # Step 4: Backup remote DBs before overwriting
-Log-Message "🗄️ 4/5 Backing up remote databases on magpie-gcp..."
+LogMessage "🗄️ 4/5 Backing up remote databases on magpie-gcp..."
 $RemoteBackupDir = "~/db_backups"
 $RemoteBackupCmd = "mkdir -p $RemoteBackupDir && " +
-    "cp ~/MAGPIE_Server/db/world.db $RemoteBackupDir/world_$(date +%Y%m%d%H%M).db 2>/dev/null || true && " +
-    "cp ~/MAGPIE_Server/db/server.db $RemoteBackupDir/server_$(date +%Y%m%d%H%M).db 2>/dev/null || true"
+    "cp ~/MAGPIE_Server/db/world.db $RemoteBackupDir/world_$(Get-Date +%Y%m%d%H%M).db 2>/dev/null || true && " +
+    "cp ~/MAGPIE_Server/db/server.db $RemoteBackupDir/server_$(Get-Date +%Y%m%d%H%M).db 2>/dev/null || true"
 ssh magpie-gcp $RemoteBackupCmd
-Log-Message "✅ Remote backup complete (or DBs didn't exist yet)"
+LogMessage "✅ Remote backup complete (or DBs didn't exist yet)"
 
 # Step 5: CLEANUP and PUSH - Wipe old files on remote, then push fresh backups
-Log-Message "🧹 5/5 Clearing remote DB files and syncing fresh databases..."
+LogMessage "🧹 5/5 Clearing remote DB files and syncing fresh databases..."
 ssh magpie-gcp "rm -f ~/MAGPIE_Server/db/world.db* ~/MAGPIE_Server/db/server.db*"
 
 scp $WorldBackupFile magpie-gcp:~/MAGPIE_Server/db/world.db
 if ($LASTEXITCODE -ne 0) {
-    Log-Message "❌ SCP transfer of world.db failed."
+    LogMessage "❌ SCP transfer of world.db failed."
     Exit 1
 }
 
 scp $ServerBackupFile magpie-gcp:~/MAGPIE_Server/db/server.db
 if ($LASTEXITCODE -ne 0) {
-    Log-Message "❌ SCP transfer of server.db failed."
+    LogMessage "❌ SCP transfer of server.db failed."
     Exit 1
 }
-Log-Message "✅ Both databases successfully uploaded to magpie-gcp"
+LogMessage "✅ Both databases successfully uploaded to magpie-gcp"
 
 # Restore WAL mode on remote for performance
-Log-Message "⚡ Restoring remote production databases to WAL performance mode..."
+LogMessage "⚡ Restoring remote production databases to WAL performance mode..."
 ssh magpie-gcp "sqlite3 ~/MAGPIE_Server/db/world.db 'PRAGMA journal_mode=WAL;' && sqlite3 ~/MAGPIE_Server/db/server.db 'PRAGMA journal_mode=WAL;'"
 
 # Restore local WAL mode
-Log-Message "⚡ Restoring local databases to WAL performance mode..."
+LogMessage "⚡ Restoring local databases to WAL performance mode..."
 sqlite3 $WorldDbPath "PRAGMA journal_mode = WAL;"
 sqlite3 $ServerDbPath "PRAGMA journal_mode = WAL;"
 
-Log-Message "✅ sync_db.ps1 completed successfully!"
-Log-Message "=== sync_db.ps1 END ==="
+LogMessage "✅ sync_db.ps1 completed successfully!"
+LogMessage "=== sync_db.ps1 END ==="

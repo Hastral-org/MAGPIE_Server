@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.32.0
+ * @version 0.39.94
  */
 //========================================================================
 // #region - INDEX
@@ -1066,11 +1066,10 @@ MAGPIE_EXP.prototype._get_key_marker = function getKeyMarker() {
  * @returns {database_result}
  */
 MAGPIE_EXP.prototype._set_target = function _set_target(targetID) {
-  const ePrefix = `[EXP-${this.ID}].emoteArrived: `;
+  const ePrefix = `[EXP-${this.ID}].setTarget: `;
   try {
     const next = targetID;
-    if (!next || isNaN(next))
-      throw new Error(`${targetID} is invalid targetID`);
+    if (!next || isNaN(next)) return;
     this.targetID = next;
     return this.setSync();
   } catch (e) {
@@ -1078,32 +1077,68 @@ MAGPIE_EXP.prototype._set_target = function _set_target(targetID) {
   }
 };
 /**
- *
+ * @audit-issue must refactor for modularity
+ * @param {MAGPIE_ENTITY} entity
  * @returns {entityID} entityID
  */
-MAGPIE_EXP.prototype._key_target_next = function keyTargetNext() {
-  const ePrefix = `[EXP-${this.ID}].keyTargetNext`;
+MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
+  const ePrefix = `[EXP-${this.ID}].keyTargetNext: `;
   try {
     const key = this._get_key_target();
     if (!key) return;
-    const result = key.removeOrigin();
-    if (!result)
-      throw new Error(`unable to remove 'target' origin from [KEY-${key.ID}]`);
+    const route = key.type === MAGPIE.KEY.INDEX.ROUTE;
+    const waypoint = (key.type = MAGPIE.KEY.INDEX.WAYPOINT);
+    if (route || waypoint) {
+      const target = entity._get_target();
+      if (!target) {
+        entity._new_target();
+        return;
+      }
+      if (!target) return;
+      if (waypoint) {
+        const coords = JSON.parse(key.label);
+        if (Array.isArray(coords)) target._set_C1(coords);
+        return target.ID;
+      }
+      /** @type {MAGPIE_KEY} */
+      let spareKey = this.getKeys().find((key) => !key.originID);
+      if (!spareKey) {
+        spareKey = new MAGPIE_KEY({
+          type: MAGPIE.KEY.INDEX.WAYPOINT,
+          originID: MAGPIE.KEY.INDEX.TARGET,
+        });
+        const context = entity._get_contexts()[0];
+        context._set_key(spareKey.ID);
+        spareKey.requestHost();
+        this.keys.splice(this.keys.indexOf(key.ID) + 1, 0, spareKey.ID);
+      }
+      /** @type {coords[]} */
+      const route = JSON.parse(key.label);
+      const coords = route.shift();
+      if (Array.isArray(coords)) {
+        key.label = JSON.stringify(route);
+        target._set_C1(coords);
+        return target.ID;
+      }
+    }
+    key.removeOrigin();
     return Number(key.label);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
 /**
- *
- * @returns {database_result}
+ * @param {MAGPIE_ENTITY} entity
+ * @returns {entityID}
  */
-MAGPIE_EXP.prototype._target_next = function _target_next() {
+MAGPIE_EXP.prototype._target_next = function _target_next(entity) {
   const ePrefix = `[EXP-${this.ID}].targetNext: `;
   try {
-    const targetID = this._key_target_next();
+    const targetID = this._key_target_next(entity);
+    if (!targetID) return;
+    MAGPIE_SYSTEM._logging_debug(`targetID: ${targetID}`);
     const set = this._set_target(targetID);
-    if (!set) throw new Error(`unable to set targetID[${targetID}]`);
+    if (!set) return;
     return targetID;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -1443,9 +1478,11 @@ MAGPIE_CONTEXT.prototype._set_element = async function _set_element(
     const record = Array.from(this[elementType]);
     if (!record) throw new Error(`${elementType} is invalid elementType`);
     const arr = structuredClone(record);
-    arr.push(elementID);
+    const index = arr.push(elementID) - 1;
     this[elementType] = new Float64Array(arr);
-    return await this.set();
+    const result = await this.set();
+    if (!result) throw new Error("unable to save. ");
+    return index;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
@@ -1678,9 +1715,7 @@ MAGPIE_CONTEXT.prototype._get_ambiguity = function getAmbiguity() {
  *
  * @param {entity_data} entity_data
  */
-MAGPIE_CONTEXT.prototype._add_new_entity = async function addNewEntity(
-  entity_data,
-) {
+MAGPIE_CONTEXT.prototype._add_new_entity = async function (entity_data) {
   const ePrefix = `[CONTEXT-${this.ID}].addNewEntity: `;
   try {
     const entity = await MAGPIE_CONTEXT.__hive("_new_entity", [entity_data]);
@@ -1688,6 +1723,30 @@ MAGPIE_CONTEXT.prototype._add_new_entity = async function addNewEntity(
       throw new Error(`${entity} is invalid entity`);
     entity.STATS[MAGPIE.KEY.POVART.P_C] = this.host;
     await this._set_entity(entity.ID);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
+ * @param {key_data} key_data
+ * @returns {Promise<MAGPIE_KEY>}
+ */
+MAGPIE_CONTEXT.prototype._add_new_key = async function (key_data) {
+  const ePrefix = `[CONTEXT-${this.ID}].addNewKey: `;
+  try {
+    const key = new MAGPIE_KEY(key_data);
+    if (!(key instanceof MAGPIE_KEY))
+      throw new Error(`${key} is invalid MAGPIE_KEY. `);
+    const savedResult = await key.set();
+    if (!savedResult) throw new Error(`unable to save [KEY-${key.ID}]. `);
+    const result = await this._set_key(key.ID);
+    if (!result)
+      MAGPIE_SYSTEM.sysLog(`unable to set [KEY-${key.ID}]. `, "error");
+    const hostedBufferSize = key.requestHost();
+    if (!hostedBufferSize)
+      MAGPIE_SYSTEM.sysLog(`unable to host [KEY-${key.ID}]. `, "error");
+    return key;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
@@ -1776,7 +1835,14 @@ MAGPIE_TICKET.prototype.initialize = function initialize(data) {
  * @typedef {import("./index").omega} omega (ω) angular velocity in rad/s
  * @typedef {import("./index").alpha} alpha (α) angular acceleration in rad/s²
  * @typedef {import("./index").distance} distance in m
- * @typedef {import("./index").key_data} key_data
+ * @typedef {{
+ * type: Number,
+ * label: String,
+ * originID: keyID,
+ * componentID: keyID,
+ * compoundID: keyID,
+ * legacyID: keyID
+ * }} key_data
  * @typedef {import("./index").stateID} stateID
  * @name
  * @desc
@@ -1853,7 +1919,7 @@ MAGPIE_KEY._newKey = function newKey(data) {
  * @returns {Promise<database_result>}
  */
 MAGPIE_KEY.prototype.set = async function set() {
-  return await MAGPIE_KEY.__hive("_set_database", ["saveKey", [this]]);
+  return await MAGPIE_KEY.__hive("_set_key", [this]);
 };
 /**
  *
@@ -1894,6 +1960,23 @@ MAGPIE_KEY.prototype.setOrigin = async function setOrigin(keyID) {
 MAGPIE_KEY.prototype.removeOrigin = function removeOrigin() {
   this.originID = null;
   return this.setSync();
+};
+/**
+ * @returns {import("./system").buffer_size}
+ */
+MAGPIE_KEY.prototype.requestHost = function keyRequestHost() {
+  return MAGPIE_KEY.__hiveSync("_host_key", [this]);
+};
+/**
+ *
+ * @param {MAGPIE_CONTEXT} context
+ * @returns {Promise<keyID>}
+ */
+MAGPIE_KEY.prototype.requestContext = async function keyRequestContext(
+  context,
+) {
+  if (!(context instanceof MAGPIE_CONTEXT)) return false;
+  return await context._set_key(this.ID);
 };
 // #endregion
 //------------------------------------------------------------------------

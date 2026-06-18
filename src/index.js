@@ -23,8 +23,14 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.93 2026 06 17
+ * @version 0.39.95 2026 06 18
+ * - TWEAKED: entity._socketEmit formN() data pre-formatting
+ * - FIXED: emoteSeekTarget unable to stop when spoofed or idling
+ * - FIXED: main.entity_monitor values flicker
+ *
+ * @version 0.39.94 2026 06 17
  * - ADDED: Express.routing
+ * - ADDED: kml_to_json converter
  * - FIXED: account.register
  * - FIXED: handler registration
  *
@@ -519,7 +525,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 93],
+  version: [0, 39, 94],
   firmwareName: "MAGPIE",
   firmwareDate: "20260617",
 };
@@ -625,8 +631,6 @@ MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.OBJECT, "OBJECT");
 /** @type {key_type} */
 MAGPIE.KEY.TYPE.TARGET = 103;
 MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.TARGET, "TARGET");
-MAGPIE.KEY.TYPE.WAYPOINT = 104;
-MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.WAYPOINT, "WAYPOINT");
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -1280,8 +1284,8 @@ MAGPIE.KEY.HTTP.STATUS_200 = {
   code: 200,
   message: "Successful",
   desc: `In simple terms, the HTTP status 200 response code means 
-	that a server has successfully processed a request. Likewise, 
-	codes in the 400s and 500s mean a request has failed.`,
+  that a server has successfully processed a request. Likewise, 
+  codes in the 400s and 500s mean a request has failed.`,
 };
 /**
  * @desc Bad Request
@@ -1295,10 +1299,10 @@ MAGPIE.KEY.HTTP.STATUS_400 = {
   code: 400,
   message: "Bad Request",
   desc: `The 400 (Bad Request) status code indicates that the server 
-	cannot or will not process the request due to something that is 
-	perceived to be a client error. In response to an invalid request, 
-	the server should issue the exact 4xx code in the case of an 
-	unsuccessful request.`,
+  cannot or will not process the request due to something that is 
+  perceived to be a client error. In response to an invalid request, 
+  the server should issue the exact 4xx code in the case of an 
+  unsuccessful request.`,
 };
 /**
  * @desc Unauthorized
@@ -1310,8 +1314,8 @@ MAGPIE.KEY.HTTP.STATUS_401 = {
   code: 401,
   message: "Unauthorized",
   desc: `The  HTTP 401 Unauthorized client error response status code 
-	indicates that a request was not successful because it lacks valid 
-	authentication credentials for the requested resource.`,
+  indicates that a request was not successful because it lacks valid 
+  authentication credentials for the requested resource.`,
 };
 /**
  * @desc "Forbidden"
@@ -1371,8 +1375,8 @@ MAGPIE.KEY.HTTP.STATUS_500 = {
   code: 500,
   message: "Internal Server Error",
   desc: `An HTTP 500 status code (Internal Server Error) indicates 
-	that the server encountered an unexpected condition that prevented 
-	it from fulfilling the request.`,
+  that the server encountered an unexpected condition that prevented 
+  it from fulfilling the request.`,
 };
 /**
  * @desc "too many requests"
@@ -1562,14 +1566,7 @@ MAGPIE.KEY.HIVE.REMOTE_SIZE = 3;
  * @desc component of {@link MAGPIE.KEY.meta}
  * @desc system of {@link MAGPIE}
  * @typedef {Number} keyID
- * @typedef {{
- * type: Number,
- * label: String,
- * origin: keyID,
- * component: keyID,
- * compound: keyID,
- * legacy: keyID
- * }} key_data
+ * @typedef {import("./component").key_data} key_data
  * @typedef {Number} index array[index]
  * @typedef {Enumerator<Number>} key_type
  *
@@ -1578,6 +1575,20 @@ MAGPIE.KEY.SEMANTICS = {};
 MAGPIE.KEY.SEMANTICS.meta = {
   name: "M.A.G.P.I.E. semantic keys",
 };
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Interact
+//------------------------------------------------------------------------
+/** @type {key_index} */
+MAGPIE.KEY.INDEX.WAYPOINT = 104;
+/** @type {key_index} */
+MAGPIE.KEY.INDEX.ROUTE = 105;
+// #endregion
+//------------------------------------------------------------------------
 /**
  *
  * @desc back to {@link }
@@ -2461,6 +2472,8 @@ MAGPIE.KEY.SYMBOL.TYPE.TERRITORY = 10;
 MAGPIE.KEY.SYMBOL.TYPE.SPECIES = 11;
 /** @type {symbol_type} */
 MAGPIE.KEY.SYMBOL.TYPE.PLAYER = 12;
+/** @type {symbol_type} */
+MAGPIE.KEY.SYMBOL.TYPE.MARKER = 13;
 MAGPIE.KEY.SYMBOL.INDEX = {};
 // #endregion
 //------------------------------------------------------------------------

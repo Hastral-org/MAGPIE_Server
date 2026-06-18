@@ -534,6 +534,24 @@ const IDLING = {
    * @param {fitness_index} fitness_index
    * @returns {state_output}
    */
+  onUpdate: (exp, entity, switchID, fitness_index) => {
+    return entity._emote_idling(exp, fitness_index);
+  },
+  onRemove: () => {},
+  onExpire: () => {},
+};
+states.push(IDLING);
+/** @type {Enumerator<Number>} */
+INDEX.IDLING = IDLING.ID;
+//------------------------------------------------------------------------
+/** @type {state_data} */
+const STOPPING = {
+  ID: 307,
+  type: TYPE.FSM_POSTURE,
+  name: "STOPPING",
+  description: "",
+  stack: 1,
+  onApply: () => {},
   /**
    *
    * @param {MAGPIE_EXP} exp
@@ -543,16 +561,15 @@ const IDLING = {
    * @returns {state_output}
    */
   onUpdate: (exp, entity, switchID, fitness_index) => {
-    const target = exp.keys.includes(MAGPIE.KEY.INDEX.TARGET);
-    if (!target || !switchID) return { exp: exp };
-    return entity._emote_Idling(exp, fitness_index);
+    if (!exp.targetID) return { exp: exp };
+    return entity._emote_stopping(exp, fitness_index);
   },
   onRemove: () => {},
   onExpire: () => {},
 };
-states.push(IDLING);
+states.push(STOPPING);
 /** @type {Enumerator<Number>} */
-INDEX.IDLING = IDLING.ID;
+INDEX.STOPPING = STOPPING.ID;
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const ALIGNING_TARGET = {

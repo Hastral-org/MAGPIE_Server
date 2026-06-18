@@ -1,4 +1,4 @@
-const { MAGPIE } = require("../../../src/index");
+const { MAGPIE } = require("../src/index");
 const fetch = global.fetch;
 const fs = require("fs");
 const ePrefix = "[REGISTRATION TEST] ";

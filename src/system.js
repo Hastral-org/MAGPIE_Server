@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.93 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.94 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -212,7 +212,11 @@ MAGPIE_LOG.pushError = function pushErrorLog(error, options = {}) {
   if (!options?.gravity) options.gravity = -1;
   if (!options?.urgency) options.urgency = -1;
   /** @type {log_data} */
-  const data = { contents: error, urgency: urgency, gravity: gravity };
+  const data = {
+    contents: error,
+    urgency: options.urgency,
+    gravity: options.gravity,
+  };
   const log = new MAGPIE_LOG(data);
   MAGPIE_LOG.errors.push(log);
   return log;
@@ -227,7 +231,11 @@ MAGPIE_LOG.pushConsole = function pushConsoleLog(message, options = {}) {
   if (!options?.gravity) options.gravity = -1;
   if (!options?.urgency) options.urgency = -1;
   /** @type {log_data} */
-  const data = { contents: message, urgency: urgency, gravity: gravity };
+  const data = {
+    contents: message,
+    urgency: options.urgency,
+    gravity: options.gravity,
+  };
   const log = new MAGPIE_LOG(data);
   MAGPIE_LOG.console.push(log);
   return log;
@@ -243,7 +251,9 @@ MAGPIE_LOG.pushConsole = function pushConsoleLog(message, options = {}) {
  * @returns
  */
 MAGPIE_LOG.pushLog = function pushLog(message, options = {}) {
-  const callback = MAGPIE_LOG[`push${options?.prefix}`];
+  if (!options?.prefix) options.prefix = "console";
+  const prefix = MAGPIE_SYSTEM.String.firstCharUpperCase(options.prefix);
+  const callback = MAGPIE_LOG[`push${prefix}`];
   return callback(message, options);
 };
 /**
@@ -490,7 +500,7 @@ MAGPIE_SYSTEM.String = {};
  * @desc addon for {@link MAGPIE_SYSTEM}
  * @param {String} string
  * @author Matheraptor
- * @returns {new String} original string with the first character uppercase
+ * @returns {String} original string with the first character uppercase
  */
 MAGPIE_SYSTEM.String.firstCharUpperCase = function firstCharUpperCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -845,6 +855,22 @@ MAGPIE_SYSTEM.Utility._format_num = function formatNumber(num, toFixed, sign) {
     signDisplay: sign ? "always" : "never", // Forces +0.00000, -0.00000, +0.00005
   });
   return formatter.format(num);
+};
+/**
+ *
+ * @param {String} filename
+ * @returns {JSON}
+ */
+MAGPIE_SYSTEM.Utility.importJSON = function (filename) {
+  const ePrefix = "[SYSTEM] ";
+  try {
+    const fs = require("fs");
+    const raw = fs.readFileSync(filename, "utf-8");
+    if (!raw) throw new Error(`unable to find ${filename}:${raw}. `);
+    return JSON.parse(raw);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -1546,7 +1572,7 @@ MAGPIE_HIVE.__get_serverSync = function __get_serverSync(method, args) {
 /**
  * @name database
  * @desc
- * @typedef {import("./database_worker").database_result} database_result
+ * @typedef {import("./services/database_worker").database_result} database_result
  */
 //------------------------------------------------------------------------
 // #region > Database

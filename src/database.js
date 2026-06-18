@@ -682,12 +682,12 @@ MAGPIE_DATABASE.loadKeySync = function loadKeySync(keyID) {
  */
 MAGPIE_DATABASE.prepareKey = function prepareKey(key) {
   return {
-    ID: key.ID,
-    type: key.type,
-    label: key.label,
-    originID: key.originID || null,
-    compoundID: key.compoundID || null,
-    symbolID: key.symbolID || null,
+    ID: Number(key.ID),
+    type: Number(key.type),
+    label: String(key.label) || "",
+    originID: Number(key.originID) || NaN,
+    compoundID: Number(key.compoundID) || NaN,
+    symbolID: Number(key.symbolID) || NaN,
   };
 };
 /**

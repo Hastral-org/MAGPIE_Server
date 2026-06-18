@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.93
+ * @version 0.39.94
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -588,7 +588,7 @@ MAGPIE_SERVER.TEST = {};
 MAGPIE_SERVER.TEST.meta = {
   name: MAGPIE.meta.name + "testing",
 };
-MAGPIE_SERVER.TEST.Path = "\\.private\\tmp\\tests";
+MAGPIE_SERVER.TEST.Path = "\\.tests";
 MAGPIE_SERVER.TEST.list = fs
   .readdirSync(process.cwd() + MAGPIE_SERVER.TEST.Path)
   .filter((string) => string.includes(".js"));
@@ -600,6 +600,11 @@ if (MAGPIE_SERVER.TEST.list && MAGPIE_SERVER.TEST.list.length > 0) {
     MAGPIE_SERVER.TEST[testName] = require(`.${directory}`);
   });
 }
+MAGPIE_SERVER.testLog = function (message, prefix = "log", error = "") {
+  const callback = console[prefix];
+  callback(message, error);
+  fs.appendFileSync(process.cwd() + "\\.tests\\.test.log");
+};
 
 //   tests.forEach((testFile) => {
 //     const testName = testFile.replace(".js", "");
@@ -1316,6 +1321,7 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
       throw new Error(`(${POVART1}) is invalid POVART₁`);
     const { P0, V0, A0 } = MAGPIE_PHYSICS.decomp_POVART(POVART1);
     const Kp = MAGPIE.KEY.POVART;
+    // MAGPIE_SERVER._debug(`stats: ${entity.STATS}`);
     const C = P_C;
     const P1 = entity._get_P0();
     const O1 = entity._get_O0();
@@ -1337,6 +1343,7 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
     const Tmag = Number(MAGPIE_PHYSICS.mag(T1) / dt);
     const normP1 = MAGPIE_PHYSICS.normalizeVector(P1);
     const unitP1mag = MAGPIE_PHYSICS.mag(normP1);
+    // MAGPIE_SERVER._debug(`O1: ${O1} | P1: ${P1}`);
     const [roll, pitch, hdg] =
       unitP1mag !== 1
         ? [NaN, NaN, NaN]
@@ -1360,38 +1367,45 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
     const ETA = !isNaN(ETA_s) ? MAGPIE_SYSTEM.Utility.printETA(ETA_s) : "N/A";
     const raw = output?.emote?.raw || output?.target?.raw || [];
     const index = MAGPIE.KEY.INDEX;
-    const dR_mag = Number(raw?.dR_mag) || NaN;
+    const dRmag = Number(raw?.dRmag) || NaN;
     const dR = Array.isArray(raw?.dR) ? raw.dR : [NaN, NaN, NaN];
+    const pR = Number(raw?.pR);
     const Bdist = Array.isArray(raw?.Bdist) ? raw.Bdist : [NaN, NaN, NaN];
-    // MAGPIE_SYSTEM._logging_debug(raw)
+    // MAGPIE_SYSTEM._logging_debug(`raw: ${Object.entries(raw)}`);
     const form = MAGPIE_SYSTEM.Utility._format_num;
     const states = (stateID) => {
       return MAGPIE_STATE.INDEX.get(stateID)?.name;
     };
+    const formN = (num) => (Number(num) ? form(num, 1, true) : undefined);
     const data = {
       switchID,
       entityID: entity.ID,
       entityName: entity.name,
       metadate: entity.updated,
-      coords: [lat, lon, ASL],
+      coords: [form(lat, 10, true), form(lon, 10, true), form(ASL, 1, true)],
       states: entity._get_states(this).map((n) => states(n)),
       Vmag: Vmag,
       Vknots: Vknots,
       Amag: switchID !== 1 ? Amag : layer_frame % 10 === 0 ? Amag : undefined,
       Rmag: Rmag,
       Tmag: Tmag,
-      dR_mag: dR_mag,
+      dRmag: dRmag,
       dR: dR.map((n) => form(n, 5, true)),
       R1: R1.map((n) => form(n, 5, true)),
       T1: T1.map((n) => form(n, 5, true)),
       Bdist: Bdist?.map((n) => form(n, 5, true)),
-      heading: hdg,
-      pitch: pitch,
-      roll: roll,
+      heading: formN(hdg),
+      pitch: formN(pitch),
+      roll: formN(roll),
+      pR: pR,
       CelestialBody: C.name,
       targetID: target?.ID,
       targetName: target?.name,
-      targetCoords: Ct,
+      targetCoords: [
+        form(Ct[0], 10, true),
+        form(Ct[1], 10, true),
+        form(Ct[2], 1, true),
+      ],
       distanceTo: dist,
       ETA: ETA,
       forces: forces,
@@ -1405,6 +1419,7 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
     return true;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    entity.selfKick(`socketEmit fail: ${e.message}`);
     return false;
   }
 };
@@ -2070,6 +2085,7 @@ const main = async function main() {
   r.context.SYSTEM = MAGPIE_SYSTEM;
   r.context.HIVE = MAGPIE_HIVE;
   r.context.DATABASE = MAGPIE_DATABASE;
+  r.context.PHYSICS = MAGPIE_PHYSICS;
   r.context.STATE = MAGPIE_STATE;
   r.context.EMOTE = MAGPIE_EMOTE;
   r.context.LOADBAR = MAGPIE_LOADBAR;

@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.93
+ * @version 0.39.94
  * @desc
  * @param {{
  * name: String,
@@ -37,6 +37,8 @@ const ENTITY_TYPES = require("../data/entity_types");
 /**
  *
  * @typedef {import("./index").duration} duration
+ * @typedef {import("./component").key_data} key_data
+ * @typedef {import("./component").contextID} contextID
  */
 /**
  *
@@ -370,9 +372,10 @@ MAGPIE_ENTITY.prototype.initialize = function initialize(data) {
   this.fitness = [];
   /** @type {expID[]} */
   this.exps = [];
-  setTimeout(() => {
-    this.setup(data);
-  }, 1000);
+  if(this.STATS.length > 0)
+    setTimeout(() => {
+      this.setup(data);
+    }, 1000);
 };
 MAGPIE_ENTITY.prototype.isValid = function isValid() {
   return true;
@@ -1451,7 +1454,39 @@ MAGPIE_ENTITY.prototype._target_update = function _target_update(
   if (!target) return;
   return target._updateSync(method, args);
 };
-
+/**
+ * 
+ * @param {{
+ * name: String,
+ * type: entity_type,
+ * ID: entityID,
+ * STATS: STATS,
+ * coords: coords
+ * }} options 
+ * @returns {database_result}
+ */
+MAGPIE_ENTITY.prototype._edit = function (options) {
+  if(options?.name)
+    this.name = options.name;
+  if(options?.type)
+    this.type = options.type;
+  if(options?.ID)
+    this.ID = options.ID;
+  if(options?.STATS)
+    this.STATS = options.STATS;
+  if(options.coords)
+    this._set_C1(coords);
+  return this.setSync();
+}
+/**
+ * 
+ * @param {Number} index 
+ * @returns {MAGPIE_ENTITY}
+ */
+MAGPIE_ENTITY.prototype._get_targetLabel = function(index) {
+  const exp = this._get_exps()[0];
+  return exp.getKeys()[index]._get_entity_label()
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -1851,7 +1886,8 @@ MAGPIE_ENTITY.prototype.updatePhysics = function updatePhysics(
       dt,
     );
     const T1 = dT; //MAGPIE_PHYSICS.addVectors(T0, dT);
-    const R1 = MAGPIE_PHYSICS.addVectors(R0, T1);
+    const dR = MAGPIE_PHYSICS.addVectors(R0, T1)
+    const R1 = MAGPIE_PHYSICS.mag(dR) > 1e-9 ? dR : [0, 0, 0];
     const dO = MAGPIE_PHYSICS.rotorFromBivector(R1, dt);
     // HASTAL Doctrine: Right-side multiplication for local frame rotation (O_new = O_old * R_delta)
     const O1 = MAGPIE_PHYSICS.rotorCompose(O0, dO);
@@ -2523,7 +2559,7 @@ MAGPIE_ENTITY.prototype.growth = function () {
  * @desc
  * @typedef {{
  * dR: bivector,
- * dR_mag: magnitude,
+ * dRmag: magnitude,
  * Bdist: bivector,
  * fitness_index: fitness_index
  * }} action_output
@@ -2604,34 +2640,31 @@ MAGPIE_ENTITY.prototype._emote_eval = function _emote_eval(exp) {
 //------------------------------------------------------------------------
 MAGPIE_ENTITY._seekTarget = 1;
 /**
- *
- * @param {MAGPIE_EXP} exp
- * @param {fitness_index} fitness_index
- * @returns {state_output}
+ * 
+ * @param {MAGPIE_EXP} exp 
+ * @param {fitness_index} fitness_index 
  */
-MAGPIE_ENTITY.prototype._emote_seekTarget = function _emote_seekTarget(
-  exp,
-  fitness_index,
-) {
-  const ePrefix = `[ENTITY-${this.ID}]._emote_seekTarget: `;
-  const output = { At: [0, 0, 0], Tt: [0, 0, 0], exp: exp, raw: [] };
+MAGPIE_ENTITY.prototype._emote_stop = function _emote_stop(exp, fitness_index) {
+  const ePrefix = `[ENTITY-${this.ID}]._emote_stop: `;
   try {
     if (!(exp instanceof MAGPIE_EXP)) throw new Error(`${exp} is invalid EXP`);
-    const POVART0 = this._get_POVART();
-    const { P0, V0 } = MAGPIE_ENTITY._get_decomp_POVART(POVART0);
-    const targetID = exp.targetID;
-    if (isNaN(targetID)) throw new Error(`${targetID} is invalid targetID`);
-    const target = MAGPIE_ENTITY.__hiveSync("_get_entity", [targetID]);
-    if (!target) {
-      const spoofed = STATE.INDEX.SPOOFED;
-      this.switchState(fitness_index, )
-      MAGPIE_SYSTEM.silentLog(ePrefix + `${target} is invalid target. `, "error")
-      MAGPIE_SYSTEM.logging.log_exp(`${ePrefix}switch to [STATE-${spoofed}]. `);
-    }
-    const Pt = target._get_P0();
-    const dist = this._target_getDistance(P0, Pt);
-    const contact = this._target_isSensed(target, dist);
-    if (!contact) return;
+    const V0 = this._get_V0();
+    const unitV0 = MAGPIE_PHYSICS.normalizeVector(V0);
+    const Asafe = this._get_speeds()
+    const At = MAGPIE_PHYSICS.scaleVector(-unitV0, )
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
+ * 
+ * @param {MAGPIE_EXP} exp 
+ * @param {*} data
+ * @returns {Object} 
+ */
+MAGPIE_ENTITY.prototype._get_emoteSeekOptions = function(exp, data) {
+  const ePrefix = `[ENTITY-${this.ID}].getEmoteSeekOptions: `;
+  try {
     const tolerance = 1; //@todo dynamic seekTarget tolerance
     const pR = 1; //@todo dynamic seekTarget priority ratio
     const intensity = exp.value;
@@ -2656,10 +2689,57 @@ MAGPIE_ENTITY.prototype._emote_seekTarget = function _emote_seekTarget(
     options.Rstate = this._get_Rstate();
     // MAGPIE_SYSTEM._logging_debug(Object.entries(options))
     options.STATS = this.STATS;
+    return options
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+    return {}
+  }
+}
+/**
+ *
+ * @param {MAGPIE_EXP} exp
+ * @param {fitness_index} fitness_index
+ * @returns {state_output}
+ */
+MAGPIE_ENTITY.prototype._emote_seekTarget = function _emote_seekTarget(
+  exp,
+  fitness_index,
+) {
+  const ePrefix = `[ENTITY-${this.ID}]._emote_seekTarget: `;
+  const output = { At: [0, 0, 0], Tt: [0, 0, 0], exp: exp, raw: [] };
+  try {
+    if (!(exp instanceof MAGPIE_EXP)) throw new Error(`${exp} is invalid EXP`);
+    const currentTarget = this._get_target()
+    const targetID = currentTarget?.ID
+    // || exp._target_next(this);
+    // MAGPIE_SYSTEM._logging_debug(`target: ${targetID}`)
+    const POVART0 = this._get_POVART();
+    const data = {};
+    const options = this._get_emoteSeekOptions(exp, data)
+    if (isNaN(targetID)) {
+      const idling = STATE.INDEX.IDLING;
+      const stopping = STATE.INDEX.STOPPING;
+      const { At, Tt, raw, stopped } = MAGPIE_PHYSICS._emote_stop(POVART0, options)
+      this.switchState(fitness_index, stopped ? idling : stopping)
+      return { At, Tt, exp, raw }
+    }
+    const { P0, V0 } = MAGPIE_ENTITY._get_decomp_POVART(POVART0);
+    const target = MAGPIE_ENTITY.__hiveSync("_get_entity", [targetID]);
+    let contact = false;
+    if(target) {
+      const Pt = target._get_P0();
+      const dist = this._target_getDistance(P0, Pt);
+      contact = this._target_isSensed(target, dist);
+    } 
+    if (!target || !contact) {
+      const spoofed = STATE.INDEX.SPOOFED;
+      options.state = spoofed;
+      this.switchState(fitness_index, spoofed)
+      // return this._emote_stop(exp, fitness_index, options)
+    };
     const output = MAGPIE_PHYSICS._emote_seekTarget(POVART0, Pt, options);
-    const { At, Tt, state, Rstate, dR_mag, dR, Bdist } = output;
+    const { At, Tt, state, raw } = output;
     // MAGPIE_SYSTEM._logging_debug(Tt)
-    const raw = { dR, dR_mag, Bdist, fitness_index };
     this.switchState(fitness_index, output.state);
     return { At: At, Tt: Tt, exp: exp, raw };
   } catch (e) {
@@ -2740,6 +2820,17 @@ MAGPIE_ENTITY.prototype._emote_idling = function _emote_idling(
   const ePrefix = `[ENTITY-${this.ID}].idling: `;
   try {
     //@todo idling logic?
+    // return this._emote_stop(exp, fitness_index);
+    // MAGPIE_SYSTEM._logging_debug(ePrefix)
+    return this._emote_seekTarget(exp, fitness_index);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+MAGPIE_ENTITY.prototype._emote_stopping = function (exp, fitness_index) {
+  const ePrefix = `[ENTITY-${this.ID}].idling: `;
+  try {
+    //@todo stopping logic?
     return this._emote_seekTarget(exp, fitness_index);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -3030,12 +3121,28 @@ MAGPIE_ENTITY.prototype._exp_keyPluck = function expKeyPluck(exp, keyIndex) {
 // #region > Setters
 //------------------------------------------------------------------------
 /**
- *
- * @param {MAGPIE_KEY} key
+ * 
+ * @param {key_data} key_data
  * @returns {Promise<database_result>}
  */
-MAGPIE_ENTITY._set_key = async function setKey(key) {
-  return MAGPIE_ENTITY._database("saveKey", key);
+MAGPIE_ENTITY.prototype._add_new_key = async function (key_data) {
+  const ePrefix = `[ENTITY-${this.ID}] `;
+  try {
+    const context = this._get_contexts()[0];
+    if(!(context instanceof MAGPIE_CONTEXT))
+      throw new Error(`${context} is invalid MAGPIE_CONTEXT. `);
+    const key = await context._add_new_key(key_data);
+    if(!key)
+      throw new Error(`unable to create key. `)
+    const exp = this._get_exps()[0];
+    if(!(exp instanceof MAGPIE_EXP))
+      throw new Error(`${exp} is invalid MAGPIE_EXP `)
+    exp.keys.push(key.ID);
+    await exp.set()
+    return key
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -3259,6 +3366,7 @@ MAGPIE_ENTITY.prototype.switchState = function switchState(
       throw new Error(`this.fitness[${current}] is invalid state`);
     if (current === stateID) return current;
     this.fitness[fitness_index] = stateID;
+    MAGPIE_SYSTEM.logging.log_exp(`${ePrefix}to [STATE-${stateID}]. `);
     return stateID;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -3459,6 +3567,37 @@ MAGPIE_ENTITY.prototype._get_target = function _get_target() {
     this._get_exps()[0]?.targetID,
   ]);
 };
+/**
+ * @returns {new MAGPIE_ENTITY}
+ */
+MAGPIE_ENTITY.prototype._new_target = function entityNewTarget() {
+  const ePrefix = `[ENTITY-${this.ID}] `;
+  try {
+    const target = new MAGPIE_ENTITY({
+      type: MAGPIE.KEY.SYMBOL.TYPE.MARKER,
+      name: `${ePrefix}[TARGET]`,
+    })
+    if(!(target instanceof MAGPIE_ENTITY))
+      throw new Error(`${target} is invalid MAGPIE_ENTITY. `);
+    const S = MAGPIE.KEY.STATS;
+    const P = MAGPIE.KEY.POVART;
+    target.STATS = new Float64Array(S.ARRAY);
+    target.STATS[P.P_C] = this.STATS[P.P_C];
+    target.STATS[P.E_ID] = target.ID;
+    target.STATS[S.HOST] = target.STATS[P.P_C];
+    target._set_P1(this._get_P0());
+    const context = this._get_contexts()[0];
+    const standardLayer = 3
+    MAGPIE_ENTITY.__hiveSync("host", [target, standardLayer, standardLayer, context.ID])
+    context._set_entity(target.ID)
+    target.setSync()
+    this._get_exps()[0].targetID = target.ID;
+    MAGPIE_SYSTEM._logging_debug(`new target: ${target.ID}`)
+    return target
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -3780,7 +3919,7 @@ MAGPIE_ENTITY.prototype._target_next = function nextTarget() {
     if (!this.isValidExp(exp)) return false; // throw new Error(`${exp} is invalid target.exp`)
     const index = this._get_expIndex(exp);
     if (Number(index) < 0) throw new Error(`${index} is invalid exps index`);
-    const next = exp._target_next();
+    const next = exp._target_next(this);
     if (!next) return;
     const swap = this._exp_swapWith(index, exp);
     const target = this._get_target();
@@ -3859,8 +3998,19 @@ MAGPIE_ENTITY.prototype._target_setWp = function (keyIndex, wpName, coords) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+MAGPIE_ENTITY.prototype._coords_clearQueue = function() {
+  const ePrefix = `[ENTITY-${this.ID}].coordsClearQueue: `
+  try {
+    const exp = this._get_exps()[0];
+    const keys = exp.getKeys().filter(key => key.type === MAGPIE.KEY.TYPE.WAYPOINT)
+    for(const key of keys) 
+      key.originID = null
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 /**
- *
+ * @desc @audit-issue Batch import of geocoords
  * @param {String} filename
  * @param {{
  * overflow: Boolean,
@@ -3870,41 +4020,72 @@ MAGPIE_ENTITY.prototype._target_setWp = function (keyIndex, wpName, coords) {
 MAGPIE_ENTITY.prototype._coords_importBatch = async function (filename, options) {
   const ePrefix = `[ENTITY-${this.ID}].coordsImportBatch: `;
   try {
-    const fs = require("fs");
-    const raw = fs.readFileSync(filename)
-    if(!raw)
-      throw new Error(`unable to find ${filename}:${raw}. `)
-    const source = JSON.parse(raw);
+    const source = MAGPIE_SYSTEM.Utility.importJSON(`./.tmp/${filename}.json`)
     if(!source || !Array.isArray(source))
       throw new Error(`${source} is invalid coords array. `)
     const exp = this._get_exps()[0];
     if(!(exp instanceof MAGPIE_EXP))
       throw new Error(`${exp} is invalid exp. `)
     const frag = options?.frag ? `${options.frag}-` : "";
-    const keys = exp
-      .getKeys()
+    const keys = exp.getKeys()
       .filter((key) => key.type === MAGPIE.KEY.TYPE.WAYPOINT);
     if(!keys || !Array.isArray(keys))
       throw new Error(`${keys} is invalid keys array. `)
     keys.forEach((key, index) => {
       const target = key._get_entity_label();
-      target.name = `WP-${frag}${index}`;
-      target._set_C1(source[index]);
-      source.unshift();
+      if(target && target instanceof MAGPIE_ENTITY) {
+        target.name = `WP-${frag}${index}`;
+        target._set_C1(source[index]);
+        source.unshift();
+      }
     });
     if(source.length < 1) return
     const metakey = new MAGPIE_KEY({
       type: MAGPIE.KEY.TYPE.METAKEY,
-      originID: MAGPIE.KEY.TYPE.WAYPOINT,
+      originID: MAGPIE.KEY.TYPE.ROUTE,
       label: raw,
     })
-    await metakey.set();
+    MAGPIE_SYSTEM._logging_debug(Object.entries(`metakey: ${metakey}`))
+    const metakeySaved = await metakey.set();
+    if(!metakeySaved)
+      throw new Error(`unable to save [KEY-${metakey.ID}]. `)
     exp.keys.push(metakey.ID);
     await exp.set();
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+/**
+ * 
+ * @param {String} filename 
+ */
+MAGPIE_ENTITY.prototype._targetkey_importBatch = async function(filename) {
+  const ePrefix = `[ENTITY-${this.ID}] `;
+  try {
+    /**
+     * @type {coords[]}
+     */
+    const source = MAGPIE_SYSTEM.Utility.importJSON(`./.tmp/${filename}.json`);
+    const exp = this._get_exps()[0];
+    const type = MAGPIE.KEY.INDEX.WAYPOINT;
+    const origin = MAGPIE.KEY.INDEX.TARGET;
+    const keys = exp.getKeys().filter(key => key.type === type);
+    for(let i = 0; i < source.length; i++) {
+      const key = keys[i] || await this._add_new_key({
+        type: type, 
+        originID: origin,
+        label: JSON.stringify(source[i])
+      })
+    }
+    const metakeyType = MAGPIE.KEY.TYPE.METAKEY;
+    const metakey = await this._add_new_key({
+      type: metakeyType,
+      label: JSON.stringify(source)
+    })
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**

@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Client
  * @author Matheraptor
  * @licence GPL-3.0
- * @version 0.39.92
+ * @version 0.39.94
  *
  */
 class MAGPIE_CLIENT {
@@ -35,6 +35,27 @@ class MAGPIE_MONITOR {
 class router {
   //
 }
+class KEY {
+  //
+}
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - KEY
+//========================================================================
+KEY.PRINT = {};
+KEY.PRINT.NA = "n/a";
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
 /**
  * @name
  * @desc
@@ -199,36 +220,38 @@ MAGPIE_MONITOR.handleUpdate = function (data) {
   // if (data.entityID !== this.currentID) return;
   // Helper function to safely update text without breaking selection
   update("monitor-status", MAGPIE_MONITOR.MESSAGE.STATUS.live);
-  const C0_lat = data.coords[0]?.toFixed(10);
-  const C0_lon = data.coords[1]?.toFixed(10);
-  const Ct_lat = data.targetCoords[0]?.toFixed(10);
-  const Ct_lon = data.targetCoords[1]?.toFixed(10);
+  const C0_lat = data.coords[0] || KEY.PRINT.NA;
+  const C0_lon = data.coords[1] || KEY.PRINT.NA;
+  const Ct_lat = data.targetCoords[0] || KEY.PRINT.NA;
+  const Ct_lon = data.targetCoords[1] || KEY.PRINT.NA;
   update("val-id", data.entityID);
   update("val-name", data.entityName);
   update("val-C0", `${C0_lat}, ${C0_lon}`);
   // update('val-lat', data.coords[0].toFixed(10));
   // update('val-lon', data.coords[1].toFixed(10));
-  update("val-asl", Math.floor(data.coords[2]));
+  if (data?.coords[2]) update("val-asl", data.coords[2]);
   update("val-Vmag", data.Vmag.toFixed(3));
   update("val-knots", Math.floor(data.Vknots));
   if (!isNaN(data?.Amag)) update("val-Amag", data.Amag?.toFixed(3));
   update("val-Tmag", data.Tmag?.toFixed(3));
   update("val-Rmag", data.Rmag.toFixed(3));
   update("val-states", data.states);
-  if (data?.dR_mag && !isNaN(data.dR_mag))
-    update("val-dR_mag", Number(data.dR_mag)?.toFixed(3));
-  if (Number(data?.heading)) update("val-heading", data.heading?.toFixed(1));
-  if (Number(data?.pitch)) update("val-pitch", data.pitch?.toFixed(1));
-  if (Number(data?.roll)) update("val-roll", data?.roll?.toFixed(1));
+  if (data?.dRmag && !isNaN(data.dRmag))
+    update("val-dRmag", Number(data.dRmag)?.toFixed(3));
+  if (data?.heading) update("val-heading", data.heading);
+  if (data?.pitch) update("val-pitch", data.pitch);
+  if (data?.roll) update("val-roll", data?.roll);
+  if (Number(data?.pR)) update("val-pR", data?.pR?.toFixed(1));
   update("val-body", data.CelestialBody);
   update("val-meta", data.metadate);
-  update("val-targetID", data?.targetID);
-  update("val-targetName", data?.targetName);
-  update("val-Ct", `${Ct_lat}, ${Ct_lon}`);
+  if (!isNaN(data?.targetID)) update("val-targetID", data.targetID);
+  if (data?.targetName && data.targetName !== "undefined")
+    update("val-targetName", data.targetName);
+  if (Ct_lat && Ct_lon) update("val-Ct", `${Ct_lat}, ${Ct_lon}`);
   // update('val-tlat', data.targetCoords[0].toFixed(10));
   // update('val-tlon', data.targetCoords[1].toFixed(10));
-  update("val-dist", Math.floor(data.distanceTo));
-  update("val-eta", data.ETA);
+  if (data?.distanceTo) update("val-dist", Math.floor(data.distanceTo));
+  if (data?.ETA) update("val-eta", data.ETA);
   //
   if (data?.dR && data.dR.every((n) => !isNaN(n))) update("val-dR", data.dR);
   if (data?.Bdist && data.Bdist.every((n) => !isNaN(n)))
