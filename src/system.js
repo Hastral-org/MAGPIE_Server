@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.94 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.941 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -870,6 +870,24 @@ MAGPIE_SYSTEM.Utility.importJSON = function (filename) {
     return JSON.parse(raw);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ * @typedef {import("./physics").coords} coords
+ * @param {String} filename
+ * @returns {coords[]}
+ */
+MAGPIE_SYSTEM.Utility._import_route = function (filename) {
+  const ePrefix = "[SYSTEM] ";
+  try {
+    const path = `./.tmp/${filename}.json`;
+    const route = MAGPIE_SYSTEM.Utility.importJSON(path);
+    if (!route || !Array.isArray(route))
+      throw new Error(`${route} is invalid route. `);
+    return route;
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    return false;
   }
 };
 // #endregion

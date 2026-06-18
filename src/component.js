@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.94
+ * @version 0.39.941
  */
 //========================================================================
 // #region - INDEX
@@ -1048,18 +1048,14 @@ MAGPIE_EXP.prototype._get_targetSTATS = function _get_targetSTATS() {
  * @returns {MAGPIE_KEY}
  */
 MAGPIE_EXP.prototype._get_key_target = function getKeyTarget() {
-  return this.getKeys()?.find(
-    (key) => key.originID === MAGPIE.KEY.INDEX.TARGET,
-  );
+  return this.getKeys()?.find((key) => key.type === MAGPIE.KEY.INDEX.TARGET);
 };
 /**
  *
  * @returns {MAGPIE_KEY}
  */
 MAGPIE_EXP.prototype._get_key_marker = function getKeyMarker() {
-  return this.getKeys()?.find(
-    (key) => key.originID === MAGPIE.KEY.INDEX.MARKER,
-  );
+  return this.getKeys()?.find((key) => key.type === MAGPIE.KEY.INDEX.MARKER);
 };
 /**
  * @param {entityID}
@@ -1101,11 +1097,10 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
         return target.ID;
       }
       /** @type {MAGPIE_KEY} */
-      let spareKey = this.getKeys().find((key) => !key.originID);
+      let spareKey = this.getKeys().find((key) => !key.type);
       if (!spareKey) {
         spareKey = new MAGPIE_KEY({
           type: MAGPIE.KEY.INDEX.WAYPOINT,
-          originID: MAGPIE.KEY.INDEX.TARGET,
         });
         const context = entity._get_contexts()[0];
         context._set_key(spareKey.ID);
@@ -1121,7 +1116,7 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
         return target.ID;
       }
     }
-    key.removeOrigin();
+    //@audit-issue must not use .originID
     return Number(key.label);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -1201,9 +1196,8 @@ MAGPIE_EXP.prototype._route_push = async function _route_push(targetID) {
   try {
     const K = MAGPIE.KEY;
     const key = await this._key_add({
-      type: K.TYPE.CONTEXT,
+      type: K.INDEX.WAYPOINT,
       label: String(targetID),
-      originID: K.TYPE.TARGET,
     });
     if (!(key instanceof MAGPIE_KEY)) throw new Error(`${key} is invalid key`);
     return this.keys.length - 1;
@@ -1252,7 +1246,7 @@ MAGPIE_EXP.prototype._key_mapVspeeds = function mapVspeeds() {
   if (keys.length < 1) return;
   const Vspeeds = {};
   for (const key of keys) {
-    const isVSPEED = key.originID >= K.VMAX && key.originID <= K.TDOCK_Z;
+    const isVSPEED = key.type >= K.VMAX && key.type <= K.TDOCK_Z;
     const isType = key.type === T.CONTEXT || key.type === T.WAYPOINT;
     if (isVSPEED && isType)
       Vspeeds[key.getOrigin()?.label?.toUpperCase()] = JSON.parse(key.label);
@@ -1950,16 +1944,14 @@ MAGPIE_KEY.prototype._set_type = async function setType(key_type) {
  * @returns {Promise<database_result>}
  */
 MAGPIE_KEY.prototype.setOrigin = async function setOrigin(keyID) {
-  this.originID = keyID;
-  return this.set();
+  // @todo key.setOrigin
 };
 /**
  *
  * @returns {database_result}
  */
 MAGPIE_KEY.prototype.removeOrigin = function removeOrigin() {
-  this.originID = null;
-  return this.setSync();
+  // @todo key.removeOrigin
 };
 /**
  * @returns {import("./system").buffer_size}
@@ -2001,6 +1993,7 @@ MAGPIE_KEY.prototype.getKey = function getKey(keyID) {
  * @returns {MAGPIE_KEY}
  */
 MAGPIE_KEY.prototype.getOrigin = function getOrigin() {
+  //@todo key.getOrigin to use db query
   return this.getKey(this.originID);
 };
 /**

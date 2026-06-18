@@ -23,7 +23,7 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.95 2026 06 18
+ * @version 0.39.941 2026 06 18
  * - TWEAKED: entity._socketEmit formN() data pre-formatting
  * - FIXED: emoteSeekTarget unable to stop when spoofed or idling
  * - FIXED: main.entity_monitor values flicker
@@ -525,9 +525,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 94],
+  version: [0, 39, 941],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260617",
+  firmwareDate: "20260618",
 };
 /**
  *
@@ -566,8 +566,8 @@ MAGPIE.KEY.TYPES = new Map();
 MAGPIE.KEY.TYPE.AXIOM = 0;
 MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.AXIOM, "AXIOM");
 /** @type {key_type} */
-MAGPIE.KEY.TYPE.KEY = 1;
-MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.KEY, "KEY");
+MAGPIE.KEY.TYPE.SPAREKEY = 1;
+MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.SPAREKEY, "SPAREKEY");
 /** @type {key_type} */
 MAGPIE.KEY.TYPE.METAKEY = 2;
 MAGPIE.KEY.TYPES.set(MAGPIE.KEY.TYPE.METAKEY, "METAKEY");

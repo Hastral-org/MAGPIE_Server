@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.94
+ * @version 0.39.941
  * @desc
  * @param {{
  * name: String,
@@ -3182,7 +3182,7 @@ MAGPIE_ENTITY.prototype._marker_get_queue = function _marker_get_queue() {
     .map((exp) => exp.getKeys())
     .flat(Infinity)
     .flatMap((key) => {
-      if ((key.originID === key.originID) === K.MARKER)
+      if (key.type === K.MARKER)
         return [key._marker_getLabel()];
       return [];
     });
@@ -3248,7 +3248,7 @@ MAGPIE_ENTITY.prototype._marker_add = async function entityAddMarker(coords) {
     if (!(exp instanceof MAGPIE_EXP))
       throw new Error(`${exp} is invalid exp. `);
     const key = new MAGPIE_KEY({
-      originID: MAGPIE.KEY.INDEX.MARKER,
+      type: MAGPIE.KEY.INDEX.MARKER,
       label: String(coords),
     });
     await key.set();
@@ -3744,7 +3744,7 @@ MAGPIE_ENTITY.prototype._target_get_queue = function getTargetQueue() {
     .map((exp) => exp.getKeys())
     .flat(Infinity)
     .flatMap((key) => {
-      if (key.originID === K.TARGET) return [key._target_getLabel()];
+      if (key.type === K.TARGET) return [key._target_getLabel()];
       return [];
     });
 };
@@ -3920,16 +3920,15 @@ MAGPIE_ENTITY.prototype._target_next = function nextTarget() {
     const index = this._get_expIndex(exp);
     if (Number(index) < 0) throw new Error(`${index} is invalid exps index`);
     const next = exp._target_next(this);
-    if (!next) return;
+    if (!next) return false;
     const swap = this._exp_swapWith(index, exp);
     const target = this._get_target();
     if (!target) throw new Error(`unable to set [TARGET-${next}]`);
     const oldOptions = exp._key_findWPoptions();
     if (oldOptions) oldOptions.type = 0;
-    MAGPIE_SYSTEM.logging.log_exp(
-      ePrefix + `[ENTITY-${next}].name[${target.name}]`,
-    );
-    return next;
+    const log = `[ENTITY-${next}].name[${target.name}]`;
+    MAGPIE_SYSTEM.logging.log_exp(ePrefix + log);
+    return target;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     this.selfKick("failed update");
@@ -3988,7 +3987,7 @@ MAGPIE_ENTITY.prototype._target_setWp = function (keyIndex, wpName, coords) {
     const WP = key._get_entity_label();
     WP.name = wpName;
     WP._set_C1(coords);
-    key.originID = MAGPIE.KEY.INDEX.TARGET;
+    key.type = MAGPIE.KEY.INDEX.WAYPOINT;
     MAGPIE_SYSTEM.logging.log_exp(
       ePrefix +
         `setting [KEY-#${keyIndex}][WP-${WP.ID} | ${WP.name}] ` +
@@ -4004,7 +4003,7 @@ MAGPIE_ENTITY.prototype._coords_clearQueue = function() {
     const exp = this._get_exps()[0];
     const keys = exp.getKeys().filter(key => key.type === MAGPIE.KEY.TYPE.WAYPOINT)
     for(const key of keys) 
-      key.originID = null
+      key.type = MAGPIE.KEY.TYPE.SPAREKEY;
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e)
   }
@@ -4020,9 +4019,8 @@ MAGPIE_ENTITY.prototype._coords_clearQueue = function() {
 MAGPIE_ENTITY.prototype._coords_importBatch = async function (filename, options) {
   const ePrefix = `[ENTITY-${this.ID}].coordsImportBatch: `;
   try {
-    const source = MAGPIE_SYSTEM.Utility.importJSON(`./.tmp/${filename}.json`)
-    if(!source || !Array.isArray(source))
-      throw new Error(`${source} is invalid coords array. `)
+    const source = MAGPIE_SYSTEM.Utility._import_route(filename)
+    if(!source) return false
     const exp = this._get_exps()[0];
     if(!(exp instanceof MAGPIE_EXP))
       throw new Error(`${exp} is invalid exp. `)
@@ -4041,8 +4039,7 @@ MAGPIE_ENTITY.prototype._coords_importBatch = async function (filename, options)
     });
     if(source.length < 1) return
     const metakey = new MAGPIE_KEY({
-      type: MAGPIE.KEY.TYPE.METAKEY,
-      originID: MAGPIE.KEY.TYPE.ROUTE,
+      type: MAGPIE.KEY.TYPE.ROUTE,
       label: raw,
     })
     MAGPIE_SYSTEM._logging_debug(Object.entries(`metakey: ${metakey}`))
@@ -4068,12 +4065,10 @@ MAGPIE_ENTITY.prototype._targetkey_importBatch = async function(filename) {
     const source = MAGPIE_SYSTEM.Utility.importJSON(`./.tmp/${filename}.json`);
     const exp = this._get_exps()[0];
     const type = MAGPIE.KEY.INDEX.WAYPOINT;
-    const origin = MAGPIE.KEY.INDEX.TARGET;
     const keys = exp.getKeys().filter(key => key.type === type);
     for(let i = 0; i < source.length; i++) {
       const key = keys[i] || await this._add_new_key({
         type: type, 
-        originID: origin,
         label: JSON.stringify(source[i])
       })
     }
