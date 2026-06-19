@@ -7,6 +7,8 @@ ssh-key.*
 *.sql
 package.json
 package-lock.json
+jsconfig.json
+eslint.config.js
 
 .vscode/
 
