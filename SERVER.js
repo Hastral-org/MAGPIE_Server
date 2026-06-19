@@ -588,7 +588,7 @@ MAGPIE_SERVER.TEST = {};
 MAGPIE_SERVER.TEST.meta = {
   name: MAGPIE.meta.name + "testing",
 };
-MAGPIE_SERVER.TEST.Path = "\\.tests";
+MAGPIE_SERVER.TEST.Path = ".tests";
 MAGPIE_SERVER.TEST.list = fs
   .readdirSync(path.join(process.cwd(), MAGPIE_SERVER.TEST.Path))
   .filter((string) => string.includes(".js"));
@@ -596,14 +596,21 @@ if (MAGPIE_SERVER.TEST.list && MAGPIE_SERVER.TEST.list.length > 0) {
   MAGPIE_SERVER.TEST.list.forEach((testFile) => {
     const testName = testFile.replace(".js", "");
     console.log(`[TEST] processing ${testName}...`);
-    const directory = path.join(MAGPIE_SERVER.TEST.Path, testFile);
-    MAGPIE_SERVER.TEST[testName] = require(`.${directory}`);
+    const fullPath = path.resolve(
+      process.cwd(),
+      MAGPIE_SERVER.TEST.Path,
+      testFile,
+    );
+    MAGPIE_SERVER.TEST[testName] = require(fullPath);
   });
 }
 MAGPIE_SERVER.testLog = function (message, prefix = "log", error = "") {
   const callback = console[prefix];
   callback(message, error);
-  fs.appendFileSync(process.cwd() + "\\.tests\\.test.log");
+  fs.appendFileSync(
+    path.join(process.cwd(), MAGPIE_SERVER.TEST.Path, ".test.log"),
+    message,
+  );
 };
 
 //   tests.forEach((testFile) => {
