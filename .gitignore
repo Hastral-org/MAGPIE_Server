@@ -5,6 +5,8 @@ ssh-key.*
 ./start.sh
 ./run_server.ps1
 *.sql
+package.json
+package-lock.json
 
 .vscode/
 

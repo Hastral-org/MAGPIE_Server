@@ -23,7 +23,7 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.952 2026 06 19
+ * @version 0.39.953 2026 06 19
  * - ADDED: SYSTEM.Parsing
  * - ADDED: SYSTEM.Parsing.json
  * - FIXED: entity._emote_seekTarget stuck (issue 122)
@@ -534,7 +534,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 952],
+  version: [0, 39, 953],
   firmwareName: "MAGPIE",
   firmwareDate: "20260619",
 };
