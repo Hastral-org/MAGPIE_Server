@@ -2553,7 +2553,7 @@ MAGPIE_HIVE._get_player = function _get_player(playerID) {
 // #region > setters
 //------------------------------------------------------------------------
 /**
- *
+ * @desc @audit what is this for? looks like a method to update the buffer entry
  * @param {String} type
  * @param {*} entry
  */
@@ -2564,15 +2564,6 @@ MAGPIE_HIVE._verify_buffer_entry = function verifyBufferEntry(type, entry) {
     buffer.data = entry;
     map.set(entry.ID, buffer);
   }
-};
-/**
- *
- * @param {MAGPIE_SYMBOL} symbol
- * @returns {Promise<database_result>}
- */
-MAGPIE_HIVE._set_symbol = async function setSymbol(symbol) {
-  MAGPIE_HIVE._verify_buffer_entry("symbol", symbol);
-  return await MAGPIE_HIVE._set_database("saveSymbol", [symbol]);
 };
 /**
  *

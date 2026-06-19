@@ -9,7 +9,6 @@
     --crt-white: #fff;
     --crt-bg: #0a0a0a;
     --crt-glow: rbga(51, 255, 51, 0.2);
-    --crt-fontMain: 'Courier New', monospace;
     --primary: #a855f7;
     --secondary: #ec4899;
     --accent: #06b6d4;
@@ -18,7 +17,9 @@
     --text: #fafafa;
     --text-muted: #71717a;
     --font-default: 'Inter', system-ui, sans-serif;
-    --crt-font-main: 'Courier New', monospace;
+    --crt-font-main: 'Consolas', 'Courier New', Courier, monospace;
+    --crt-font-nav: var(--crt-font-main);
+    --crt-font-monitor: var(--crt-font-main);
 }
 
 * {
@@ -93,7 +94,7 @@ body {
     background: transparent;
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
-    font-family:'Courier New', monospace;
+    font-family: var(--crt-font-nav);
     font-weight: bold;
     padding: 5px 15px;
     /* display: flex;         */
@@ -135,7 +136,7 @@ body {
     box-sizing: border-box;
     background: #111;
     color: #0f0; 
-    font-family: 'Courier New', monospace;
+    font-family: var(--crt-font-monitor);
     font-size: 14px;
     user-select: text; 
     overflow-x: hidden;
@@ -183,14 +184,12 @@ body {
 .table-header {
     font-weight: bold;
     border-bottom: 1px solid var(--crt-bright);
-    font-family: 'Courier-New', monospace;
     padding-bottom: 5px;
     margin-bottom: 10px;
 }
 
 .table-row {
     color: var(--crt-green);
-    font-family: 'Courier-New', monospace;
     /* display: contents; */
 }
 
@@ -205,7 +204,6 @@ body {
     background: transparent;
     border: 1px solid var(--crt-bright);
     color: var(--crt-white);
-    font-family:'Courier New', monospace;
     font-weight: bold;
     padding: 5px 15px;
     margin-bottom: 10px;
@@ -230,7 +228,6 @@ body {
     background: transparent;
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
-    font-family: 'Courier-New', monospace;
     cursor: pointer !important;
     margin-bottom: 15px;
     padding-top: 5px;
@@ -327,6 +324,7 @@ body {
 #terminal-output {
     height: calc(100% - 40px);
     width: calc(100% - 10);
+    font-family: var(--crt-font-main);
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
@@ -414,7 +412,7 @@ body {
 }
 
 .view-home {
-    font-family: 'Courier New', Courier, monospace;   
+    font-family: var(--crt-font-main);   
 }
 
 .view-heading {

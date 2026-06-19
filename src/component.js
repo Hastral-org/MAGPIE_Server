@@ -293,13 +293,18 @@ MAGPIE_SYMBOL.prototype.getKey = function getKey(keyID) {
  *
  * @returns {symbolID[]}
  */
-MAGPIE_SYMBOL.prototype._get_requirementIDs = function getRequirementIDs() {
+MAGPIE_SYMBOL.prototype._get_requirementIDs = function () {
   const K = MAGPIE.KEY.INDEX;
-  const start = this.STATS.indexOf(K.REQUIREMENTS);
-  const end = this.STATS.indexOf(K.COMPOUNDS);
-  return this.STATS.slice(start + 1, end) || [];
+  const array = Array.from(this.STATS);
+  const start = array.indexOf(K.REQUIREMENTS);
+  const end = array.indexOf(K.COMPOUNDS);
+  return array.slice(start + 1, end) || [];
 };
-MAGPIE_SYMBOL.prototype._get_all_requirements = function getAllRequirements() {
+/**
+ *
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_SYMBOL.prototype._get_all_requirements = function () {
   const requirementIDs = this._get_requirementIDs();
   if (requirementIDs.length < 1) return [];
   return requirementIDs.map((ID) =>
@@ -310,13 +315,18 @@ MAGPIE_SYMBOL.prototype._get_all_requirements = function getAllRequirements() {
  *
  * @returns {symbolID[]}
  */
-MAGPIE_SYMBOL.prototype._get_compoundIDs = function getCompoundIDs() {
+MAGPIE_SYMBOL.prototype._get_compoundIDs = function () {
   const K = MAGPIE.KEY.INDEX;
-  const start = this.STATS.indexOf(K.COMPOUNDS);
-  const end = this.STATS.indexOf(K.STATS);
-  return this.STATS.slice(start + 1, end);
+  const array = Array.from(this.STATS);
+  const start = array.indexOf(K.COMPOUNDS);
+  const end = array.indexOf(K.STATS);
+  return array.slice(start + 1, end);
 };
-MAGPIE_SYMBOL.prototype._get_all_compounds = function getAllCompounds() {
+/**
+ *
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_SYMBOL.prototype._get_all_compounds = function () {
   const compoundIDs = this._get_compoundIDs();
   if (compoundIDs.length < 1) return [];
   return compoundIDs.map((ID) => MAGPIE_COMPONENT.__get("_get_symbol", [ID]));
@@ -327,8 +337,9 @@ MAGPIE_SYMBOL.prototype._get_all_compounds = function getAllCompounds() {
  */
 MAGPIE_SYMBOL.prototype._get_STATS = function getSTATS() {
   const K = MAGPIE.KEY.INDEX;
-  const start = this.STATS.indexOf(K.STATS);
-  return this.STATS.slice(start + 1);
+  const array = Array.from(this.STATS);
+  const start = array.indexOf(K.STATS);
+  return array.slice(start + 1);
 };
 /**
  *
@@ -337,7 +348,7 @@ MAGPIE_SYMBOL.prototype._get_STATS = function getSTATS() {
 MAGPIE_SYMBOL.prototype.mapStats = function mapStats() {
   const ePrefix = `[SYMBOL-${this.ID}].mapStats: `;
   try {
-    const map = this.STATS;
+    const map = Array.from(this.STATS);
     const K = MAGPIE.KEY.INDEX;
     const STATS = {};
     map.forEach((keyID, index) => {
@@ -446,7 +457,7 @@ MAGPIE_SYMBOL.prototype._get_keyID = function getKeyID(keyID) {
  * @returns {Promise<database_result>}
  */
 MAGPIE_SYMBOL.prototype.set = async function set() {
-  return await MAGPIE_COMPONENT.__set("_set_symbol", this);
+  return MAGPIE_COMPONENT.__set("_set_symbolSync", [this]);
 };
 /**
  *
@@ -471,10 +482,10 @@ MAGPIE_SYMBOL.prototype._addElement = async function addElement(
       throw new Error(`${symbolID} is invalid symbolID`);
     const key = MAGPIE.KEY.INDEX[`${element.toUpperCase()}S`];
     if (isNaN(key)) throw new Error(`${key} is invalid element key`);
-    const arr = new Array(...this.STATS);
+    const arr = Array.from(this.STATS);
     const index = arr.indexOf(key);
     if (isNaN(index)) throw new Error(`${index} is invalid STATS index`);
-    arr.splice(index, 0, symbolID);
+    arr.splice(index + 1, 0, symbolID);
     this.STATS = new Float64Array(arr);
     const result = this.set();
     if (!result) throw new Error(`unable to save [REQUIREMENT-${symbolID}]`);
@@ -1479,7 +1490,7 @@ MAGPIE_CONTEXT.prototype.setSync = function setSync() {
  * @param {Number} elementID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_element = async function _set_element(
+MAGPIE_CONTEXT.prototype._set_element = async function contextSetElement(
   elementType,
   elementID,
 ) {
@@ -1504,32 +1515,32 @@ MAGPIE_CONTEXT.prototype._set_element = async function _set_element(
  * @param {Number} elementID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_remove_element = async function removeElement(
-  type,
-  elementID,
-) {
-  const ePrefix = `[CONTEXT-${this.ID}].set${elementType}: `;
-  try {
-    const record = this[elementType];
-    if (!record) throw new Error(`${elementType} is invalid elementType`);
-    const arr = new Array(...record);
-    const index = arr.indexOf(elementID);
-    if (isNaN(index) || index < 0)
-      throw new Error(`${elementID} is invalid entityID`);
-    arr[index] = arr[arr.length - 1];
-    arr.pop();
-    this[elementType] = new Float64Array(arr);
-    return await this.set();
-  } catch (e) {
-    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
-  }
-};
+MAGPIE_CONTEXT.prototype._set_remove_element =
+  async function contextRemoveElement(type, elementID) {
+    const ePrefix = `[CONTEXT-${this.ID}].set${elementType}: `;
+    try {
+      const record = this[elementType];
+      if (!record) throw new Error(`${elementType} is invalid elementType`);
+      const arr = new Array(...record);
+      const index = arr.indexOf(elementID);
+      if (isNaN(index) || index < 0)
+        throw new Error(`${elementID} is invalid entityID`);
+      arr[index] = arr[arr.length - 1];
+      arr.pop();
+      this[elementType] = new Float64Array(arr);
+      return await this.set();
+    } catch (e) {
+      MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    }
+  };
 /**
  *
  * @param {entityID} entityID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_entity = async function setEntity(entityID) {
+MAGPIE_CONTEXT.prototype._set_entity = async function contextSetEntity(
+  entityID,
+) {
   return await this._set_element("entities", entityID);
 };
 /**
@@ -1537,17 +1548,16 @@ MAGPIE_CONTEXT.prototype._set_entity = async function setEntity(entityID) {
  * @param {entityID} entityID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_remove_entity = async function removeEntity(
-  entityID,
-) {
-  return await this._set_remove_element("entities", entityID);
-};
+MAGPIE_CONTEXT.prototype._set_remove_entity =
+  async function contextRemoveEntity(entityID) {
+    return await this._set_remove_element("entities", entityID);
+  };
 /**
  *
  * @param {expID} expID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_exp = async function setExp(expID) {
+MAGPIE_CONTEXT.prototype._set_exp = async function contextSetExp(expID) {
   return await this._set_element("exps", expID);
 };
 /**
@@ -1555,7 +1565,9 @@ MAGPIE_CONTEXT.prototype._set_exp = async function setExp(expID) {
  * @param {expID} expID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_remove_exp = async function removeExp(expID) {
+MAGPIE_CONTEXT.prototype._set_remove_exp = async function contextRemoveExp(
+  expID,
+) {
   return await this._set_remove_element("exps", expID);
 };
 /**
@@ -1563,7 +1575,7 @@ MAGPIE_CONTEXT.prototype._set_remove_exp = async function removeExp(expID) {
  * @param {keyID} keyID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_key = async function setKey(keyID) {
+MAGPIE_CONTEXT.prototype._set_key = async function contextSetKey(keyID) {
   return await this._set_element("keys", keyID);
 };
 /**
@@ -1571,7 +1583,9 @@ MAGPIE_CONTEXT.prototype._set_key = async function setKey(keyID) {
  * @param {keyID} keyID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_remove_key = async function removeKey(keyID) {
+MAGPIE_CONTEXT.prototype._set_remove_key = async function contextRemoveKey(
+  keyID,
+) {
   return await this._set_remove_element("keys", keyID);
 };
 /**
@@ -1579,7 +1593,9 @@ MAGPIE_CONTEXT.prototype._set_remove_key = async function removeKey(keyID) {
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_symbol = async function setSymbol(symbolID) {
+MAGPIE_CONTEXT.prototype._set_symbol = async function contextSetSymbol(
+  symbolID,
+) {
   return await this._set_element("symbols", symbolID);
 };
 /**
@@ -1587,11 +1603,10 @@ MAGPIE_CONTEXT.prototype._set_symbol = async function setSymbol(symbolID) {
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_CONTEXT.prototype._set_remove_symbol = async function removeSymbol(
-  symbolID,
-) {
-  return await this._set_remove_element("symbols", symbolID);
-};
+MAGPIE_CONTEXT.prototype._set_remove_symbol =
+  async function contextRemoveSymbol(symbolID) {
+    return await this._set_remove_element("symbols", symbolID);
+  };
 // #endregion
 //------------------------------------------------------------------------
 /**
