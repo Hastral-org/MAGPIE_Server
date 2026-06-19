@@ -1488,6 +1488,7 @@ MAGPIE.KEY.RUNTIME.meta = {
   firmwareName: "MAGPIE_RUNTIME",
   name: "M.A.G.P.I.E. runtime",
 };
+/** @desc layer_frequency[] */
 MAGPIE.KEY.RUNTIME.DELTA = new Float64Array([
   0.001,
   0.033,
@@ -1497,6 +1498,8 @@ MAGPIE.KEY.RUNTIME.DELTA = new Float64Array([
   60 ** 2 * 24,
 ]);
 /**
+ * @typedef {duration} layer_frequency how often the layer is refreshed
+ * @typedef {duration} layer_dt the dT to pass on Guest.refresh(dt)
  * @type {Map<Number, {
  * name: String,
  * delta: duration,
