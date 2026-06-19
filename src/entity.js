@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.95
+ * @version 0.39.952
  * @desc
  * @param {{
  * name: String,
@@ -1177,52 +1177,51 @@ MAGPIE_ENTITY.prototype._get_speeds = function getSpeed(overrideVspeed) {
   const symbol = this._get_type();
   const Vspeeds = symbol.getVspeeds();
   /** @type {entity_speeds} */
-  const speeds = {
-    Vmax: overrideVspeed?.VMAX || Vspeeds?.VMAX || 0,
-    Vcruise: overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE || 0,
-    Vsafe: overrideVspeed?.VSAFE || Vspeeds?.VSAFE || 0,
-    Vcreep: overrideVspeed?.VCREEP || Vspeeds?.VCREEP || 0,
-    Vdock: overrideVspeed?.VDOCK || Vspeeds?.VDOCK || 0,
-    Amax: overrideVspeed?.AMAX || Vspeeds?.AMAX || 0,
-    Asafe: overrideVspeed?.ASAFE || Vspeeds?.ASAFE || 0,
-    Acruise: overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE || 0,
-    Acreep: overrideVspeed?.ACREEP || Vspeeds?.ACREEP || 0,
-    Adock: overrideVspeed?.ADOCK || Vspeeds?.ADOCK || 0,
-    Rmax: overrideVspeed?.RMAX || Vspeeds?.RMAX || 0,
-    Rsafe: overrideVspeed?.RSAFE || Vspeeds?.RSAFE || 0,
-    Rcruise: overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE || 0,
-    Rcreep: overrideVspeed?.RCREEP || Vspeeds?.RCREEP || 0,
-    Rdock: overrideVspeed?.RDOCK || Vspeeds?.RDOCK || 0,
-    Tmax: overrideVspeed?.TMAX || Vspeeds?.TMAX || 0,
-    Tsafe: overrideVspeed?.TSAFE || Vspeeds?.TSAFE || 0,
-    Tcruise: overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE || 0,
-    Tcreep: overrideVspeed?.TCREEP || Vspeeds?.TCREEP || 0,
-    Tdock: overrideVspeed?.TDOCK || Vspeeds?.TDOCK || 0,
-    Rmax_x: overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X || 0,
-    Rsafe_x: overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X || 0,
-    Rcruise_x: overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X || 0,
-    Rcreep_x: overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X || 0,
-    Rmax_y: overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y || 0,
-    Rsafe_y: overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y || 0,
-    Rcruise_y: overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y || 0,
-    Rcreep_y: overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y || 0,
-    Rmax_z: overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z || 0,
-    Rsafe_z: overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z || 0,
-    Rcruise_z: overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z || 0,
-    Rcreep_z: overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z || 0,
-    Tmax_x: overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X || 0,
-    Tsafe_x: overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X || 0,
-    Tcruise_x: overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X || 0,
-    Tcreep_x: overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X || 0,
-    Tmax_y: overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y || 0,
-    Tsafe_y: overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y || 0,
-    Tcruise_y: overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y || 0,
-    Tcreep_y: overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y || 0,
-    Tmax_z: overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z || 0,
-    Tsafe_z: overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z || 0,
-    Tcruise_z: overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z || 0,
-    Tcreep_z: overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z || 0,
-  };
+  const speeds = {}
+  speeds.Vmax = overrideVspeed?.VMAX || Vspeeds?.VMAX || 0;
+  speeds.Vsafe = overrideVspeed?.VSAFE || Vspeeds?.VSAFE || speeds.Vmax * 0.85;
+  speeds.Vcruise = overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE || speeds.Vmax * 0.65;
+  speeds.Vcreep = overrideVspeed?.VCREEP || Vspeeds?.VCREEP || speeds.Vmax * 0.35;
+  speeds.Vdock = overrideVspeed?.VDOCK || Vspeeds?.VDOCK || speeds.Vmax * 0.05;
+  speeds.Amax = overrideVspeed?.AMAX || Vspeeds?.AMAX || 0;
+  speeds.Asafe = overrideVspeed?.ASAFE || Vspeeds?.ASAFE || speeds.Amax * 0.85;
+  speeds.Acruise = overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE || speeds.Amax * 0.65;
+  speeds.Acreep = overrideVspeed?.ACREEP || Vspeeds?.ACREEP || speeds.Amax * 0.35;
+  speeds.Adock = overrideVspeed?.ADOCK || Vspeeds?.ADOCK || speeds.Amax * 0.05;
+  speeds.Rmax = overrideVspeed?.RMAX || Vspeeds?.RMAX || 0;
+  speeds.Rsafe = overrideVspeed?.RSAFE || Vspeeds?.RSAFE || speeds.Rmax * 0.85;
+  speeds.Rcruise = overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE || speeds.Rmax * 0.65;
+  speeds.Rcreep = overrideVspeed?.RCREEP || Vspeeds?.RCREEP || speeds.Rmax * 0.35;
+  speeds.Rdock = overrideVspeed?.RDOCK || Vspeeds?.RDOCK || speeds.Rmax * 0.05;
+  speeds.Tmax = overrideVspeed?.TMAX || Vspeeds?.TMAX || 0;
+  speeds.Tsafe = overrideVspeed?.TSAFE || Vspeeds?.TSAFE || speeds.Tmax * 0.85;
+  speeds.Tcruise = overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE || speeds.Tmax * 0.65;
+  speeds.Tcreep = overrideVspeed?.TCREEP || Vspeeds?.TCREEP || speeds.Tmax * 0.35;
+  speeds.Tdock = overrideVspeed?.TDOCK || Vspeeds?.TDOCK || speeds.Tmax * 0.05;
+  speeds.Rmax_x = overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X || 0;
+  speeds.Rsafe_x = overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X || 0;
+  speeds.Rcruise_x = overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X || 0;
+  speeds.Rcreep_x = overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X || 0;
+  speeds.Rmax_y = overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y || 0;
+  speeds.Rsafe_y = overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y || 0;
+  speeds.Rcruise_y = overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y || 0;
+  speeds.Rcreep_y = overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y || 0;
+  speeds.Rmax_z = overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z || 0;
+  speeds.Rsafe_z = overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z || 0;
+  speeds.Rcruise_z = overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z || 0;
+  speeds.Rcreep_z = overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z || 0;
+  speeds.Tmax_x = overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X || 0;
+  speeds.Tsafe_x = overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X || 0;
+  speeds.Tcruise_x = overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X || 0;
+  speeds.Tcreep_x = overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X || 0;
+  speeds.Tmax_y = overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y || 0;
+  speeds.Tsafe_y = overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y || 0;
+  speeds.Tcruise_y = overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y || 0;
+  speeds.Tcreep_y = overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y || 0;
+  speeds.Tmax_z = overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z || 0;
+  speeds.Tsafe_z = overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z || 0;
+  speeds.Tcruise_z = overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z || 0;
+  speeds.Tcreep_z = overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z || 0;
   return speeds;
 };
 // #endregion

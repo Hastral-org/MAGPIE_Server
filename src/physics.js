@@ -833,7 +833,8 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
       if (pR >= 0.5) return At;
       const S0 = this.mag(V0);
       if (S0 <= Vcreep) return [0, 0, 0];
-      return this.scaleVector(this.normalizeVector(V0), -(options.Asafe));
+      MAGPIE_SYSTEM._logging_debug(ePrefix + `(${Asafe.toFixed(5)}).capping to Vcreep... ()`)
+      return this.scaleVector(this.normalizeVector(V0), -(Asafe));
     };
     // MAGPIE_SYSTEM._logging_debug(Vcreep)
     const slow = this.mag(V0) < Vcreep;
