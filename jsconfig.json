@@ -6,12 +6,15 @@
     "allowSyntheticDefaultImports": true
   },
   "exclude": [
-    "node_modules",
-    ".git",
-    ".tmp",
-    ".logs",
-    "db",
-    "entities.json",
-    "**/*.pak"
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/.tmp/**",
+    "**/.logs/**",
+    "**/db/**",
+    "**/entities.json",
+    "**/*.pak",
+    "**/ShelderEvo/**",
+    "**/playground/**",
+    "**/*.log"
   ]
 }

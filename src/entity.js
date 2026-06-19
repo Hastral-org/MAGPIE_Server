@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.941
+ * @version 0.39.95
  * @desc
  * @param {{
  * name: String,
@@ -1178,50 +1178,50 @@ MAGPIE_ENTITY.prototype._get_speeds = function getSpeed(overrideVspeed) {
   const Vspeeds = symbol.getVspeeds();
   /** @type {entity_speeds} */
   const speeds = {
-    Vmax: overrideVspeed?.VMAX || Vspeeds?.VMAX,
-    Vcruise: overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE,
-    Vsafe: overrideVspeed?.VSAFE || Vspeeds?.VSAFE,
-    Vcreep: overrideVspeed?.VCREEP || Vspeeds?.VCREEP,
-    Vdock: overrideVspeed?.VDOCK || Vspeeds?.VDOCK,
-    Amax: overrideVspeed?.AMAX || Vspeeds?.AMAX,
-    Asafe: overrideVspeed?.ASAFE || Vspeeds?.ASAFE,
-    Acruise: overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE,
-    Acreep: overrideVspeed?.ACREEP || Vspeeds?.ACREEP,
-    Adock: overrideVspeed?.ADOCK || Vspeeds?.ADOCK,
-    Rmax: overrideVspeed?.RMAX || Vspeeds?.RMAX,
-    Rsafe: overrideVspeed?.RSAFE || Vspeeds?.RSAFE,
-    Rcruise: overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE,
-    Rcreep: overrideVspeed?.RCREEP || Vspeeds?.RCREEP,
-    Rdock: overrideVspeed?.RDOCK || Vspeeds?.RDOCK,
-    Tmax: overrideVspeed?.TMAX || Vspeeds?.TMAX,
-    Tsafe: overrideVspeed?.TSAFE || Vspeeds?.TSAFE,
-    Tcruise: overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE,
-    Tcreep: overrideVspeed?.TCREEP || Vspeeds?.TCREEP,
-    Tdock: overrideVspeed?.TDOCK || Vspeeds?.TDOCK,
-    Rmax_x: overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X,
-    Rsafe_x: overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X,
-    Rcruise_x: overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X,
-    Rcreep_x: overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X,
-    Rmax_y: overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y,
-    Rsafe_y: overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y,
-    Rcruise_y: overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y,
-    Rcreep_y: overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y,
-    Rmax_z: overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z,
-    Rsafe_z: overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z,
-    Rcruise_z: overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z,
-    Rcreep_z: overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z,
-    Tmax_x: overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X,
-    Tsafe_x: overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X,
-    Tcruise_x: overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X,
-    Tcreep_x: overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X,
-    Tmax_y: overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y,
-    Tsafe_y: overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y,
-    Tcruise_y: overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y,
-    Tcreep_y: overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y,
-    Tmax_z: overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z,
-    Tsafe_z: overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z,
-    Tcruise_z: overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z,
-    Tcreep_z: overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z,
+    Vmax: overrideVspeed?.VMAX || Vspeeds?.VMAX || 0,
+    Vcruise: overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE || 0,
+    Vsafe: overrideVspeed?.VSAFE || Vspeeds?.VSAFE || 0,
+    Vcreep: overrideVspeed?.VCREEP || Vspeeds?.VCREEP || 0,
+    Vdock: overrideVspeed?.VDOCK || Vspeeds?.VDOCK || 0,
+    Amax: overrideVspeed?.AMAX || Vspeeds?.AMAX || 0,
+    Asafe: overrideVspeed?.ASAFE || Vspeeds?.ASAFE || 0,
+    Acruise: overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE || 0,
+    Acreep: overrideVspeed?.ACREEP || Vspeeds?.ACREEP || 0,
+    Adock: overrideVspeed?.ADOCK || Vspeeds?.ADOCK || 0,
+    Rmax: overrideVspeed?.RMAX || Vspeeds?.RMAX || 0,
+    Rsafe: overrideVspeed?.RSAFE || Vspeeds?.RSAFE || 0,
+    Rcruise: overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE || 0,
+    Rcreep: overrideVspeed?.RCREEP || Vspeeds?.RCREEP || 0,
+    Rdock: overrideVspeed?.RDOCK || Vspeeds?.RDOCK || 0,
+    Tmax: overrideVspeed?.TMAX || Vspeeds?.TMAX || 0,
+    Tsafe: overrideVspeed?.TSAFE || Vspeeds?.TSAFE || 0,
+    Tcruise: overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE || 0,
+    Tcreep: overrideVspeed?.TCREEP || Vspeeds?.TCREEP || 0,
+    Tdock: overrideVspeed?.TDOCK || Vspeeds?.TDOCK || 0,
+    Rmax_x: overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X || 0,
+    Rsafe_x: overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X || 0,
+    Rcruise_x: overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X || 0,
+    Rcreep_x: overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X || 0,
+    Rmax_y: overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y || 0,
+    Rsafe_y: overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y || 0,
+    Rcruise_y: overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y || 0,
+    Rcreep_y: overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y || 0,
+    Rmax_z: overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z || 0,
+    Rsafe_z: overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z || 0,
+    Rcruise_z: overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z || 0,
+    Rcreep_z: overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z || 0,
+    Tmax_x: overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X || 0,
+    Tsafe_x: overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X || 0,
+    Tcruise_x: overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X || 0,
+    Tcreep_x: overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X || 0,
+    Tmax_y: overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y || 0,
+    Tsafe_y: overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y || 0,
+    Tcruise_y: overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y || 0,
+    Tcreep_y: overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y || 0,
+    Tmax_z: overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z || 0,
+    Tsafe_z: overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z || 0,
+    Tcruise_z: overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z || 0,
+    Tcreep_z: overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z || 0,
   };
   return speeds;
 };
@@ -1737,14 +1737,16 @@ MAGPIE_ENTITY.prototype.processStates = function processStates(
         const state_index = this._get_index_state(index);
         const output = state.onUpdate(exp, this, switchID, state_index);
         // MAGPIE_SYSTEM._logging_debug(Object.entries(output))
-        if (output?.exp)
+        if (output)
           Object.keys(output).forEach((k) => {
             target[k] = output[k];
           });
+        // MAGPIE_SYSTEM._logging_debug(`debug: ${JSON.stringify(target, null, 1)}`)
       } catch (e) {
         MAGPIE_SYSTEM.error(ePrefix + e.message, e);
       }
     });
+    const debug_data = JSON.stringify(target, null, 1);
     return { exp, target };
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -2643,15 +2645,18 @@ MAGPIE_ENTITY._seekTarget = 1;
  * 
  * @param {MAGPIE_EXP} exp 
  * @param {fitness_index} fitness_index 
+ * @param {POVART} POVART0
+ * @param {Object} options
  */
-MAGPIE_ENTITY.prototype._emote_stop = function _emote_stop(exp, fitness_index) {
+MAGPIE_ENTITY.prototype._emote_stop = function(exp, fitness_index, POVART0, options) {
   const ePrefix = `[ENTITY-${this.ID}]._emote_stop: `;
   try {
-    if (!(exp instanceof MAGPIE_EXP)) throw new Error(`${exp} is invalid EXP`);
-    const V0 = this._get_V0();
-    const unitV0 = MAGPIE_PHYSICS.normalizeVector(V0);
-    const Asafe = this._get_speeds()
-    const At = MAGPIE_PHYSICS.scaleVector(-unitV0, )
+    const idling = STATE.INDEX.IDLING;
+    const stopping = STATE.INDEX.STOPPING;
+    if(!POVART0) POVART0 = this._get_POVART();
+    const { At, Tt, raw, stopped } = MAGPIE_PHYSICS._emote_stop(POVART0, options)
+    this.switchState(fitness_index, stopped ? idling : stopping)
+    return { At, Tt, exp, raw }
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e)
   }
@@ -2684,11 +2689,16 @@ MAGPIE_ENTITY.prototype._get_emoteSeekOptions = function(exp, data) {
     Object.entries(speeds).forEach((entry) => {
       const key = entry[0];
       const value = entry[1];
-      if (key && value) options[key] = value;
+      if (key && !isNaN(value)) options[key] = value;
     });
     options.Rstate = this._get_Rstate();
     // MAGPIE_SYSTEM._logging_debug(Object.entries(options))
     options.STATS = this.STATS;
+    const WPkey = exp._key_findWPoptions();
+    const WPoptions = exp._key_mapWPoptions(WPkey) || {};
+    for(const [key, value] of Object.values(WPoptions)) {
+      if(!isNaN(value)) options[key] = value;
+    }
     return options
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e)
@@ -2701,12 +2711,9 @@ MAGPIE_ENTITY.prototype._get_emoteSeekOptions = function(exp, data) {
  * @param {fitness_index} fitness_index
  * @returns {state_output}
  */
-MAGPIE_ENTITY.prototype._emote_seekTarget = function _emote_seekTarget(
-  exp,
-  fitness_index,
-) {
+MAGPIE_ENTITY.prototype._emote_seekTarget = function (exp, fitness_index) {
   const ePrefix = `[ENTITY-${this.ID}]._emote_seekTarget: `;
-  const output = { At: [0, 0, 0], Tt: [0, 0, 0], exp: exp, raw: [] };
+  let output = { At: [0, 0, 0], Tt: [0, 0, 0], exp: exp, raw: [] };
   try {
     if (!(exp instanceof MAGPIE_EXP)) throw new Error(`${exp} is invalid EXP`);
     const currentTarget = this._get_target()
@@ -2716,32 +2723,28 @@ MAGPIE_ENTITY.prototype._emote_seekTarget = function _emote_seekTarget(
     const POVART0 = this._get_POVART();
     const data = {};
     const options = this._get_emoteSeekOptions(exp, data)
-    if (isNaN(targetID)) {
-      const idling = STATE.INDEX.IDLING;
-      const stopping = STATE.INDEX.STOPPING;
-      const { At, Tt, raw, stopped } = MAGPIE_PHYSICS._emote_stop(POVART0, options)
-      this.switchState(fitness_index, stopped ? idling : stopping)
-      return { At, Tt, exp, raw }
-    }
+    // MAGPIE_SYSTEM._logging_debug(`options: ${Object.entries(options)}`)
     const { P0, V0 } = MAGPIE_ENTITY._get_decomp_POVART(POVART0);
-    const target = MAGPIE_ENTITY.__hiveSync("_get_entity", [targetID]);
+    const target = !targetID ? null : MAGPIE_ENTITY.__hiveSync("_get_entity", [targetID]);
+    if(!target) return this._emote_stop(exp, fitness_index, POVART0, options)
+    const Pt = target._get_P0();
     let contact = false;
-    if(target) {
-      const Pt = target._get_P0();
-      const dist = this._target_getDistance(P0, Pt);
-      contact = this._target_isSensed(target, dist);
-    } 
-    if (!target || !contact) {
+    const dist = this._target_getDistance(P0, Pt);
+    contact = this._target_isSensed(target, dist);
+    if(!contact) {
       const spoofed = STATE.INDEX.SPOOFED;
       options.state = spoofed;
+      MAGPIE_SYSTEM.logging.log_exp(ePrefix + "no contact. ");
       this.switchState(fitness_index, spoofed)
-      // return this._emote_stop(exp, fitness_index, options)
-    };
-    const output = MAGPIE_PHYSICS._emote_seekTarget(POVART0, Pt, options);
-    const { At, Tt, state, raw } = output;
-    // MAGPIE_SYSTEM._logging_debug(Tt)
-    this.switchState(fitness_index, output.state);
-    return { At: At, Tt: Tt, exp: exp, raw };
+    } else if(dist < this.STATS[MAGPIE.KEY.STATS.LENGTH]) {
+        options.state = STATE.INDEX.ON_TARGET;
+        this.switchState(fitness_index, STATE.INDEX.ON_TARGET)
+        if(MAGPIE_PHYSICS.mag(V0) < 1e-6) return output;
+        else return this._emote_stop(exp, fitness_index, POVART0, options)
+    } 
+    output = MAGPIE_PHYSICS._emote_seekTarget(this, Pt, options);
+    this.switchState(fitness_index, options.state);
+    return { At: output.At, Tt: output.Tt, exp: output.exp, raw: output.raw };
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     this.selfKick()
@@ -2760,8 +2763,11 @@ MAGPIE_ENTITY.prototype._emote_onTarget = function _emote_onTarget(
 ) {
   const ePrefix = `[ENTITY-${this.ID}].reachTarget: `;
   try {
-    if (this._target_next())
+    const next = this._target_next();
+    if (next) {
+      // MAGPIE_SYSTEM._logging_debug(ePrefix + `next: ${next.ID}`)
       return this.switchState(fitness_index, STATE.INDEX.SEEKING_TARGET);
+    }
     //@todo entity._emote_onTarget
     return this._emote_seekTarget(exp, fitness_index);
   } catch (e) {
@@ -3573,12 +3579,15 @@ MAGPIE_ENTITY.prototype._get_target = function _get_target() {
 MAGPIE_ENTITY.prototype._new_target = function entityNewTarget() {
   const ePrefix = `[ENTITY-${this.ID}] `;
   try {
-    const target = new MAGPIE_ENTITY({
-      type: MAGPIE.KEY.SYMBOL.TYPE.MARKER,
-      name: `${ePrefix}[TARGET]`,
-    })
+    const spareType = MAGPIE.KEY.TYPE.SPAREKEY;
+    const sparekey = this._get_exps()[0].getKeys()
+      .find(key => key.type === spareType && key._get_entity_label());
+    const spareTarget = sparekey ? sparekey._get_entity_label() : null;
+    const target = spareTarget || new MAGPIE_ENTITY()
     if(!(target instanceof MAGPIE_ENTITY))
       throw new Error(`${target} is invalid MAGPIE_ENTITY. `);
+    target.name = `${ePrefix}[TARGET]`;
+    target.type = MAGPIE.KEY.SYMBOL.TYPE.MARKER;
     const S = MAGPIE.KEY.STATS;
     const P = MAGPIE.KEY.POVART;
     target.STATS = new Float64Array(S.ARRAY);
@@ -3870,15 +3879,12 @@ MAGPIE_ENTITY.prototype._target_all_from;
 // #region > Check
 //------------------------------------------------------------------------
 /**
- *
+ * @todo entity.targetIsSensed
  * @param {MAGPIE_ENTITY} target
  * @param {distance} dist
  * @returns {Boolean}
  */
-MAGPIE_ENTITY.prototype._target_isSensed = function isTargetSensed(
-  target,
-  dist,
-) {
+MAGPIE_ENTITY.prototype._target_isSensed = function (target,dist) {
   return true;
 };
 // #endregion
@@ -3912,23 +3918,17 @@ MAGPIE_ENTITY.prototype._target_next = function nextTarget() {
   const ePrefix = `[ENTITY-${this.ID}].nextTarget: `;
   try {
     /** @type {MAGPIE_EXP} */
-    const exp = this._get_exps().find((exp) => {
-      const key = exp._get_key_target() || exp._get_key_marker();
-      return exp.keys.includes(key?.ID);
-    });
-    if (!this.isValidExp(exp)) return false; // throw new Error(`${exp} is invalid target.exp`)
-    const index = this._get_expIndex(exp);
-    if (Number(index) < 0) throw new Error(`${index} is invalid exps index`);
+    const exp = this._get_exps()[0];
+    if (!this.isValidExp(exp)) return false; 
     const next = exp._target_next(this);
     if (!next) return false;
-    const swap = this._exp_swapWith(index, exp);
     const target = this._get_target();
     if (!target) throw new Error(`unable to set [TARGET-${next}]`);
     const oldOptions = exp._key_findWPoptions();
-    if (oldOptions) oldOptions.type = 0;
-    const log = `[ENTITY-${next}].name[${target.name}]`;
+    if (oldOptions) oldOptions.type = MAGPIE.KEY.TYPE.SPAREKEY;
+    const log = `[ENTITY-${next}]`;
     MAGPIE_SYSTEM.logging.log_exp(ePrefix + log);
-    return target;
+    return next;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     this.selfKick("failed update");
@@ -4009,74 +4009,30 @@ MAGPIE_ENTITY.prototype._coords_clearQueue = function() {
   }
 }
 /**
- * @desc @audit-issue Batch import of geocoords
- * @param {String} filename
- * @param {{
- * overflow: Boolean,
- * frag: Number
- * }} options
- */
-MAGPIE_ENTITY.prototype._coords_importBatch = async function (filename, options) {
-  const ePrefix = `[ENTITY-${this.ID}].coordsImportBatch: `;
-  try {
-    const source = MAGPIE_SYSTEM.Utility._import_route(filename)
-    if(!source) return false
-    const exp = this._get_exps()[0];
-    if(!(exp instanceof MAGPIE_EXP))
-      throw new Error(`${exp} is invalid exp. `)
-    const frag = options?.frag ? `${options.frag}-` : "";
-    const keys = exp.getKeys()
-      .filter((key) => key.type === MAGPIE.KEY.TYPE.WAYPOINT);
-    if(!keys || !Array.isArray(keys))
-      throw new Error(`${keys} is invalid keys array. `)
-    keys.forEach((key, index) => {
-      const target = key._get_entity_label();
-      if(target && target instanceof MAGPIE_ENTITY) {
-        target.name = `WP-${frag}${index}`;
-        target._set_C1(source[index]);
-        source.unshift();
-      }
-    });
-    if(source.length < 1) return
-    const metakey = new MAGPIE_KEY({
-      type: MAGPIE.KEY.TYPE.ROUTE,
-      label: raw,
-    })
-    MAGPIE_SYSTEM._logging_debug(Object.entries(`metakey: ${metakey}`))
-    const metakeySaved = await metakey.set();
-    if(!metakeySaved)
-      throw new Error(`unable to save [KEY-${metakey.ID}]. `)
-    exp.keys.push(metakey.ID);
-    await exp.set();
-  } catch (e) {
-    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
-  }
-};
-/**
  * 
  * @param {String} filename 
  */
-MAGPIE_ENTITY.prototype._targetkey_importBatch = async function(filename) {
+MAGPIE_ENTITY.prototype._import_route = async function(filename) {
   const ePrefix = `[ENTITY-${this.ID}] `;
   try {
-    /**
-     * @type {coords[]}
-     */
-    const source = MAGPIE_SYSTEM.Utility.importJSON(`./.tmp/${filename}.json`);
+    const source = MAGPIE_SYSTEM.Utility._import_route(filename);
+    if(!source) return false
     const exp = this._get_exps()[0];
     const type = MAGPIE.KEY.INDEX.WAYPOINT;
     const keys = exp.getKeys().filter(key => key.type === type);
-    for(let i = 0; i < source.length; i++) {
+    const coords = source.coords;
+    for(let i = 0; i < coords.length; i++) {
       const key = keys[i] || await this._add_new_key({
         type: type, 
-        label: JSON.stringify(source[i])
+        label: JSON.stringify(coords[i])
       })
     }
-    const metakeyType = MAGPIE.KEY.TYPE.METAKEY;
+    const metakeyType = MAGPIE.KEY.INDEX.ROUTE;
     const metakey = await this._add_new_key({
       type: metakeyType,
       label: JSON.stringify(source)
     })
+    return true
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e)
   }

@@ -419,6 +419,13 @@ MAGPIE_SYSTEM._logging_debug = function _logging_debug(message) {
   //
 };
 /**
+ * @desc prints to "/debug${datestamp}.log" — no console
+ * @param {String} message
+ */
+MAGPIE_SYSTEM.logging.debug = function debugLog(message) {
+  MAGPIE_SYSTEM.log(message, "debug", false);
+};
+/**
  *
  * @param {String} message
  * @returns
@@ -777,6 +784,7 @@ MAGPIE_SYSTEM.prototype._printInterval = MAGPIE_SYSTEM.Utility._printInterval;
 MAGPIE_SYSTEM.Utility.printETA = function printETA(seconds) {
   const ePrefix = `[SYSTEM].printETA: `;
   try {
+    if (Number(seconds) < 1) return "N/A";
     const ETA_s = seconds;
     let ETA = "";
     const ETA_sec = Math.floor(ETA_s % 60);
@@ -875,19 +883,46 @@ MAGPIE_SYSTEM.Utility.importJSON = function (filename) {
 /**
  * @typedef {import("./physics").coords} coords
  * @param {String} filename
- * @returns {coords[]}
+ * @returns {{name: String, coords: coords[]}}
  */
 MAGPIE_SYSTEM.Utility._import_route = function (filename) {
   const ePrefix = "[SYSTEM] ";
   try {
-    const path = `./.tmp/${filename}.json`;
+    const prefix = MAGPIE.config.repo || "utilities\\repo";
+    const path = `${process.cwd()}\\${prefix}\\${filename}.json`;
     const route = MAGPIE_SYSTEM.Utility.importJSON(path);
-    if (!route || !Array.isArray(route))
+    if (!route) return false;
+    if (!Array.isArray(route?.coords))
       throw new Error(`${route} is invalid route. `);
     return route;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     return false;
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Parsing
+//------------------------------------------------------------------------
+MAGPIE_SYSTEM.Parsing = {};
+/**
+ * @desc Safely parses a JSON string using an error-first tuple pattern
+ * to prevent application crashes.
+ * @param {String} string
+ * @returns {[Error, any]}
+ */
+MAGPIE_SYSTEM.Parsing.json = function (string) {
+  const ePrefix = "[SYSTEM.Parsing].json: ";
+  try {
+    return [null, JSON.parse(string)];
+  } catch (error) {
+    return [error, null];
   }
 };
 // #endregion
@@ -1712,9 +1747,7 @@ MAGPIE_HIVE.save = async function saveHive() {
     // const metastate = MAGPIE_DATABASE.saveMetastate(r.context.METASTATE);
     if (!metastate) return;
     const state = context_state;
-    const message =
-      `${results.length}x buffers saved at ` +
-      `[${state.meta.updated}-${state.date.printDate()}]`;
+    const message = `${results.length}x buffers saved. `;
     MAGPIE_SYSTEM.log(ePrefix + message, "console", false);
     return results;
   } catch (e) {

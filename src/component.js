@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.941
+ * @version 0.39.95
  */
 //========================================================================
 // #region - INDEX
@@ -1048,7 +1048,9 @@ MAGPIE_EXP.prototype._get_targetSTATS = function _get_targetSTATS() {
  * @returns {MAGPIE_KEY}
  */
 MAGPIE_EXP.prototype._get_key_target = function getKeyTarget() {
-  return this.getKeys()?.find((key) => key.type === MAGPIE.KEY.INDEX.TARGET);
+  const target = MAGPIE.KEY.INDEX.TARGET;
+  const wp = MAGPIE.KEY.INDEX.WAYPOINT;
+  return this.getKeys()?.find((key) => key.type === target || key.type === wp);
 };
 /**
  *
@@ -1058,68 +1060,85 @@ MAGPIE_EXP.prototype._get_key_marker = function getKeyMarker() {
   return this.getKeys()?.find((key) => key.type === MAGPIE.KEY.INDEX.MARKER);
 };
 /**
- * @param {entityID}
- * @returns {database_result}
+ * @param {entityID} targetID
+ * @param {MAGPIE_ENTITY} entity
+ * @returns {Boolean}
  */
-MAGPIE_EXP.prototype._set_target = function _set_target(targetID) {
+MAGPIE_EXP.prototype._set_target = function _set_target(targetID, entity) {
   const ePrefix = `[EXP-${this.ID}].setTarget: `;
   try {
-    const next = targetID;
-    if (!next || isNaN(next)) return;
-    this.targetID = next;
-    return this.setSync();
+    if (!targetID || isNaN(targetID)) return false;
+    this.targetID = targetID;
+    const log = `[ENTITY-${entity?.ID}].ExpSetTarget(${targetID}). `;
+    MAGPIE_SYSTEM.logging.log_exp(log);
+    return true;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
+};
+/**
+ *
+ * @param {MAGPIE_KEY} key
+ * @param {MAGPIE_ENTITY} target
+ * @returns
+ */
+MAGPIE_EXP.prototype._key_nextWaypoint = function (key, target) {
+  if (!key.label || key.label === "undefined") return;
+  const coords = JSON.parse(key.label);
+  if (!Array.isArray(coords)) return;
+  key.type = MAGPIE.KEY.TYPE.SPAREKEY;
+  target._set_C1(coords);
+  target.setSync();
 };
 /**
  * @audit-issue must refactor for modularity
  * @param {MAGPIE_ENTITY} entity
  * @returns {entityID} entityID
  */
+
 MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
   const ePrefix = `[EXP-${this.ID}].keyTargetNext: `;
   try {
     const key = this._get_key_target();
-    if (!key) return;
-    const route = key.type === MAGPIE.KEY.INDEX.ROUTE;
-    const waypoint = (key.type = MAGPIE.KEY.INDEX.WAYPOINT);
-    if (route || waypoint) {
-      const target = entity._get_target();
-      if (!target) {
-        entity._new_target();
-        return;
+    if (!key) return false;
+    const route = MAGPIE.KEY.INDEX.ROUTE;
+    const waypoint = MAGPIE.KEY.INDEX.WAYPOINT;
+    let targetID = NaN;
+    if (key.type === route || key.type === waypoint) {
+      const target = entity._get_target() || entity._new_target();
+      if (!target) return false;
+      targetID = target.ID;
+      if (this.targetID !== target.ID) this._set_target(target.ID, entity);
+      if (key.type === waypoint) this._key_nextWaypoint(key, target);
+      else {
+        /** @type {MAGPIE_KEY} */
+        let spareKey = this.getKeys().find((key) => !key.type);
+        if (!spareKey) {
+          spareKey = new MAGPIE_KEY({
+            type: MAGPIE.KEY.INDEX.WAYPOINT,
+          });
+          const context = entity._get_contexts()[0];
+          context._set_key(spareKey.ID);
+          spareKey.requestHost();
+          this.keys.splice(this.keys.indexOf(key.ID) + 1, 0, spareKey.ID);
+        }
+        /** @type {coords[]} */
+        const route = JSON.parse(key.label);
+        const coords = route.shift();
+        if (Array.isArray(coords)) {
+          key.label = JSON.stringify(route);
+          target._set_C1(coords);
+        }
       }
-      if (!target) return;
-      if (waypoint) {
-        const coords = JSON.parse(key.label);
-        if (Array.isArray(coords)) target._set_C1(coords);
-        return target.ID;
-      }
-      /** @type {MAGPIE_KEY} */
-      let spareKey = this.getKeys().find((key) => !key.type);
-      if (!spareKey) {
-        spareKey = new MAGPIE_KEY({
-          type: MAGPIE.KEY.INDEX.WAYPOINT,
-        });
-        const context = entity._get_contexts()[0];
-        context._set_key(spareKey.ID);
-        spareKey.requestHost();
-        this.keys.splice(this.keys.indexOf(key.ID) + 1, 0, spareKey.ID);
-      }
-      /** @type {coords[]} */
-      const route = JSON.parse(key.label);
-      const coords = route.shift();
-      if (Array.isArray(coords)) {
-        key.label = JSON.stringify(route);
-        target._set_C1(coords);
-        return target.ID;
-      }
+    } else targetID = Number(key.label);
+    if (targetID) {
+      key.type = MAGPIE.KEY.TYPE.SPAREKEY;
+      key.setSync();
     }
-    //@audit-issue must not use .originID
-    return Number(key.label);
+    return targetID;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    return false;
   }
 };
 /**
@@ -1130,10 +1149,8 @@ MAGPIE_EXP.prototype._target_next = function _target_next(entity) {
   const ePrefix = `[EXP-${this.ID}].targetNext: `;
   try {
     const targetID = this._key_target_next(entity);
-    if (!targetID) return;
-    MAGPIE_SYSTEM._logging_debug(`targetID: ${targetID}`);
-    const set = this._set_target(targetID);
-    if (!set) return;
+    if (!targetID) return false;
+    // MAGPIE_SYSTEM._logging_debug(`targetID: ${targetID}`);
     return targetID;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -1157,10 +1174,10 @@ MAGPIE_EXP.prototype._target_next = function _target_next(entity) {
  * posture: stateID,
  * trigger: keyID
  * }} waypoint_options
+ * @param {MAGPIE_KEY} key
  * @returns {waypoint_options}
  */
-MAGPIE_EXP.prototype._key_mapWPoptions = function () {
-  const key = this._key_findWPoptions();
+MAGPIE_EXP.prototype._key_mapWPoptions = function (key) {
   if (!key) return;
   const options = JSON.parse(key.label);
   if (Object.keys(optons).length < 1) return;
@@ -1174,7 +1191,7 @@ MAGPIE_EXP.prototype._key_findWPoptions = function () {
   const K = MAGPIE.KEY.INDEX;
   const keys = this.getKeys();
   if (keys.length < 1) return;
-  return keys.find((key) => key.type === MAGPIE.KEY.TYPE.WAYPOINT);
+  return keys.find((key) => key.type === MAGPIE.KEY.INDEX.WP_OPTIONS);
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -1247,9 +1264,9 @@ MAGPIE_EXP.prototype._key_mapVspeeds = function mapVspeeds() {
   const Vspeeds = {};
   for (const key of keys) {
     const isVSPEED = key.type >= K.VMAX && key.type <= K.TDOCK_Z;
-    const isType = key.type === T.CONTEXT || key.type === T.WAYPOINT;
-    if (isVSPEED && isType)
-      Vspeeds[key.getOrigin()?.label?.toUpperCase()] = JSON.parse(key.label);
+    const type = MAGPIE.KEY.INDEX.VSPEEDS.get(key.type);
+    const value = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
+    if (isVSPEED && type && value) Vspeeds[type] = value;
   }
   return Vspeeds;
 };

@@ -1,7 +1,7 @@
 /**
  * @name
  * @desc
- * @version 0.39.94
+ * @version 0.39.951
  *
  */
 //========================================================================
@@ -676,8 +676,7 @@ MAGPIE_PHYSICS._POVART_applyTargetAT = function applyTargetAT(
  * @param {vector3} P1 target position (P₁)
  * @param {vector3} V0 current velocity vector (V₀)
  * @param {Number} Vmax max speed
- * @param {Number} Amax max acceleratio
- * @param {Number} Bmax max braking
+ * @param {Number} Amax max acceleration
  * @param {Number} tolerance tolerance (m)
  * @returns {vector3} A₁
  */
@@ -687,7 +686,6 @@ MAGPIE_PHYSICS._move_linearTo = function _move_linearTo(
   V0,
   Vmax,
   Amax,
-  Bmax,
   tolerance = 0.5,
 ) {
   const ePrefix = `[PHYSICS].moveLinear: `;
@@ -698,13 +696,13 @@ MAGPIE_PHYSICS._move_linearTo = function _move_linearTo(
     if (D0 <= tolerance) {
       const stopDistance = 0;
       const finalBrake = this.getBrakingA(P0, P1, V0, stopDistance);
-      return this.vector_clamp_mag(finalBrake, Bmax);
+      return this.vector_clamp_mag(finalBrake, Amax);
     }
     // 2. Braking start check
-    const Bdist = S0 ** 2 / (2 * Bmax);
+    const Bdist = S0 ** 2 / (2 * Amax);
     if (D0 <= Bdist + tolerance) {
       const brakeA = this.getBrakingA(P0, P1, V0, tolerance);
-      return this.vector_clamp_mag(brakeA, Bmax);
+      return this.vector_clamp_mag(brakeA, Amax);
     }
     // 3. transit / acceleration phase
     const Vcruise = this.targetVelocity(P0, P1, Vmax);
@@ -738,9 +736,9 @@ MAGPIE_PHYSICS._emote_stop = function(POVART0, options) {
     const { P0, V0, R0 } = this.decomp_POVART(POVART0);
     const S0 = this.mag(V0);
     const unitV0 = this.normalizeVector(V0);
-    const Bmax = Number(options?.Bmax) || Number(options?.Amax) || 0.001;
-    const Bsafe = Math.min(Bmax, Number(options?.Bsafe) || Bmax);
-    const Bmag = S0 > Bsafe ? Bsafe : S0;
+    const Amax = Number(options?.Amax) || 0.001;
+    const Asafe = Math.min(Amax, Number(options?.Asafe) || Amax);
+    const Bmag = S0 > Asafe ? Asafe : S0;
     const Abrake = this.scaleVector(unitV0, -Bmag);
     const Vstopped = S0 < 1e-6;
     const At = Vstopped ? [0,0,0] : Abrake;
@@ -762,10 +760,7 @@ MAGPIE_PHYSICS._emote_stop = function(POVART0, options) {
   }
 }
 /**
- *
- * @param {vector3} P0
- * @param {vector3} P1
- * @param {STATS} STATS
+ * @param {MAGPIE_ENTITY} entity
  * @param {{
  * 	tolerance: coefficient,
  * 	intensity: ratio,
@@ -783,71 +778,79 @@ MAGPIE_PHYSICS._emote_stop = function(POVART0, options) {
  * pR: ratio
  * }}}
  */
-MAGPIE_PHYSICS._emote_seekTarget = function _emote_seekTarget(
-  POVART0,
-  P1,
-  options,
-) {
-  const K = MAGPIE.KEY.STATS;
-  const STATS = options?.STATS || [];
-  if (!options?.agility) options.agility = STATS[K.DEX];
-  if (!options?.fwd) options.fwd = MAGPIE.KEY.POVART.FWD;
-  const { P0, O0, V0, A0, R0, T0 } = this.decomp_POVART(POVART0);
-  const raw = {};
-  const getAt = this._getAt(P0, V0, P1, STATS, options);
-  const At = this.scaleVector(getAt.At_raw, options.intensity);
-  // MAGPIE_SYSTEM._logging_debug(`At: ${this.mag(At)}`)
-  const Vmax = STATS[MAGPIE.KEY.STATS.VMAX];
-  const Vcreep = Math.min(Vmax, options?.Vcreep || Vmax);
-  const Ot_abs = this._getOtToP1(P0, P1);
-  const Ot_hdg = this._rotor_toHeadingAbs(Ot_abs, P0);
-  const Ot = options?.surface
-    ? this._rotor_fromEulerAbs(Ot_hdg, 0, 0, P0)
-    : Ot_abs;
-  const fwd = this.rotorApply(O0, MAGPIE.KEY.POVART.FWD);
-  const targetDir = this.normalizeVector(this.subVectors(P1, P0));
-  const alignment = this.dotProduct(fwd, targetDir);
-  const steerIntensity = 1.0 - alignment;
-  const dO = this._getDeltaO(O0, Ot);
-  const dR_global = this._getDeltaR(dO);
-  const O0_inv = this.rotorReverse(O0);
-  const dR = this.rotorApply(O0_inv, dR_global);
-  // const dR = this._getDeltaR_euler(O0, Ot, P0)	const dR = this._getDeltaR(dO);
-  const dRmag = this.mag(dR);
-  const pR = this._getATpR(dRmag, V0, R0, getAt.Vstate, options);
-  options.pR = pR;
-  const getTt = this._getTt(dR, R0, O0, options);
-  options.state = pR > 0.5 ? getAt.Vstate : getTt.Rstate;
-  const Tt = getTt.Tt;
-  const Rstate = getTt.Rstate;
-  raw.Tt = Tt;
-  raw.Rstate = Rstate;
-  raw.Bdist = getTt?.Bdist;
-  raw.pR = pR;
-  raw.dR = dR;
-  raw.dRmag = dRmag;
-  // MAGPIE_SYSTEM._logging_debug(`pR: ${pR}`);
-  if (!this.isValidVector(Tt)) throw new Error(`${Tt} is invalid Tₜ bivector`);
-  const Asafe = () => {
-    if (pR >= 0.5) return At;
-    const S0 = this.mag(V0);
-    if (S0 <= Vcreep) return [0, 0, 0];
-    const unitV0 = this.scaleVector(V0, 1 / (S0 || 1));
-    return this.scaleVector(unitV0, -this.mag(At));
+MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
+  let defaults = {
+    At: [0,0,0],
+    Tt: [0,0,0],
+    state: options?.state,
+    raw: {},
   };
-  // MAGPIE_SYSTEM._logging_debug(Vcreep)
-  const slow = this.mag(V0) < Vcreep;
-  const newTt = this.scaleVector(
-    Tt ? Tt : [0, 0, 0],
-    slow ? 1 - pR : Math.max(1 - pR, 0.75),
-  );
-  const As = Asafe();
-  return {
-    At: this.scaleVector(As, pR),
-    Tt: newTt,
-    state: options.state,
-    raw,
-  };
+  const ePrefix = "[PHYSICS.emoteSeekTarget] ";
+  try {
+    const POVART0 = entity._get_POVART();
+    const K = MAGPIE.KEY.STATS;
+    const STATS = entity.STATS || [];
+    if (!options?.agility) options.agility = STATS[K.DEX];
+    if (!options?.fwd) options.fwd = MAGPIE.KEY.POVART.FWD;
+    const { P0, O0, V0, A0, R0, T0 } = this.decomp_POVART(POVART0);
+    // MAGPIE_SYSTEM.logging.debug(ePrefix + JSON.stringify(options))
+    const { Vmax, Vsafe, Amax, Asafe, Vcruise, Vcreep } = options;
+    const getAt = this._getAt(P0, V0, P1, STATS, options);
+    const At = this.scaleVector(getAt.At_raw, options.intensity);
+    // MAGPIE_SYSTEM._logging_debug(`At: ${this.mag(At)}`)
+    const Ot_abs = this._getOtToP1(P0, P1);
+    const Ot_hdg = this._rotor_toHeadingAbs(Ot_abs, P0);
+    const Ot = options?.surface
+      ? this._rotor_fromEulerAbs(Ot_hdg, 0, 0, P0)
+      : Ot_abs;
+    const fwd = this.rotorApply(O0, MAGPIE.KEY.POVART.FWD);
+    const targetDir = this.normalizeVector(this.subVectors(P1, P0));
+    const alignment = this.dotProduct(fwd, targetDir);
+    const steerIntensity = 1.0 - alignment;
+    const dO = this._getDeltaO(O0, Ot);
+    const dR_global = this._getDeltaR(dO);
+    const O0_inv = this.rotorReverse(O0);
+    const dR = this.rotorApply(O0_inv, dR_global);
+    // const dR = this._getDeltaR_euler(O0, Ot, P0)	const dR = this._getDeltaR(dO);
+    const dRmag = this.mag(dR);
+    const pR = this._getATpR(dRmag, V0, R0, getAt.Vstate, options);
+    options.pR = pR;
+    const getTt = this._getTt(dR, R0, O0, options);
+    options.state = pR > 0.5 ? getAt.Vstate : getTt.Rstate;
+    const Tt = getTt.Tt;
+    const Rstate = getTt.Rstate;
+    const raw = defaults.raw;
+    raw.At = At;
+    raw.Tt = Tt;
+    raw.Rstate = Rstate;
+    raw.Bdist = getTt?.Bdist;
+    raw.pR = pR;
+    raw.dR = dR;
+    raw.dRmag = dRmag;
+    // MAGPIE_SYSTEM._logging_debug(`pR: ${pR}`);
+    if (!this.isValidVector(Tt)) throw new Error(`${Tt} is invalid Tₜ bivector`);
+    const At_safe = () => {
+      if (pR >= 0.5) return At;
+      const S0 = this.mag(V0);
+      if (S0 <= Vcreep) return [0, 0, 0];
+      return this.scaleVector(this.normalizeVector(V0), -(options.Asafe));
+    };
+    // MAGPIE_SYSTEM._logging_debug(Vcreep)
+    const slow = this.mag(V0) < Vcreep;
+    const newTt = this.scaleVector(
+      Tt ? Tt : [0, 0, 0],
+      slow ? 1 - pR : Math.max(1 - pR, 0.75),
+    );
+    defaults.At = At_safe();
+    defaults.Tt = newTt;
+    defaults.state = options.state;
+    defaults.raw = raw;
+    // MAGPIE_SYSTEM._logging_debug(ePrefix + `Tt_mag: ${this.mag(defaults.Tt)}`)
+    return defaults;
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    return defaults;
+  }
 };
 /**
  *
@@ -1002,14 +1005,7 @@ MAGPIE_PHYSICS._getAt = function _getAt(P0, V0, P1, params, options) {
     const K = MAGPIE.KEY.STATS;
     const LENGTH = params[K.LENGTH];
     const tolerance = options.tolerance * LENGTH * 1.1;
-    const Vmax = params[K.VMAX];
-    const Vsafe = Math.min(Vmax, options?.Vsafe || Vmax);
-    const Amax = params[K.AMAX];
-    const Asafe = Math.min(Amax, options?.Asafe || Amax);
-    const Bmax = params[K.BMAX];
-    const Bsafe = Math.min(Bmax, options?.Bsafe || Bmax);
-    const Vcruise = Math.min(Vmax, options?.Vcruise || Vmax);
-    // MAGPIE_SYSTEM._logging_debug(options?.Vcruise)
+    const { Vmax, Vsafe, Amax, Asafe, Vcruise } = options;
     const Vcreep = Math.min(Vmax, options?.Vcreep || Vmax);
     const S0 = this.mag(V0);
     if (options?.dumb) {
@@ -1021,7 +1017,7 @@ MAGPIE_PHYSICS._getAt = function _getAt(P0, V0, P1, params, options) {
         Vstate: STATE_INDEX.SEEKING_TARGET,
       };
     }
-    const Bdist = S0 ** 2 / (2 * Bmax); //@audit-ok Bdist verified
+    const Bdist = S0 ** 2 / (2 * Amax); //@audit-ok Bdist verified
     // MAGPIE_SYSTEM._logging_debug(`Bdist: ${Bdist}`)
     const reach = D0 <= tolerance;
     const approach = D0 <= Bdist + tolerance;
@@ -1042,12 +1038,12 @@ MAGPIE_PHYSICS._getAt = function _getAt(P0, V0, P1, params, options) {
           : true;
     // MAGPIE_SYSTEM._logging_debug(Object.entries(state))
     const unitV0 = this.normalizeVector(V0);
-    const brake = this.scaleVector(unitV0, -Bsafe);
+    const brake = this.scaleVector(unitV0, -Asafe);
     const stopped = S0 < 1e-6;
     if (state.onTarget) {
       const S0_threshold = S0 > 0.001;
       const Bmin = 0.001;
-      const Bstop = this._U_clampRange(Bsafe, Bmin, S0);
+      const Bstop = this._U_clampRange(Asafe, Bmin, S0);
       const At = S0_threshold ? brake : [0, 0, 0];
       const Vstate = S0_threshold
         ? STATE_INDEX.REACHING_TARGET
@@ -1056,15 +1052,15 @@ MAGPIE_PHYSICS._getAt = function _getAt(P0, V0, P1, params, options) {
       return { At_raw: At, Vstate: Vstate };
     } else if (state.reachingTarget) {
       const stopDistance = K.LENGTH;
-      const Bt = this.getBrakingA(P0, P1, V0, Bmax, stopDistance);
-      const A_clamped = this.vector_clamp_mag(Bt, Bsafe);
+      const Bt = this.getBrakingA(P0, P1, V0, Amax, stopDistance);
+      const A_clamped = this.vector_clamp_mag(Bt, Asafe);
       return {
         At_raw: A_clamped,
         Vstate: STATE_INDEX.REACHING_TARGET,
       };
     } else if (state.approachingTarget) {
       const Bt = this.getBrakingA(P0, P1, V0, options.tolerance);
-      const A_clamped = this.vector_clamp_mag(Bt, Bsafe);
+      const A_clamped = this.vector_clamp_mag(Bt, Asafe);
       return {
         At_raw: A_clamped,
         Vstate: STATE_INDEX.APPROACHING_TARGET,
@@ -1345,27 +1341,19 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
   const ePrefix = "[PHYSICS].getTt_axis: ";
   const output = { Tt: 0, state: STATE_INDEX.SPOOFED, Bdist: 0 };
   try {
-    const Tmax_axis = `Tmax_${MAGPIE.KEY.POVART.AXES[axis]}`;
-    const Rmax_axis = `Rmax_${MAGPIE.KEY.POVART.AXES[axis]}`;
-    const Tmax = options.hasOwnProperty(Tmax_axis)
-      ? Number(options[Tmax_axis])
-      : Number(options?.Tmax);
-    // MAGPIE_SYSTEM._logging_debug(`Tmax: ${Tmax}`)
+    const axisID = MAGPIE.KEY.POVART.AXES[axis];
+    const Tmax = Number(options[`Tmax_${axisID}`]) || Number(options?.Tmax) || 0.0001;
     if (isNaN(Tmax)) return;
     const reserve =
       1 - this._U_clampRange(Number(options?.reserve) || 20, 0, 99.9) / 100;
     const Tsafe = Tmax * reserve;
     const last_state = options?.Rstate;
-    const Rmax = options.hasOwnProperty(Rmax_axis)
-      ? Number(options[Rmax_axis])
-      : Number(options?.Rmax);
+    const Rmax = Number(options[`Rmax_${axisID}`]) || Number(options?.Rmax) || 0.001
     if (isNaN(Rmax)) return;
     const hold_threshold = options?.hold_threshold ?? this._U_deg_to_rad(10);
     const R0_abs = Math.abs(R0_comp);
-    const Rsafe = Array.isArray(options?.Rsafe)
-      ? options.Rsafe[axis]
-      : Rmax * reserve;
-    const Bdist = R0_abs ** 2 / (2 * Tsafe) || 0;
+    const Rsafe = Number(options[`Rsafe_${axisID}`]) || Number(options?.Rsafe) || Rmax * reserve;
+    const Bdist = Math.min(Math.PI, R0_abs ** 2 / (2 * Tsafe)) || 0;
     const dR_error = Math.abs(dR_comp);
     const Rcruise_margin = Math.abs(R0_abs - Rsafe);
     const Rt_error = Math.abs(dR_error - R0_abs);
@@ -1374,16 +1362,15 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const R0_isStable = seek_deadzone < Rsafe * 0.05;
     const brake_deadzone = Rsafe * 0.25;
     const aligned_deadzone = 0.0001;
-    const brake_threshold = Bdist * 1.5;
-    const decel_threshold = brake_threshold * 3;
+    const brake_threshold = Math.min(dR_error, Bdist);
+    const decel_threshold = Math.min(dR_error, brake_threshold) * 3;
     const Rhold = R0_abs < brake_deadzone;
     const Rcrawl = 0.001;
-    const sticky_align = dR_error < brake_threshold;
+    const sticky_align = dR_error < brake_threshold || last_state === STATE_INDEX.ALIGNING_TARGET;
     const align_trigger = dR_error < decel_threshold ? true : sticky_align;
     const HOLD = R0_abs > Rcrawl ? false : dR_error < hold_threshold;
     const FACE = HOLD || align_trigger ? false : R0_abs < Rsafe;
-    const DRIFT = HOLD || FACE || decel_threshold ? false : true;
-    // MAGPIE_SYSTEM._logging_debug(options)
+    const DRIFT = HOLD || FACE || align_trigger ? false : true;
     const R_stop = R0_abs < 1e-6 ? 0 : R0_abs * -Tsafe;
     const Tt_brake = R0_abs < 1e-5 ? 0 : Math.sign(R0_comp) * -Tsafe;
     const decel =
@@ -1393,21 +1380,10 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const accel = Math.sign(dR_comp) * Tsafe; //R0_isStable ? 0 : Math.sign(dR_comp) * Tsafe
     const transit = options?.transit || 0.0001;
     const Tt_seek = Rcruise_margin > transit ? accel : decel;
+    // MAGPIE_SYSTEM._logging_debug(`dR_error: ${dR_error.toFixed(5)} | decel: ${decel_threshold.toFixed(5)} | Rsafe: ${Rsafe} | Tsafe: ${Tsafe}`)
     const adjust = R0_abs < Rcrawl ? accel * 0.25 : Tt_brake * 0.25;
     const Tt_align = dR_error > aligned_deadzone ? adjust : R_stop;
     const distanceFactor = Math.min(dR_error / (Bdist * 2.0), 1.0);
-    // if(axis === 1)
-    // 	MAGPIE_SYSTEM._logging_debug(`D_decel: ${decel_threshold.toFixed(5)} | `
-    // 	+ `D_brake: ${brake_threshold.toFixed(5)} | `
-    // 	+ `Rsafe: ${Rsafe.toFixed(5)} | `
-    // 	+ `Rt_err: ${Rt_error.toFixed(5)} | `
-    // 	+ `dR_err: ${dR_error.toFixed(5)} | `
-    // 	+ `HOLD: ${HOLD} | `
-    // 	+ `DRIFT: ${DRIFT} | `
-    // 	+ `FACE: ${FACE} | `
-    // 	+ `decel_thres: ${decel_threshold.toFixed(5)} | `
-    // 	+ `Tt_seek: ${Tt_seek} | `
-    // )
     let Tt = 0;
     let state = STATE_INDEX.SPOOFED;
     if (HOLD) {
@@ -1551,7 +1527,7 @@ MAGPIE_PHYSICS.distanceTo = function distanceTo(P0, P1) {
  * @param {vector3} P0 current position (P₀)
  * @param {vector3} P1 target position (P₁)
  * @param {vector3} V0 current velocity (V₀)
- * @param {Number} Bmax maximum braking (Bₘₐₓ)
+ * @param {Number} Amax maximum braking (Bₘₐₓ)
  * @param {Number} stopDistance distance (m)
  * @returns {vector3} Braking acceleration (Abrake or Aₖ)
  */
@@ -1559,7 +1535,7 @@ MAGPIE_PHYSICS.getBrakingA = function getBrakingA(
   P0,
   P1,
   V0,
-  Bmax,
+  Amax,
   stopDistance = 0,
 ) {
   const ePrefix = `[PHYSICS].getBrakingA: `;
@@ -1576,7 +1552,7 @@ MAGPIE_PHYSICS.getBrakingA = function getBrakingA(
     if (brakingDist <= 0 || currentSpeed === 0) return Abrake;
     // calculate required deceleration magnitude: A = V^2 / (2D)
     const decelMag = currentSpeed ** 2 / (2 * brakingDist);
-    const brakeMag = decelMag > 1e-6 ? -decelMag : -Bmax;
+    const brakeMag = decelMag > 1e-6 ? -decelMag : -Amax;
     const travelDir = this.normalizeVector(V0);
     // apply acceleration exactly opposite to the current direction of travel
     Abrake = this.scaleVector(travelDir, brakeMag);
@@ -1678,12 +1654,16 @@ MAGPIE_PHYSICS._geod_distanceTo = function _geod_distanceTo(P0, P1, r) {
     if (!this.isValidVector(P0)) throw new Error(`${P0} is invalid vector P₀`);
     if (!this.isValidVector(P1)) throw new Error(`${P1} is invalid vector P₁`);
     const celestial_radius = this._geod_verifyRadius(r);
+    const raw_dist = this.distanceTo(P0, P1);
+    if(!celestial_radius || raw_dist < MAGPIE.KEY.PHYSICS.HORIZON) return raw_dist;
     const u0 = MAGPIE_PHYSICS.normalizeVector(P0);
     const u1 = MAGPIE_PHYSICS.normalizeVector(P1);
     const angle = Math.acos(MAGPIE_PHYSICS.dotProduct(u0, u1));
-    return Number(celestial_radius * angle);
+    const raw = Number(celestial_radius * angle)
+    return raw > 1e-9 ? raw : 0;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    return NaN
   }
 };
 /**

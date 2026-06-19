@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.94
+ * @version 0.39.95
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -1305,7 +1305,7 @@ MAGPIE_ENTITY.__hive = async function __hive(method, arguments) {
  * @param {Number} switchID
  * @param {Number} layer_frame
  */
-MAGPIE_ENTITY.__socketEmit = function __socketEmit(
+MAGPIE_ENTITY.__socketEmit = function entitySocketEmit(
   output,
   exp,
   entity,
@@ -1337,6 +1337,7 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
     const r = Number(output[3]);
     const forces = output?.slice(4);
     const Vmag = Number(MAGPIE_PHYSICS.mag(V1));
+    const S0 = Vmag > 1e-9 ? Vmag : 0;
     const Vknots = Number(MAGPIE_PHYSICS._U_MPStoKnots(Vmag));
     const Amag = Number(MAGPIE_PHYSICS.mag(A1) / dt);
     const Rmag = Number(MAGPIE_PHYSICS.mag(R1));
@@ -1356,15 +1357,10 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
       validTarget && r > 1
         ? MAGPIE_PHYSICS.cartesianToGeodetic(Pt, r)
         : [NaN, NaN, NaN];
-    const dist =
-      validTarget && r > 1
-        ? Number(MAGPIE_PHYSICS._geod_distanceTo(P1, Pt, r))
-        : NaN;
-    const dist2 =
-      validTarget && r > 1 ? Number(MAGPIE_PHYSICS.distanceTo(P1, Pt)) : NaN;
-    const ETA_s = Number(Math.floor(dist / Vmag));
-    // MAGPIE_SERVER._debug(ETA_s)
-    const ETA = !isNaN(ETA_s) ? MAGPIE_SYSTEM.Utility.printETA(ETA_s) : "N/A";
+    const dist = MAGPIE_PHYSICS._geod_distanceTo(P1, Pt, r);
+    const ETA_s = dist > 1 && S0 > 1 ? Number(Math.floor(dist / S0)) : 0;
+    // MAGPIE_SERVER._debug(`ETA_s: ${ETA_s} | dist: ${dist} | S0: ${S0}`);
+    const ETA = Number(ETA_s) ? MAGPIE_SYSTEM.Utility.printETA(ETA_s) : "N/A";
     const raw = output?.emote?.raw || output?.target?.raw || [];
     const index = MAGPIE.KEY.INDEX;
     const dRmag = Number(raw?.dRmag) || NaN;

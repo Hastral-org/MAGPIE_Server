@@ -23,10 +23,19 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.941 2026 06 18
+ * @version 0.39.951 2026 06 19
+ * - ADDED: SYSTEM.Parsing
+ * - ADDED: SYSTEM.Parsing.json
+ * - FIXED: entity._emote_seekTarget stuck (issue 122)
+ * - FIXED: PHYSICS.getTt not inheriting proper speeds
+ *
+ * @version 0.39.942 2026 06 18
  * - TWEAKED: entity._socketEmit formN() data pre-formatting
  * - FIXED: emoteSeekTarget unable to stop when spoofed or idling
  * - FIXED: main.entity_monitor values flicker
+ * - FIXED: entity._target_next
+ * - FIXED: entity._socketEmit flickering ETA
+ * - FIXED: PHYSICS._geod_distanceTo crazy values when P0 and P1 are near
  *
  * @version 0.39.94 2026 06 17
  * - ADDED: Express.routing
@@ -525,9 +534,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 941],
+  version: [0, 39, 95],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260618",
+  firmwareDate: "20260619",
 };
 /**
  *
@@ -918,31 +927,42 @@ MAGPIE.KEY.INDEX.VELOCITY = new Map();
 /** @type {key_index} */
 MAGPIE.KEY.INDEX.A_ERR = 8000;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.A_ERR, "A_err");
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.CRUISE = 8001;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.CRUISE, "Cruise");
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.ACCELERATE = 8002;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.ACCELERATE, "Accelerate");
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.COAST = 8003;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.COAST, "Coast");
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.BRAKE = 8004;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.BRAKE, "Brake");
+/** @type {key_index} */
+MAGPIE.KEY.INDEX.WP_OPTIONS = 8201;
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.ON_TARGET = 305;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.ON_TARGET, "On Target");
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.REACHING_TARGET = 303;
 MAGPIE.KEY.INDEX.VELOCITY.set(
   MAGPIE.KEY.INDEX.REACHING_TARGET,
   "Reaching Target",
 );
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.APPROACHING_TARGET = 304;
 MAGPIE.KEY.INDEX.VELOCITY.set(
   MAGPIE.KEY.INDEX.APPROACHING_TARGET,
   "Approaching Targeet",
 );
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.SEEKING_TARGET = 302;
 MAGPIE.KEY.INDEX.VELOCITY.set(
   MAGPIE.KEY.INDEX.SEEKING_TARGET,
   "Seeking Target",
 );
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.IDLING = 206;
 MAGPIE.KEY.INDEX.VELOCITY.set(MAGPIE.KEY.INDEX.IDLING, "Idling");
 /**
@@ -1827,6 +1847,11 @@ MAGPIE.KEY.PHYSICS.FORCES.FL = MAGPIE.KEY.PHYSICS.FORCES.FD + 1;
 MAGPIE.KEY.PHYSICS.FORCES.AOA = MAGPIE.KEY.PHYSICS.FORCES.FL + 1;
 /** @type {Enumerator<Number>} amount of forces */
 MAGPIE.KEY.PHYSICS.FORCES.ARRAY = MAGPIE.KEY.PHYSICS.FORCES.AOA + 1;
+/**
+ * @type {Enumerator<Number>}
+ * @desc @todo default minimum distance for horizon curvature
+ * */
+MAGPIE.KEY.PHYSICS.HORIZON = 10_000;
 /**
  * @desc reference plane
  * @type {vector3} [x,y,z]

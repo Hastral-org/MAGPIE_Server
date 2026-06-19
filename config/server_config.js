@@ -20,4 +20,6 @@ module.exports = {
   core_path: "./src/",
   EMAIL_MASTER_KEY: process.env.EMAIL_MASTER_KEY,
   HASH_SALT: process.env.HASH_SALT,
+  /** @desc utility repository path */
+  repo: process.env.repo,
 };

@@ -568,7 +568,7 @@ router.post(
       }
       const success = "registration successful. ";
       const responseBody = { message: success, token };
-      const successMessage = ePrefix + level + success;
+      const successMessage = ePrefix + level + `[PLAYER-${username}]` + success;
       res.status(http.STATUS_200.code).json(responseBody);
       server.sysLog(successMessage, "server");
       return responseBody;
