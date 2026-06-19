@@ -6,11 +6,11 @@
 clear
 
 while true; do
-    # Move cursor to top-left corner instead of clearing the screen
-    printf "\033[H"
+    # Move cursor to top-left corner and clear from cursor to end of screen
+    printf "\033[H\033[J"
     
     echo "=== MAGPIE RESOURCE MONITOR ==="
-    echo "Timestamp: $(date)                  " # Extra spaces prevent trailing text bugs
+    echo "Timestamp: $(date)"
     echo "----------------------------------------------------------------"
     
     # Grab active PIDs
