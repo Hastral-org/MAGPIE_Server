@@ -19,7 +19,7 @@ fi
 echo -e "\e[32m--- System environments verified. Booting MAGPIE Engine... ---\e[0m"
 
 while true; do
-    node --max-old-space-size=512 SERVER.js
+    node --env-file=.env --max-old-space-size=512 SERVER.js
     exitCode=$?
     
     if [ "$exitCode" -eq 2 ]; then
