@@ -68,8 +68,8 @@ Read-Host "Press [ENTER] to confirm the remote server is stopped and begin the c
 LogMessage "🗄️ 4/5 Backing up remote databases on magpie-gcp..."
 $RemoteBackupDir = "~/db_backups"
 $RemoteBackupCmd = "mkdir -p $RemoteBackupDir && " +
-    "cp ~/MAGPIE_Server/db/world.db $RemoteBackupDir/world_$(Get-Date +%Y%m%d%H%M).db 2>/dev/null || true && " +
-    "cp ~/MAGPIE_Server/db/server.db $RemoteBackupDir/server_$(Get-Date +%Y%m%d%H%M).db 2>/dev/null || true"
+    "cp ~/MAGPIE_Server/db/world.db $RemoteBackupDir/world_$CTZ.db 2>/dev/null || true && " +
+    "cp ~/MAGPIE_Server/db/server.db $RemoteBackupDir/server_$CTZ.db 2>/dev/null || true"
 ssh magpie-gcp $RemoteBackupCmd
 LogMessage "✅ Remote backup complete (or DBs didn't exist yet)"
 

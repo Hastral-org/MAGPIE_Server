@@ -1,7 +1,7 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.39.92
+ * @version 0.39.952
  *
  * @typedef {import("socket.io").Socket} Socket
  */
@@ -453,7 +453,7 @@ const invalidToken = () => {
  * @param {import("../SERVER").MAGPIE_SERVER} server
  */
 account.init = function (io, socket, server) {
-  console.log(ePrefix + "initialized. ");
+  server.silentLog(ePrefix + `[SOCKET-${socket?.id}] initialized. `);
   socket.on("PROBE_USERNAME", async (data) => {
     const now = Date.now();
     /**
