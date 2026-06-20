@@ -280,7 +280,8 @@ MAGPIE_DATABASE.loadPlayerSync = function loadPlayer(playerID) {
  * @returns {Promise<MAGPIE_PLAYER>}
  */
 MAGPIE_DATABASE.loginPlayer = async function loginPlayer(email, pass) {
-  const ePrefix = `[DATABASE].loginPlayer[${email}]: `;
+  const ePrefix = `[DATABASE].loginPlayer: `;
+  const code = MAGPIE.KEY.HTTP;
   try {
     if (!MAGPIE_DATABASE.isValidEmail(email)) return;
     const emailHash = EmailSecurity.hashEmail(email);
@@ -289,12 +290,15 @@ MAGPIE_DATABASE.loginPlayer = async function loginPlayer(email, pass) {
       "MAGPIE_PLAYER",
       { email_hash: emailHash },
     );
-    if (!player) throw new Error(`No record matches the provided identity`);
+    if (!player)
+      return MAGPIE_SYSTEM.sysLog(ePrefix + `[${code.STATUS_404.code}]`);
     const valid = await MAGPIE_DATABASE.isValidPass(pass, player);
-    if (!valid) throw new Error(`invalid password`);
+    if (!valid)
+      return MAGPIE_SYSTEM.sysLog(ePrefix + `[${code.STATUS_401.code}]`);
     return player;
   } catch (e) {
-    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+    const message = `[${code.STATUS_500.code}]` + e.message;
+    return MAGPIE_SYSTEM.error(ePrefix + message, e);
   }
 };
 /**

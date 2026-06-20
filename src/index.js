@@ -1358,6 +1358,14 @@ MAGPIE.KEY.HTTP.STATUS_403 = {
     "blocking. It means the site is restricted or the user lacks " +
     "access rights, making repeated attempts without modification futile.",
 };
+MAGPIE.KEY.HTTP.STATUS_404 = {
+  code: 404,
+  message: "Not found",
+  desc:
+    "The server can’t find the resource. " +
+    "Often because a browser is requesting an incorrect URL or " +
+    "the content no longer exists.",
+};
 /**
  * @desc "Conflict"
  * @desc The standard HTTP status code for attempting to create a resource

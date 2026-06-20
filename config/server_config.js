@@ -13,8 +13,8 @@ module.exports = {
   instance_name: process.env.instance_name,
   instance_ip: process.env.instance_ip,
   instance_zone: process.env.instance_zone,
-  devMode: process.env.devMode,
-  production: process.env.isProduction,
+  devMode: JSON.parse(process.env.devMode),
+  production: JSON.parse(process.env.isProduction),
   NODE_ENV: process.env.isProduction ? true : false,
   sendGrid_API: process.env.sendGrid_API,
   core_path: "./src/",
@@ -22,4 +22,5 @@ module.exports = {
   HASH_SALT: process.env.HASH_SALT,
   /** @desc utility repository path */
   repo: process.env.repo,
+  socket_io_admin_pass: process.env.PASS_HASH,
 };

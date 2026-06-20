@@ -291,7 +291,7 @@ MAGPIE_SERVER.SOCKET.io = "Server";
 const io = new Server(server, {
   //@audit-ok cors configs
   cors: {
-    origin: [MAGPIE.KEY.SERVER.DOMAIN],
+    origin: [MAGPIE.KEY.SERVER.DOMAIN, "https://socket.io"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -299,8 +299,13 @@ const io = new Server(server, {
   allowUpgrades: true,
 });
 instrument(io, {
-  auth: false,
-  mode: "development",
+  mode: MAGPIE.KEY.SERVER.IS_DEV ? "development" : "production",
+  // auth: false,
+  auth: {
+    type: "basic",
+    username: "hamedahastral",
+    password: MAGPIE.config.socket_io_admin_pass,
+  },
 });
 app.use((req, res, next) => {
   // @audit-ok [HTTP REQUEST] debug logging

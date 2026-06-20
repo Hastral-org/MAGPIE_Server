@@ -376,10 +376,9 @@ MAGPIE_SYSTEM.log = function systemLog(
  * @param {Error} error
  */
 MAGPIE_SYSTEM.sysLog = function systemLog(message, prefix, error = null) {
+  if (MAGPIE.config.isProduction) error = true;
+  if(Error.is)
   MAGPIE_SYSTEM.log(message, prefix, error);
-  if (error) {
-    MAGPIE_SYSTEM.error(message, error);
-  }
 };
 /**
  *

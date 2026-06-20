@@ -204,10 +204,19 @@ account.processEmailConfirmation = async function (req, res, token, server) {
  * @returns {{player: MAGPIE_PLAYER, token: String }}
  */
 account.verifyCredentials = async function (email, password, server) {
+  /** @type {MAGPIE_DATABASE} */
   const db = server.DATABASE;
+  const level = "[verifyCredentials] ";
+  /** @type {MAGPIE_PLAYER} */
   const player = await db.loginPlayer(email, password);
-  if (!player) return { code: http.STATUS_401.code };
-  if (player.isFrozen === 1) return { code: http.STATUS_403.code };
+  const fail = http.STATUS_401.code;
+  if (!player) return { code: fail };
+  if (player.isFrozen) {
+    const code = http.STATUS_403.code;
+    const message = `${ePrefix}${level}[${code}] [PLAYER-${player.ID}]`;
+    server.sysLog(message, "server");
+    return { code: code };
+  }
   const token = jwt.sign(
     {
       id: player.ID,
@@ -248,12 +257,18 @@ account.joinPrivateRoom = function (socket, playerID) {
   server.log();
 };
 account.login = async function (data, socket, server) {
+  const level = "[login] ";
+  let http_code = NaN;
   try {
     const { player, token, code } = await account.verifyCredentials(
       data.email,
       data.password,
       server,
     );
+    if (code !== 200) {
+      http_code = code;
+      throw new Error(`${ePrefix}${level}[${code}]`);
+    }
     const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
     server.sysLog(success);
     player.status = true;
@@ -275,9 +290,8 @@ account.login = async function (data, socket, server) {
       message: success,
     });
   } catch (e) {
-    const code = MAGPIE.KEY.HTTP.STATUS_500.code;
-    socket.emit(`LOGIN_ERROR`, { message: e.message, code: code });
-    server.error(ePrefix + e.message, e);
+    socket.emit(`LOGIN_ERROR`, { message: e.message, code: http_code });
+    server.sysLog(ePrefix + e.message, "server", e);
   }
 };
 account.logout = async function (data, socket, server) {
