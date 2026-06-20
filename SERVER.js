@@ -291,7 +291,7 @@ MAGPIE_SERVER.SOCKET.io = "Server";
 const io = new Server(server, {
   //@audit-ok cors configs
   cors: {
-    origin: [MAGPIE.KEY.SERVER.DOMAIN, "https://socket.io"],
+    origin: [MAGPIE.KEY.SERVER.DOMAIN, "https://admin.socket.io/"],
     methods: ["GET", "POST"],
     credentials: true,
   },
