@@ -196,11 +196,18 @@ account.processEmailConfirmation = async function (req, res, token, server) {
 //------------------------------------------------------------------------
 // #region > Access
 //------------------------------------------------------------------------
+/**
+ *
+ * @param {email} email
+ * @param {String} password
+ * @param {Object} server
+ * @returns {{player: MAGPIE_PLAYER, token: String }}
+ */
 account.verifyCredentials = async function (email, password, server) {
   const db = server.DATABASE;
   const player = await db.loginPlayer(email, password);
-  if (!player) throw new Error("Invalid credentials");
-  if (player.isFrozen === 1) throw new Error("Account is frozen");
+  if (!player) return { code: http.STATUS_401.code };
+  if (player.isFrozen === 1) return { code: http.STATUS_403.code };
   const token = jwt.sign(
     {
       id: player.ID,
@@ -209,7 +216,7 @@ account.verifyCredentials = async function (email, password, server) {
     server.config.jwtSecret,
     { expiresIn: server.config.jwtExpire },
   );
-  return { player, token };
+  return { player, token, code: http.STATUS_200.code };
 };
 account.authenticateToken = (req, res, server, next) => {
   const authHeader = req.headers["authorization"];
@@ -223,7 +230,7 @@ account.authenticateToken = (req, res, server, next) => {
 };
 account.resumeSession = async function (data, socket, server) {
   try {
-    const { player, token } = await account.verifyCredentials(
+    const { player, token, code } = await account.verifyCredentials(
       data.email,
       data.password,
       server,
@@ -242,34 +249,40 @@ account.joinPrivateRoom = function (socket, playerID) {
 };
 account.login = async function (data, socket, server) {
   try {
-    const { player, token } = await account.verifyCredentials(
+    const { player, token, code } = await account.verifyCredentials(
       data.email,
       data.password,
       server,
     );
-    server.log(`${ePrefix}${account.printPlayerAuth(player)} logged in. `);
+    const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
+    server.sysLog(success);
     player.status = true;
-    socket.emit("LOGIN_SUCCESS", {
-      token,
+    const server_status = server.meta?.status;
+    const playerData = {
       ID: player.ID,
       username: player.username,
-      email: player.email,
-      creatureID: player.creatureID,
+      slots: player.slots,
       EVP: player.EVP,
       CLOUT: player.CLOUT,
-      slots: player.slots,
       status: player.status,
-      server: server.status,
+      status: server_status,
+    };
+    socket.emit("LOGIN_SUCCESS", {
+      code,
+      token,
+      player: playerData,
+      server: server_status,
+      message: success,
     });
   } catch (e) {
-    socket.emit(`LOGIN_ERROR`, { message: e.message });
+    socket.emit(`LOGIN_ERROR`, { message: e.message, code });
     server.error(ePrefix + e.message, e);
   }
 };
 account.logout = async function (data, socket, server) {
   try {
     //@todo logout logic here
-    server.log(`${ePrefix}logout called for [USER: ${data?.username}]. `);
+    server.sysLog(`${ePrefix}logout called for [USER: ${data?.username}]. `);
   } catch (e) {
     server.error(ePrefix + e.message, e);
     socket.emit("LOGOUT_ERROR", { message: "Logout failed. " });
@@ -282,7 +295,7 @@ account.relog = async function (data, socket, server) {
       return socket.emit("LOGIN_ERROR", {
         message: "Unable to sync player data. ",
       });
-    server.log(`${ePrefix}${account.printPlayerAuth(player)} logged in. `);
+    server.sysLog(`${ePrefix}${account.printPlayerAuth(player)} logged in. `);
     player.status = true;
     socket.emit("LOGIN_SUCCESS", {
       token,
@@ -453,7 +466,10 @@ const invalidToken = () => {
  * @param {import("../SERVER").MAGPIE_SERVER} server
  */
 account.init = function (io, socket, server) {
-  server.silentLog(ePrefix + `[SOCKET-${socket?.id}] initialized. `);
+  server.sysLog(
+    ePrefix +
+      `[SOCKET-${socket?.id}] initialized. ${server.meta.firmwareDate} `,
+  );
   socket.on("PROBE_USERNAME", async (data) => {
     const now = Date.now();
     /**
@@ -482,9 +498,10 @@ account.init = function (io, socket, server) {
       message: message,
     });
   });
-  // socket.on("REGISTER", async (data) => {
-  //   await account.register(data, socket, server);
-  // });
+  socket.on("REGISTER", async (data) => {
+    server.sysLog(ePrefix + `[SOCKET-${socket.id}] [REGISTER] ⧖`);
+    await account.register(data, server);
+  });
   socket.on("LOGIN", async (data) => {
     await account.login(data, socket, server);
   });
@@ -515,12 +532,25 @@ const resolveLimiter = function (key) {
     next();
   };
 };
+router.get("/login", async (req, res) => {
+  const level = "[GET /login] ";
+  const server = req.server;
+  try {
+    res.redirect("/?view=login");
+  } catch (e) {
+    server.sysLog(ePrefix + level + e.message, "error", e);
+  }
+});
 router.post("/login", resolveLimiter("loginLimiter"), async (req, res) => {
   const level = "[POST /login] ";
   try {
     const { email, pass } = req.body;
     if (!email || !pass) throw new Error("Invalid credentials");
-    const { token } = await account.verifyCredentials(email, pass, server);
+    const { token, code } = await account.verifyCredentials(
+      email,
+      pass,
+      server,
+    );
     server.log(
       ePrefix + level + " login passed. ",
       "console",

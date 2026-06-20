@@ -3097,6 +3097,7 @@ MAGPIE_DATE.prototype._printSTZ = function _printSTZ(options) {
  * @typedef {{
  * date: date_data
  * }} metastate_data
+ * @typedef {import("../SERVER.js").player_cache} player_cache
  *
  */
 //========================================================================
@@ -3136,6 +3137,8 @@ MAGPIE_METASTATE.prototype.initialize = function initializeMetastate(data) {
   if (!data?.contents) data.contents = {};
   /** @type {metastate_contents} */
   this.contents = data.contents;
+  /** @type {player_cache} */
+  this.session = new Map();
   this.setup();
 };
 MAGPIE_METASTATE.prototype.setup = async function setup() {

@@ -8,7 +8,7 @@
  */
 module.exports = (io, socket, server) => {
   const ePrefix = `[ENTITY HANDLER] [SOCKET-${socket?.id}] `;
-  server.sysLog(`registering ${ePrefix}`);
+  server.sysLog(`${ePrefix} initialized. `);
   const leaveEntityRooms = () => {
     socket.rooms.forEach((room) => {
       if (room.startsWith("entity_")) socket.leave(room);

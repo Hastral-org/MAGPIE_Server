@@ -307,17 +307,18 @@ app.use((req, res, next) => {
   MAGPIE_SERVER.log(`[HTTP REQUEST] ${req.method} ${req.url}`);
   next();
 });
+const accountRouter = require("./handlers/account").router;
+app.use((req, res, next) => {
+  req.server = MAGPIE_SERVER;
+  // MAGPIE_SERVER.log("[HTTP ROUTER] loading [ACCOUNT HANDLER]...");
+  next();
+});
+app.use("/account", accountRouter);
 const static = MAGPIE_SERVER.PATH.join(process.cwd(), "public");
 app.use(express.static(static));
 console.log(static);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const accountRouter = require("./handlers/account").router;
-app.use((req, res, next) => {
-  req.server = MAGPIE_SERVER;
-  next();
-});
-app.use("/account", accountRouter);
 /**
  *
  *
@@ -505,16 +506,16 @@ io.on("connection", (socket) => {
   const playerID = String(socket.data.playerID);
   const ePrefix = `[SOCKET-${socket?.id}] `;
   const ePlayer = `[PLAYER-${playerID}] `;
-  MAGPIE_SERVER.log(ePrefix + "connected");
+  MAGPIE_SERVER.sysLog(ePrefix + "connected. ");
   socket.use(([event, ...args], next) => {
-    MAGPIE_SERVER.log(
-      `${ePrefix}${ePlayer}${event} — ${JSON.stringify(args)}`,
-      "console",
-      false,
-    );
+    // MAGPIE_SERVER.sysLog(
+    //   `${ePrefix}${ePlayer}${event} — ${JSON.stringify(args)}`,
+    //   "console",
+    //   false,
+    // );
     if (socket.data.isFrozen && event !== "chat message") {
       socket.emit("error_message", "You are frozen!");
-      return MAGPIE_SERVER.log(`${ePrefix}${ePlayer} is frozen`);
+      return MAGPIE_SERVER.sysLog(`${ePrefix}${ePlayer} is frozen. `);
     }
     next();
   });
@@ -659,7 +660,7 @@ MAGPIE_RUNTIME.prototype.guestRefresh = function guestRefresh(
   layer_frame,
 ) {
   /** @type {MAGPIE_SYSTEM} */
-  const system = r.context[guest];
+  const system = MAGPIE_SERVER[guest];
   if (!system || isNaN(layerID)) return;
   const pass = system.refresh(layerID, switchID, layer_frame);
   if (!pass) this.kick(guest, layerID);
@@ -674,12 +675,14 @@ MAGPIE_RUNTIME.prototype.loadMetastate = function loadMetastate() {
     if (!(state instanceof MAGPIE_METASTATE))
       throw new Error(`${state} is invalid MAGPIE_METASTATE`);
     if (!(state.date instanceof MAGPIE_DATE)) state.date = new MAGPIE_DATE();
+    if (Object.prototype.toString.call(state) === "[Object map]")
+      MAGPIE_SERVER.SESSION.active = state.session;
   } catch (e) {
     MAGPIE_SERVER.error(ePrefix + e.message, e);
     state = new MAGPIE_METASTATE();
   } finally {
     this.host("METASTATE", 0);
-    r.context["METASTATE"] = state;
+    MAGPIE_SERVER.METASTATE = state;
     const message =
       `[metastate-${state.meta.updated}] loaded | ` +
       `[metadate-${state.date.printDate()}Z]`;
@@ -691,7 +694,7 @@ MAGPIE_RUNTIME.prototype.loadMetastate = function loadMetastate() {
  * @returns
  */
 MAGPIE_RUNTIME.prototype.saveMetastate = function saveMetastate() {
-  const state = r.context.METASTATE;
+  const state = MAGPIE_SERVER.METASTATE;
   if (!state) return;
   return MAGPIE_DATABASE.saveMetastate(state);
 };
@@ -789,6 +792,7 @@ MAGPIE_METASTATE.prototype._socketEmit = function _socketEmit() {
     (metastate.hive = this.hive),
     (metastate.contents = this.contents));
   metastate.calendarName = calendar.name;
+  metastate.active = this.session?.active?.size;
   io.emit("metastate", metastate);
 };
 
@@ -985,7 +989,7 @@ MAGPIE_HIVE.tick_remote = function tick_remote(
 // 	}
 // }
 MAGPIE_SERVER._get_Metastate = function () {
-  return r.context.METASTATE;
+  return MAGPIE_SERVER.METASTATE;
 };
 /**
  *
@@ -1132,7 +1136,7 @@ MAGPIE_HIVE.awake = async function awake() {
   try {
     if (this.isActive) return;
     /** @type {hive_vault} */
-    const hive = r.context["METASTATE"]?.hive;
+    const hive = MAGPIE_SERVER.METASTATE?.hive;
     if (Object.prototype.toString.call(hive?.registry) !== "[object Map]")
       throw new Error(`${hive} is invalid hive registry`);
     const entities = Array.from(hive.registry.entries()).filter(
@@ -1882,6 +1886,13 @@ MAGPIE_SERVER.SESSION.meta = {
  * @type {player_cache}
  */
 MAGPIE_SERVER.SESSION.active = new Map();
+MAGPIE_SERVER.SESSION.newVisit = function () {
+  MAGPIE_SERVER.METASTATE.session = MAGPIE_SERVER.SESSION.active;
+  const visitors = MAGPIE_SERVER.METASTATE.session.get("visitors");
+  if (!visitors)
+    return MAGPIE_SERVER.METASTATE.session.set("visitors", { count: 0 });
+  visitors.count++;
+};
 /**
  *
  * @desc back to {@link MAGPIE_SERVER.meta}

@@ -23,6 +23,8 @@ MAGPIE_CLIENT.elements = {
     status: "monitor-status",
   },
 };
+/** @note isProduction */
+MAGPIE_CLIENT.isProduction = false;
 /**
  * @static
  */
@@ -90,6 +92,9 @@ socket.on("connect", () => {
     "color: green; font-weight: bold;",
   );
   const entityID = MAGPIE_CLIENT.params.get("entityID");
+  const visitor = localStorage.getItem("new_visitor");
+  if (visitor && JSON.parse(visitor)) socket.emit("new_visit");
+  localStorage.setItem("new_visitor", false);
   if (entityID) {
     const entity = document.getElementById("entityID");
     if (entity) entity.value = entityID;
@@ -125,6 +130,24 @@ socket.on("metastate", (data) => {
   document.getElementById("metadate").textContent =
     `server metadate: ${timestring}`;
 });
+socket.on("visitor_counter_update", (data) => {
+  const ePrefix = "[SOCKET] [visitor_counter_update] ";
+  try {
+    const count = data?.count;
+    if (isNaN(count)) return;
+    const value = count.toString().padStart(6, "0");
+    const strips = document.querySelectorAll(".digit-strip");
+    value.split("").forEach((digit, index) => {
+      if (strips[index]) {
+        const offset = digit * 1.2;
+        strips[index].style.transform = `translateY(-${offset}rem)`;
+      }
+    });
+    console.log(ePrefix + count);
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+  }
+});
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -144,6 +167,37 @@ socket.on("subscribed_entity", (entityID) => {
 // #endregion
 //------------------------------------------------------------------------
 /**
+ * @name
+ * @desc
+ * @typedef {Number} playerID
+ * @typedef {String} username
+ * @typedef {Number} creatureID
+ * @typedef {Number} EVP
+ * @typedef {Number} CLOUT
+ * @typedef {Boolean} player_status
+ * @typedef {{
+ * ID: playerID,
+ * username: username,
+ * slots: creatureID[],
+ * EVP: EVP,
+ * CLOUT: CLOUT,
+ * status: player_status
+ * }} player_data
+ * @typedef {{server: String, player: player_data, token: String}} login_data
+ */
+//------------------------------------------------------------------------
+// #region > Account
+//------------------------------------------------------------------------
+socket.on("LOGIN_SUCCESS", (data) => {
+  console.log(`[SOCKET] [${data.code} - LOGIN SUCCESS]\n${data?.message}`);
+  router.loginSuccess(data);
+});
+socket.on("LOGIN_ERROR", (data) => {
+  console.log(`[SOCKET] [${data.code} - LOGIN ERROR]\n${data?.message}`);
+});
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -159,8 +213,193 @@ socket.on("subscribed_entity", (entityID) => {
 //========================================================================
 // #region - Monitor
 //========================================================================
+
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - Router
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Redirect
+//------------------------------------------------------------------------
+/** @type {Map<String, {view: String, path: String[]>}} */
+router.map = new Map();
+router.map.set("login", { view: `login` });
+router.isCurrentMapped = function () {
+  try {
+    const view = MAGPIE_CLIENT.params.get("view");
+    if (!view) return;
+    const match = router.map.get(view)?.view;
+    if (!match) return;
+    router.go(view);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Handler
+//------------------------------------------------------------------------
+router.handlers = {};
+/**
+ *
+ * @param {String} viewName
+ * @param {Function} setupCallback
+ */
+router.on = function routerOn(viewName, setupCallback) {
+  router.handlers[viewName] = setupCallback;
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > togglers
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {String} elementId
+ * @param {String} value
+ * @returns {String}
+ */
+const update = (elementId, value) => {
+  const element = document.getElementById(elementId);
+  if (element && element.innerText !== String(value)) element.innerText = value;
+  return value;
+};
+router.update = update;
+/**
+ *
+ * @param {String} elementId
+ * @param {Boolean} boolean
+ * @returns {String}
+ */
+const toggle = (elementId, boolean) => {
+  if (!elementId || typeof boolean !== "boolean") return;
+  const element = document.getElementById(elementId);
+  value = boolean ? "block" : "none";
+  element.style.display = value;
+  return value;
+};
+router.toggle = toggle;
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > go
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {String} view
+ * @param {Object} serverData
+ */
+router.go = function routerGo(view, serverData = null) {
+  const ePrefix = "[HTML ROUTER].go: ";
+  try {
+    if (!view || typeof view !== "string")
+      throw new Error(`${view} is invalid view. `);
+    const container = document.getElementById("view-container");
+    const template = document.getElementById(`view-${view}`);
+    if (!template) throw new Error(`could not find [view-${view}].\n`);
+    container.innerHTML = "";
+    const content = template.content.cloneNode(true);
+    container.appendChild(content);
+    console.log(ePrefix + `${view}...`);
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+    // socket?.emit("master_queue", { message: e.message, error: e });
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Events
+//------------------------------------------------------------------------
+router.on("account", (content, data) => {
+  if (!data) return;
+  content.querySelector(".account-ID").textContent = data.playerID;
+  content.querySelector(".account-status").textContent = data.status;
+});
+router.on("adoption", (content, data) => {
+  if (!data) return;
+  const container = content.querySelector(".store-grid");
+});
+// #endregion
+//------------------------------------------------------------------------
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - ROUTES
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Adoption
+//------------------------------------------------------------------------
+router.map.set("adoption", { view: "adoption" });
+
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Monitor
+//------------------------------------------------------------------------
+router.map.set("monitor", { view: "monitor" });
 MAGPIE_MONITOR.meta = {
-  name: MAGPIE_CLIENT.meta.name + " monitor",
+  name: MAGPIE_CLIENT.meta.name + "monitor",
   desc: "",
   firmwareName: "MAGPIE_MONITOR",
 };
@@ -271,39 +510,6 @@ MAGPIE_MONITOR.copyToClipboard = function copyToClipboard(buttonElement) {
 };
 // #endregion
 //------------------------------------------------------------------------
-/**
- *
- * @desc back to {@link }
- *
- */
-//========================================================================
-// #endregion -
-//========================================================================
-/**
- * @name
- * @desc
- *
- */
-//========================================================================
-// #region - Router
-//========================================================================
-/**
- * @name
- * @desc
- *
- */
-//------------------------------------------------------------------------
-// #region > Handler
-//------------------------------------------------------------------------
-router.handlers = {};
-/**
- *
- * @param {String} viewName
- * @param {Function} setupCallback
- */
-router.on = function routerOn(viewName, setupCallback) {
-  router.handlers[viewName] = setupCallback;
-};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -312,64 +518,39 @@ router.on = function routerOn(viewName, setupCallback) {
  *
  */
 //------------------------------------------------------------------------
-// #region > togglers
+// #region > Login
 //------------------------------------------------------------------------
+router.map.set("login", { view: "login", path: "/adoption/login" });
 /**
  *
- * @param {String} elementId
- * @param {String} value
- * @returns {String}
+ * @param {Event} event
  */
-const update = (elementId, value) => {
-  const element = document.getElementById(elementId);
-  if (element && element.innerText !== String(value)) element.innerText = value;
-  return value;
-};
-router.update = update;
-/**
- *
- * @param {String} elementId
- * @param {Boolean} boolean
- * @returns {String}
- */
-const toggle = (elementId, boolean) => {
-  if (!elementId || typeof boolean !== "boolean") return;
-  const element = document.getElementById(elementId);
-  value = boolean ? "block" : "none";
-  element.style.display = value;
-  return value;
-};
-router.toggle = toggle;
-// #endregion
-//------------------------------------------------------------------------
-/**
- * @name
- * @desc
- *
- */
-//------------------------------------------------------------------------
-// #region > go
-//------------------------------------------------------------------------
-/**
- *
- * @param {String} view
- * @param {Object} serverData
- */
-router.go = function routerGo(view, serverData = null) {
-  const ePrefix = "[HTML ROUTER] ";
+router.login = async function (event) {
+  const ePrefix = "[ROUTER] [login]";
   try {
-    if (!view || typeof view !== "string")
-      throw new Error(`${view} is invalid view. `);
-    const container = document.getElementById("view-container");
-    const template = document.getElementById(`view-${view}`);
-    if (!template) throw new Error(`could not find [view-${view}].\n`);
-    container.innerHTML = "";
-    const content = template.content.cloneNode(true);
-    container.appendChild(content);
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const email = formData.get("email");
+    const password = formData.get("password");
+    socket.emit("LOGIN", { email, password });
+    router.loggingIn({ email, password });
   } catch (e) {
     console.error(ePrefix + e.message, e);
-    socket?.emit("master_queue", { message: e.message, error: e });
   }
+};
+router.loggingIn = function (data) {
+  //@todo css/html styling while waiting for socket response
+  const prefix = `[ROUTER] logging in`;
+  const productionString = "...";
+  const debugString = ` as: \n[USER-${data?.email}]\n[PASS-${data?.password}]\n⧖`;
+  MAGPIE_CLIENT._log(prefix, productionString, debugString);
+};
+/**
+ *
+ * @param {login_data} data
+ */
+router.loginSuccess = function (data) {
+  //@todo login success
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -379,17 +560,50 @@ router.go = function routerGo(view, serverData = null) {
  *
  */
 //------------------------------------------------------------------------
-// #region > Events
+// #region > Register
 //------------------------------------------------------------------------
-router.on("account", (content, data) => {
-  if (!data) return;
-  content.querySelector(".account-ID").textContent = data.playerID;
-  content.querySelector(".account-status").textContent = data.status;
-});
-router.on("adoption", (content, data) => {
-  if (!data) return;
-  const container = content.querySelector(".store-grid");
-});
+router.register = function () {
+  const ePrefix = "[ROUTER] [register] ";
+  try {
+    router.go("register");
+    setTimeout(() => {
+      document.getElementById("register-email").value = "";
+      document.getElementById("register-username").value = "";
+      document.getElementById("register-password").value = "";
+      document.getElementById("register-password-confirm").value = "";
+      console.log(ePrefix + "inputs reset. ");
+    }, 500);
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+  }
+};
+router.registerSubmit = async function (event) {
+  const ePrefix = "[ROUTER] [register submit] ";
+  try {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const password = formData.get("password");
+    const passwordConfirm = formData.get("password-confirm");
+    if (password !== passwordConfirm) {
+      const text = "WARNING: the provided passwords do not match.";
+      const status_text = document.getElementById("status_message");
+      status_text.innerText = text;
+      status_text.className = "login-label-error";
+      document.getElementById("password-label").style.color = "#cf1212";
+      document.getElementById("password-confirm-label").style.color = "#cf1212";
+      return console.warn(ePrefix + "[401] invalid credentials. ");
+    }
+    const email = formData.get("email");
+    const username = formData.get("username");
+    const registerMessage = `[ROUTER] registering`;
+    const productionString = "...";
+    const debugString = ` as: \n[USER-${email}|${username}]\n[PASS-${password}]\n⧖`;
+    MAGPIE_CLIENT._log(registerMessage, productionString, debugString);
+    socket.emit("REGISTER", { email, username, password });
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+  }
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -409,6 +623,21 @@ router.on("adoption", (content, data) => {
 // #region - UTILITY
 //========================================================================
 /**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Logging
+//------------------------------------------------------------------------
+MAGPIE_CLIENT._log = function (message, productionString, debugString) {
+  if (!productionString && MAGPIE_CLIENT.isProduction) return;
+  const suffix = MAGPIE_CLIENT.isProduction ? productionString : debugString;
+  console.log(message + suffix);
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -416,3 +645,4 @@ router.on("adoption", (content, data) => {
 //========================================================================
 // #endregion -
 //========================================================================
+router.isCurrentMapped();
