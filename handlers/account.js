@@ -275,7 +275,8 @@ account.login = async function (data, socket, server) {
       message: success,
     });
   } catch (e) {
-    socket.emit(`LOGIN_ERROR`, { message: e.message, code });
+    const code = MAGPIE.KEY.HTTP.STATUS_500.code;
+    socket.emit(`LOGIN_ERROR`, { message: e.message, code: code });
     server.error(ePrefix + e.message, e);
   }
 };

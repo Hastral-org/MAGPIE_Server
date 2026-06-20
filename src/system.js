@@ -376,7 +376,7 @@ MAGPIE_SYSTEM.log = function systemLog(
  * @param {Error} error
  */
 MAGPIE_SYSTEM.sysLog = function systemLog(message, prefix, error = null) {
-  MAGPIE_SYSTEM.log(message, prefix, !error);
+  MAGPIE_SYSTEM.log(message, prefix, error);
   if (error) {
     MAGPIE_SYSTEM.error(message, error);
   }

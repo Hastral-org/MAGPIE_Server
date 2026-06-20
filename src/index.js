@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.954 2026 06 20
+ * - FIXED: account registration
+ *
  * @version 0.39.953 2026 06 19
  * - ADDED: SYSTEM.Parsing
  * - ADDED: SYSTEM.Parsing.json
@@ -534,9 +537,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 953],
+  version: [0, 39, 954],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260619",
+  firmwareDate: "20260620",
 };
 /**
  *
