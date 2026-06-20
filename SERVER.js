@@ -306,6 +306,8 @@ instrument(io, {
     username: "hamedahastral",
     password: MAGPIE.config.socket_io_admin_pass,
   },
+  readonly: false,
+  store: true,
 });
 app.use((req, res, next) => {
   // @audit-ok [HTTP REQUEST] debug logging
