@@ -498,13 +498,12 @@ io.use((socket, next) => {
     next();
   } catch (e) {
     socket.data.playerID = 0;
-    const err = new Error(errorMessage);
     const code = MAGPIE.KEY.HTTP.STATUS_401.code;
     socket.emit("AUTH_EXPIRED", {
       code: code,
-      message: errorMessage,
+      message: e.message,
     });
-    const message = `[AUTH - ${code}] [SOCKET-${socket.id}] ${err.message}. `;
+    const message = `[AUTH - ${code}] [SOCKET-${socket.id}] ${e.message}. `;
     MAGPIE_SERVER.silentLog(message, "console");
     next(new Error(message));
   }
