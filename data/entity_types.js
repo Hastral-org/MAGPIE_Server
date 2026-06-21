@@ -3,19 +3,19 @@
  * @description centralized lookup table for entity types
  * @author Matheraptor
  * @license GNUGPLv3
- * 
+ *
  * @version 0.19.1
- * 
+ *
  * @changelog 20260419 {@link MAGPIE.meta.version}
- * 
+ *
  * @typedef {import("../core/system").day} day
- * @typedef {import("../core/entity").entityID} entityID 
+ * @typedef {import("../core/entity").entityID} entityID
  * @typedef {import("../core").orbit_data} orbit_data
  * @typedef {import("../core/physics").POVART} POVART
  * @typedef {Number} expID
  * @typedef {Number} stateID
  * @typedef {Number} traitID
- * 
+ *
  * @typedef {{
  * name: String,
  * type: Enumerator<Number>,
@@ -40,24 +40,24 @@
  */
 const ENTITY_TYPES = new Map();
 const ENTITY_GENERIC = {
-    name: "ENTITY_GENERIC",
-    type: 1,
-    birth: 0,
-    parents: [],
-    children: [],
-    orbit: {},
-    POVART: [],
-    STATS: {},
-    traits: [],
-    states: [],
-    exps: [],
-    sensors: [],
-    emitters: [],
-    host: 0,
-    inventory: [],
-    equip: [],
-    deck: [],
-    vault: []
+  name: "ENTITY_GENERIC",
+  type: 1,
+  birth: 0,
+  parents: [],
+  children: [],
+  orbit: {},
+  POVART: [],
+  STATS: {},
+  traits: [],
+  states: [],
+  exps: [],
+  sensors: [],
+  emitters: [],
+  host: 0,
+  inventory: [],
+  equip: [],
+  deck: [],
+  vault: [],
 };
 ENTITY_TYPES.set("ENTITY_GENERIC", ENTITY_GENERIC);
 const MARKER = structuredClone(ENTITY_GENERIC);
@@ -69,21 +69,24 @@ ENTITY_TYPES.set("ASTROMARKER", ASTROMARKER);
 const GEOMARKER = structuredClone(MARKER);
 GEOMARKER.type = ASTROMARKER.type + 1;
 ENTITY_TYPES.set("GEOMARKER", GEOMARKER);
-const TILE_MARKER = structuredClone(MARKER);;
+const TILE_MARKER = structuredClone(MARKER);
 TILE_MARKER.type = GEOMARKER.type + 1;
 ENTITY_TYPES.set("TILE_MARKER", TILE_MARKER);
-const CONTACT = structuredClone(MARKER);;
+const CONTACT = structuredClone(MARKER);
 CONTACT.type = 20;
 ENTITY_TYPES.set("CONTACT", CONTACT);
-const BEARING = structuredClone(MARKER);;
+const BEARING = structuredClone(MARKER);
 BEARING.type = CONTACT.type + 1;
 ENTITY_TYPES.set("BEARING", BEARING);
-const META = structuredClone(MARKER);;
+const META = structuredClone(MARKER);
 META.type = BEARING.type + 1;
 ENTITY_TYPES.set("META", META);
-const LORE = structuredClone(MARKER);;
+const LORE = structuredClone(MARKER);
 LORE.type = META.type + 1;
 ENTITY_TYPES.set("LORE", LORE);
+const GROUP = structuredClone(MARKER);
+ENTITY_TYPES.set("GROUP", GROUP);
+GROUP.type = LORE.type + 1;
 const CELESTIAL = structuredClone(ENTITY_GENERIC);
 CELESTIAL.type = 200;
 ENTITY_TYPES.set("CELESTIAL", CELESTIAL);

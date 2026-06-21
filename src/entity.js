@@ -438,9 +438,9 @@ MAGPIE_ENTITY.prototype.setupMother = async function setupMoter() {
   const K = MAGPIE.KEY.STATS;
   const motherID = STATS[K.MOTHER];
   const motherType = 0;
-  if (!motherID) return;
+  if (isNaN(motherID)) return;
   const mother_payload = [
-    "entity_parent",
+    "entity_children",
     {
       parentID: motherID,
       childID: this.ID,
@@ -460,7 +460,7 @@ MAGPIE_ENTITY.prototype.setupFather = async function setupFather() {
   const fatherID = STATS[K.FATHER];
   if (isNaN(fatherID)) return;
   const father_payload = [
-    "entity_parent",
+    "entity_children",
     {
       parentID: fatherID,
       childID: this.ID,
@@ -490,8 +490,12 @@ MAGPIE_ENTITY.prototype.setupCompound = async function setupCompound() {
  *
  * @returns {Promise<import("better-sqlite3").RunResult>}
  */
-MAGPIE_ENTITY.prototype.setupHost = async function setupHost() {
+MAGPIE_ENTITY.prototype.setupHost = async function setupHost(hostID) {
   const K = MAGPIE.KEY.STATS.HOST;
+  if(Number(hostID)) {
+    MAGPIE_ENTITY._entity_exists(hostID);
+    this.STATS[K] = hostID;
+  }
   const ID = this.STATS[K];
   if (!ID || isNaN(ID)) return;
   const payload = [
@@ -573,6 +577,14 @@ MAGPIE_ENTITY._database_Sync = function _database_Sync(method, argument) {
 //------------------------------------------------------------------------
 // #region > getters
 //------------------------------------------------------------------------
+/**
+ * 
+ * @param {entityID} entityID 
+ * @returns {Boolean}
+ */
+MAGPIE_ENTITY._entity_exists = function(entityID) {
+  return MAGPIE_ENTITY.__hiveSync("_entity_exists", [entityID])
+}
 /**
  *
  * @param {MAGPIE_ENTITY} entity
@@ -977,8 +989,16 @@ MAGPIE_ENTITY.prototype.set = async function set() {
  * @returns {Promise<database_result>}
  */
 MAGPIE_ENTITY._set_relation = async function _set_relation(payload) {
-  return await MAGPIE_ENTITY.__hive("_set_relation", payload);
+  return await MAGPIE_ENTITY.__hive("_set_database", ["_set_relationWorld", payload]);
 };
+/**
+ * 
+ * @param {[String, ...args]} payload 
+ * @returns {Promise<database_result>}
+ */
+MAGPIE_ENTITY._unset_relation = async function _unset_relation(payload) {
+  return await MAGPIE_ENTITY.__hive("_set_database", ["_unset_relationWorld", payload])
+}
 /**
  *
  * @param {orbit_data} orbit_data
@@ -2221,7 +2241,7 @@ MAGPIE_ENTITY.prototype._trait_getType = function getTypeTraits() {
 /**
  * @param {traitID}
  * @param {symbolID} symbolID
- * @returns {deckSize}
+ * @returns {deckSize} deckSize
  */
 MAGPIE_ENTITY.prototype._trait_add = function addTrait(symbolID) {
   const ePrefix = `[ENTITY-${this.ID}].addTrait: `;
@@ -4313,6 +4333,109 @@ MAGPIE_ENTITY.prototype._territory_explore = function exploreTerritory() {
  */
 //========================================================================
 // #endregion -
+//========================================================================
+/**
+ * @name 
+ * @desc 
+ * 
+ */
+//========================================================================
+// #region - GROUP
+//========================================================================
+/**
+ * @name 
+ * @desc 
+ * @typedef {{
+ * ID: entityID,
+ * name: String,
+ * members: entityID[]
+ * }} group_data
+ */
+//------------------------------------------------------------------------
+// #region > creation
+//------------------------------------------------------------------------
+/**
+ * 
+ * @param {group_data} data 
+ */
+MAGPIE_ENTITY._group_form = async function(data) {
+  const ePrefix = "[ENTITY] [group_form] "
+  try {
+    if(!data) data = {};
+    if(!data?.members || !Array.isArray(data.members)) data.members = []
+    const group = new MAGPIE_ENTITY({
+      ID: Number(data?.ID),
+      name: String(data?.name),
+      fitness: data.members
+    });
+    const firstSave = await group.set();
+    if(!firstSave) throw new Error("unable to create group entity. "); 
+    //@todo group.addMember db transaction
+    for(const memberID of data.members) {
+      try {
+        const result = await group._group_addMember(memberID)
+        if(!result) throw new Error(`unable to set member relation with [ENTITY-${memberID}] `)
+      } catch(e) {
+        MAGPIE_SYSTEM.sysLog(ePrefix + e.message, "error", e)
+      }
+    }
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
+ * 
+ * @param {entityID} entityID 
+ * @returns {Promise<fitness_index>}
+ */
+MAGPIE_ENTITY.prototype._group_addMember = async function(entityID) {
+  // const arr = Array.from(this.fitness);
+  if(!entityID) return false
+  const payload = [
+    "entity_equips",
+    {
+      entityID: this.ID,
+      equipID: entityID,
+    },
+  ];
+  const result = await MAGPIE_ENTITY._set_relation(payload)
+  if(!result) return false
+  const deckSize = this._trait_add(entityID);
+  if(!deckSize) return false
+  return deckSize + MAGPIE.KEY.FITNESS.TRAITS;
+}
+/**
+ * 
+ * @param {index} index 
+ * @returns {entityID}
+ */
+MAGPIE_ENTITY.prototype._group_removeMember = async function(index) {
+  const ePrefix = `[GROUP-${this.ID}].removeMember: `;
+  try {
+    const entityID = this._get_traits()[index];
+    if(!Number(entityID)) throw new Error(`${entityID} is invalid memberID. `)
+    const payload = [
+    "entity_equips",
+    {
+      entityID: this.ID,
+      equipID: entityID,
+    },
+  ];
+    const result = await MAGPIE_ENTITY._unset_relation(payload);
+    if(!result) throw new Error(`unable to unset member relation with [MEMBER-${entityID}]. `)
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * 
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion - 
 //========================================================================
 module.exports = { MAGPIE_ENTITY };
 /**

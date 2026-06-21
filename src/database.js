@@ -119,11 +119,32 @@ MAGPIE_DATABASE.pingWorker = async function pingWorker() {
  * @desc
  * @typedef {import("better-sqlite3").RunResult} worker_result
  * @typedef {import("./entity.js").entityID} entityID
+ * @typedef {import("./services/database_worker").Database} Database
  *
  */
 //========================================================================
 // #region - WRAP
 //========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > utility
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {String} tableName
+ * @param {Number} rowID
+ * @returns
+ */
+MAGPIE_DATABASE.getWorldRow = function (tableName, rowID) {
+  const result = MAGPIE_DATABASE.sync.getRow(tableName, { ID: rowID });
+  if (Array.isArray(result)) return result[0];
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  * @name
  * @desc
@@ -916,6 +937,49 @@ MAGPIE_DATABASE.prepareEntity = function prepareEntity(entity) {
       data: entity,
     };
     return payload;
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
+ * @param {[String, ...args]} payload
+ */
+MAGPIE_DATABASE._set_relationWorld = async function (payload) {
+  const ePrefix = "[DATABASE].setRelation: ";
+  try {
+    if (!payload) throw new Error(`${payload} is invalid relation payload. `);
+    const db = MAGPIE_DATABASE.sync.world;
+    const [tableName, args] = payload;
+    const values = Object.values(args);
+    const columns = Object.keys(args);
+    if (!values) throw new Error(`${values} is invalid values. `);
+    if (!columns) throw new Error(`${columns} is invalid columns. `);
+    return await MAGPIE_DATABASE.call("setRow", tableName, values, columns, db);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
+ * @param {[String, ...args]} payload
+ */
+MAGPIE_DATABASE._unset_relationWorld = async function (payload) {
+  const ePrefix = "[DATABASE].unsetRelationWorld ";
+  try {
+    if (!payload) throw new Error(`${payload} is invalid payload. `);
+    const [tableName, args] = payload;
+    const values = Object.values(args);
+    const columns = Object.keys(args);
+    if (!values || values.length < 1)
+      throw new Error(`${values} is invalid values. `);
+    if (!columns || columns.length < 1)
+      throw new Error(`${columns} is invalid columns. `);
+    const criteria = {};
+    for (const [column, value] of Object.entries(args)) {
+      criteria[column] = value;
+    }
+    return await MAGPIE_DATABASE.call("deleteWorldRow", tableName, criteria);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }

@@ -1529,7 +1529,7 @@ MAGPIE_HIVE.pause = function pause() {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
-MAGPIE_HIVE.setup = function setup() {
+MAGPIE_HIVE.setup = function setupHive() {
   const ePrefix = "[HIVE].setup: ";
   try {
     const K = MAGPIE.KEY.RUNTIME.LAYER;
@@ -1604,9 +1604,10 @@ MAGPIE_HIVE._set_new_entity = async function newEntity(data) {
 /**
  * {@link MAGPIE_HIVE.host}
  * @param {entity_data} data
+ * @param {Boolean} dummy
  * @returns {new MAGPIE_ENTITY}
  */
-MAGPIE_HIVE._new_entity = function (data, dummy) {
+MAGPIE_HIVE._new_entity = function (data, dummy = true) {
   //
 };
 /**
@@ -2540,6 +2541,16 @@ MAGPIE_HIVE._get_entity_contexts = function getEntityContexts(entityID) {
 MAGPIE_HIVE._get_player = function _get_player(playerID) {
   return MAGPIE_HIVE._get_databaseSync("loadPlayerSync", [playerID]);
 };
+/**
+ * 
+ * @param {entityID} entityID 
+ * @returns {Boolean}
+ */
+MAGPIE_HIVE._entity_exists = function(entityID) {
+  const entity = MAGPIE_HIVE._get_databaseSync("getWorldRow", ["MAGPIE_ENTITY", entityID])
+  if(!entity) return false;
+  return true
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -2787,15 +2798,15 @@ MAGPIE_DATE.meta = {
 MAGPIE_DATE.prototype.initialize = function initializeDate(data) {
   this._firmware = MAGPIE_DATE.meta.firmwareName;
   this.calendar = Number(data?.calendar) || MAGPIE.KEY.CALENDAR.GREGORIAN.ID;
-  this.epoch = Number(date?.epoch);
-  this.year = Number(date?.year);
-  this.month = Number(date?.month);
-  this.day = Number(date?.day);
-  this.weekDay = Number(date?.weekDay);
-  this.hour = Number(date?.hour);
-  this.minute = Number(date?.minute);
-  this.second = Number(date?.second);
-  this.millisecond = Number(date?.millisecond);
+  this.epoch = Number(data?.epoch);
+  this.year = Number(data?.year);
+  this.month = Number(data?.month);
+  this.day = Number(data?.day);
+  this.weekDay = Number(data?.weekDay);
+  this.hour = Number(data?.hour);
+  this.minute = Number(data?.minute);
+  this.second = Number(data?.second);
+  this.millisecond = Number(data?.millisecond);
   this.setup();
 };
 /**

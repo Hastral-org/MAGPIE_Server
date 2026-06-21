@@ -80,6 +80,7 @@ lerna-debug.log*
 *.db-shm
 *.db-wal
 *.db
+*.bak
 # sync_db.ps1
 # pull_db.ps1
 
