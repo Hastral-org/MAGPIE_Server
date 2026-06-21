@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.955 2026 06 21
+ * - TWEAKED: default game frequency to 0.1s (10Hz)
+ *
  * @version 0.39.954 2026 06 20
  * - FIXED: account registration
  *
@@ -537,9 +540,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 954],
+  version: [0, 39, 955],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260620",
+  firmwareDate: "20260621",
 };
 /**
  *
@@ -1499,7 +1502,17 @@ MAGPIE.KEY.RUNTIME.meta = {
   firmwareName: "MAGPIE_RUNTIME",
   name: "M.A.G.P.I.E. runtime",
 };
-/** @desc layer_frequency[] */
+/**
+ * @desc layer_frequency[]
+ * @type {[
+ * base: Number,
+ * game: Number,
+ * standard: Number,
+ * super: Number,
+ * mega: Number,
+ * ultra: Number
+ * ]}
+ * */
 MAGPIE.KEY.RUNTIME.DELTA = new Float64Array([
   0.001,
   0.1,
