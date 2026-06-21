@@ -1502,7 +1502,7 @@ MAGPIE.KEY.RUNTIME.meta = {
 /** @desc layer_frequency[] */
 MAGPIE.KEY.RUNTIME.DELTA = new Float64Array([
   0.001,
-  0.033,
+  0.1,
   1,
   60,
   60 ** 2,
