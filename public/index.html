@@ -1,199 +1,179 @@
-<!-- @version 0.38.6 -->
-<!DOCTYPE html>
+<!-- version 0.39.94 -->
+ <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="icon" href="icon.png" type="image/png">
-		<title>M.A.G.P.I.E. Shelder Evolution</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-		<link rel="stylesheet" href="home.css">
-	</head>
-	<body style="background-color: black">
-		<nav class="nav-breadcrumbs">
-			<button onClick="router.go('home')" class="nav-button">HOME</button>
-			<button onClick="router.go('test')" class="nav-button">TEST CSS Themes</button>
-			<button onClick="router.go('inspector')" class="nav-button">OPEN INSPECTOR</button>
-			<button onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
-			<button onClick="router.go('login')" class="nav-button">PLAYER LOGIN</button>
-			<button onClick="router.go('player')" class="nav-button" style="display: none;">PLAYER HUB</button>
-		</nav>
-		<nav id="view-cli" class="crt-scrollable" style="display: block;">
-			<section id="view-home" style="display: block;">
-				<img src="SEtitle.png" alt="ShelderEvolution">
-			</section>
-			<section id="view-test" class="card-sandbox" style="display: none;">
-				<div class="container">
-					<!-- Card -->
-					<div class="card">
-						<!-- Animated Background -->
-						<div class="card-bg"></div>
-						
-						<div class="card-content">
-						<!-- Logo -->
-						<div class="logo">
-							<span class="logo-text">CSS</span>
-						</div>
-						
-						<!-- Title -->
-						<h1 class="title">Pure CSS Magic</h1>
-						<p class="subtitle">Try editing the styles below!</p>
-						
-						<!-- Animated Bars -->
-						<div class="bars">
-							<div class="bar bar-1"></div>
-							<div class="bar bar-2"></div>
-							<div class="bar bar-3"></div>
-							<div class="bar bar-4"></div>
-							<div class="bar bar-5"></div>
-						</div>
-						
-						<!-- Button -->
-						<button class="btn">
-							<span class="btn-text">Hover Me</span>
-							<span class="btn-icon">→</span>
-						</button>
-						
-						<!-- Stats -->
-						<div class="stats">
-							<div class="stat">
-							<span class="stat-value">100%</span>
-							<span class="stat-label">CSS</span>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>M.A.G.P.I.E.™ Shelder Evolution™</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="home.css">
+    </head>
+    <body style="background-color: black;">
+        <nav id="nav-breadcrumbs">
+            <span id="nav-buttons">
+                <button id="nav-buttom-home" onclick="router.go('home')" class="nav-button">HOME</button>
+                <!-- <button id="nav-button-test" onclick="router.go('test')" class="nav-button">TEST</button> -->
+                <button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
+                <button id="nav-button-monitor" onclick="router.go('monitor')" class="nav-button">MONITOR</button>
+                <button id="nav-button-login" onclick="router.go('login')" class="nav-button">LOGIN</button>
+                <button id="nav-button-account" onclick="router.request('account')" class="nav-button" style="display: none;">ACCOUNT</button>
+            </span>
+            <span id="nav-title" class="retro-counter">M.A.G.P.I.E.™ Shelder Evolution™</span>
+        </nav>
+        <nav id="view-crt" class="crt-scrollable" style="display: block;">
+            <!-- "crt-style" body | 'view-' sections -->
+            <main id="view-container">
+                <img src="SEtitle.png" alt="ShelderEvolution">
+            </main>
+            <template id="view-home" style="display: block;">
+            <img src="SEtitle.png" alt="ShelderEvolution">
+            </template>
+            <template id="view-monitor" class="monitor-box">
+							<h1 class="view-heading">ENTITY Data Monitor</h1>
+							<div>
+								<form onsubmit="event.preventDefault(); window.location.href='?entityID=' + document.getElementById('entityID').value;">
+									<input type="text" id="entityID" placeholder="Enter entityID (e.g. 101)"
+										title="Enter the exact ID of the desired entity to monitor" class="input-box" style="display: inline-block;">
+										<button onclick="MAGPIE_MONITOR.subscribe()" class="nav-button">Subscribe</button>
+										<button onclick="MAGPIE_MONITOR.unsubscribe()" class="nav-button">Disconnect</button>
+										<button onclick="MAGPIE_MONITOR.copyToClipboard(this)" class="nav-button">Copy Telemetry</button>
+								</form>
 							</div>
-							<div class="stat">
-							<span class="stat-value">0</span>
-							<span class="stat-label">JavaScript</span>
+							<div class="monitor-box">
+								<h2 class="view-heading">Live Feed: <span id="monitor-status">[DISCONNECTED]</span></h2>
+								<div id="physics-stream" class="monitor-grid">
+									<!-- Row 1: Primary ID and Full Name -->
+									<div class="grid-item">ID: <span id="val-id">---</span></div>
+									<div class="grid-item full-width">Name: <span id="val-name">---</span></div>
+
+									<!-- Row 2: Location Data -->
+									<div class="grid-item full-width">Coords: </div>
+									<div class="grid-item full-width"><span id="val-C0">---</span></div>
+
+									<!-- Row 3: Flight/Motion Telemetry -->
+									<div class="grid-item">Body: <span id="val-body">---</span></div>
+									<div class="grid-item">Meta: <span id="val-meta">---</span></div>
+									<div class="grid-item">ASL: <span id="val-asl">---</span>m</div>
+									<div class="grid-item full-width">States: [<span id="val-states">---</span>]</div>
+									<div class="grid-item">velocity: <span id="val-Vmag">---</span> m/s - </div>
+									<div class="grid-item"><span id="val-knots">---</span> kts</div>
+									<div class="grid-item">Accel: <span id="val-Amag">---</span> m/s²</div>
+									<div class="grid-item full-width"></div>
+									<div class="grid-item">Omega: <span id="val-Rmag">---</span> rad/s</div>
+									<div class="grid-item">Alpha: <span id="val-Tmag">---</span> rad/s²</div>
+									<div class="grid-item">dR_mag: <span id="val-dRmag">---</span> rad</div>
+									<div class="grid-item">Heading: <span id="val-heading">---</span>°</div>
+									<div class="grid-item">Pitch: <span id="val-pitch">---</span>°</div>
+									<div class="grid-item">Roll: <span id="val-roll">---</span>°</div>
+									<div class="grid-item">A/T ratio: <span id="val-pR">---</span></div>
+									<!-- Row 4: Physics Metadata -->
+									<div class="grid-item full-width"></div>
+									<div class="grid-item-vector">R1: <span id="val-R1">---</span> rad/s</div>
+									<div class="grid-item-vector">T1: <span id="val-T1">---</span> rad/s²</div>
+									<div class="grid-item-vector">dR: <span id="val-dR">---</span> rad</div>
+									<div class="grid-item-vector">Bdist: <span id="val-Bdist">---</span> rad/s</div>
+									<!-- Row 5: Navigation Targets -->
+									<div class="grid-item full-width"></div>
+									<div class="grid-item">[TARGET-
+										<span id="val-targetID">n/a</span>]:
+										"<span id="val-targetName">n/a</span>"
+									</div>
+									<div class="grid-item full-width"></div>
+									<div class="grid-item">Target coords: [
+										<span id="val-Ct">---</span>]
+										Dist: <span id="val-dist">---</span> m
+										ETA: <span id="val-eta">---</span>
+									</div>
+									<div class="grid-item"></div>
+								</div>
 							</div>
-							<div class="stat">
-							<span class="stat-value">∞</span>
-							<span class="stat-label">Possibilities</span>
+						</template>
+						<template id="view-login">
+							<div class="login-window">
+								<h1 class="view-heading" style="justify-self: center;">Login to PLAYER Hub</h1>
+								<form onsubmit="router.login(event)" id="form-login" class="form-center-grid">
+									<div class="login-field">
+										<span class="login-label">EMAIL</span>
+										<input type="email" id="login-email" name="email" required placeholder="Enter your email address" class="login-input">
+									</div>
+									<div class="login-field">
+										<span class="login-label">PASSWORD</span>
+										<input type="password" id="login-password" name="password" require placeholder="Enter your password" class="login-input">
+									</div>
+									<div style="display: inline-block;">
+										<button type="submit" id="login-submit" class="nav-button">📨 SUBMIT</button>
+										<span>
+											--- or ---
+										</span>
+										<button id="login-register" onclick="router.register()" class="nav-button">⏺️ REGISTER</button>
+									</div>
+								</form>
+							</div>
+						</template>
+						<template id="view-register">
+							<div class="login-window">
+								<h1 class="view-heading" style="justify-self: center;">Register new PLAYER</h1>
+								<form onsubmit="router.registerSubmit(event)" id="form-register" class="form-center-grid" autocomplete="off">
+									<div class="login-field">
+										<span class="login-label">EMAIL</span>
+										<input type="email" id="register-email" name="email" required placeholder="Enter your email address" class="login-input" autocomplete="off">
+									</div>
+									<div class="login-field">
+										<span class="login-label">USERNAME</span>
+										<input type="text" id="register-username" minlength="4" name="username" required placeholder="Enter your desired username" class="login-input">
+									</div>
+									<div class="login-field">
+										<span id="password-label" class="login-label">PASSWORD</span>
+										<input type="password" id="register-password" minlength="8" name="password" require placeholder="Enter your password" class="login-input">
+										<span id="password-confirm-label" class="login-label">CONFIRM PASSWORD</span>
+										<input type="password" id="register-password-confirm" name="password-confirm" require placeholder="Confirm your password" class="login-input">
+									</div>
+									<div>
+										<button onclick="router.go('login')" id="login-submit" class="nav-button">⏮️ LOGIN</button>
+										--- or ---
+										<button type="submit" id="register-submit" class="nav-button">📨 SUBMIT</button>
+									</div>
+									<div id="status_message" class="login-label"></div>
+								</form>
+							</div>
+						</template>
+						<template id="view-adoption">
+							<h1>Adoption store</h1>
+						</template>
+        </nav>
+        <nav id="nav-status">
+            <span id="metadate" class="cli-status">Waiting for server...</span>
+            <!-- <span id="visitor-counter" class="retro-counter">
+                <div id="visitor-counter" class="odometer">
+									<div class="digit-slot"><div class="digit-strip" data-value="0">0123456789</div></div>
+									<div class="digit-slot"><div class="digit-strip" data-value="0">0123456789</div></div>
+								</div>
+            </span> -->
+						<div id="visitor-counter" class="odometer-container">
+							<span>Visitors: </span>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+							</div>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+							</div>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+							</div>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+							</div>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+							</div>
+							<div class="digit-slot">
+								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
 							</div>
 						</div>
-						</div>
-					</div>
-				</div>
-			</section>
-			<section id="view-player" style="display: none;">
-				<h1 class="view-heading">PLAYER Hub</h1>
-				<div id="view-player-slots">
-					<div id="player-slots-container" class="table">
-						<div id="slot-creatureID-header" class="table-header" style="grid-column: span 3;">CREATURE</div>
-						<div id="slot-speciesID-header" class="table-header" style="grid-column: span 3;">SPECIES</div>
-						<div id="slot-status-header" class="table-header" style="grid-column: span 2;">STATUS</div>
-						<div id="slot-action-header" class="table-header" style="grid-column: span 2;">ACTION</div>
-						<!-- placehold -->
-						<button onClick="" id="slot-placeholder" class="table-button" style="grid-column: span 10;">No slots</button>
-					</div>
-				</div>
-			</section>
-			<!--  -->
-			<section id="view-adoption" style="display: none;">
-				<div class="table" id="species-list" style="display: block;">
-					<!-- headers -->
-					<div class="table-header" style="grid-column: span 8;">SPECIES</div>
-					<div class="table-header">Total:</div>
-					<div class="table-header" style="text-align: right;">2</div>
-					<!-- values -->
-					<button onclick="router.onSpeciesSelect(1780857778991)" 
-						class="row-button" 
-						style="grid-column: span 10; justify-self: start;">[SPECIES-1780857778991 | Aralodon minoris]</button>
-					<button onclick="router.onSpeciesSelect(1780857944079)" 
-						class="row-button" 
-						style="grid-column: span 10; justify-self: start;">[SPECIES-1780857944079 | Reodon fragilis]</button>
-				</div>
-				<div class="table" id="embryos-list" style="display: grid;">
-					<!-- headers -->
-					<div class="table-header" style="grid-column: span 3;">EMBRYO-ID</div>
-					<div class="table-header" style="grid-column: span 3;">SPECIES</div>
-					<div class="table-header" style="grid-column: span 2;">GROWTH</div>
-					<div class="table-header">EVP COST</div>
-					<div class="table-header">:</div>
-					<!-- values -->
-					<!-- examples -->
-					<div class="table-value" style="grid-column: span 3;">[EMBRYO-1773811141134]</div>
-					<div class="table-value" style="grid-column: span 3;">bla</div>
-					<div class="table-value" style="grid-column: span 2;">AVAILABLE</div>
-					<div class="table-value">❤️0</div>
-					<button class="table-button">ADOPT</button>
-					<div class="table-value" style="grid-column: span 8; color: darkgreen;">no embryos</div>
-				</div>
-			</section>
-			<section id="view-login" style="display: none;">
-				<h1 class="view-heading">PLAYER Hub</h1>
-				<form onsubmit="router.login()" id="login">
-					<input type="email" id="login-email" placeholder="Enter your email address" class="input-box">
-					<input type="password" id="login-password" placeholder="Enter your password" class="input-box">
-					<button onclick="router.login()" id="login-submit" class="nav-button">SUBMIT</button>
-				</form>
-			</section>
-			<!--  -->
-			<section id="view-inspector" class="monitor-box" style="display:none;">
-				<h1 class="view-heading">ENTITY Data Monitor</h1>
-				<div>
-					<form onsubmit="event.preventDefault(); window.location.href='?entityID=' + document.getElementById('targetID').value;">
-						<input type="text" id="targetID" placeholder="Enter entityID (e.g. 101)" 
-							title="Enter the exact ID of the desired entity to monitor" class="input-box" style="display: inline-block;">
-							<button onClick="inspector.subscribe()" class="nav-button">Subscribe</button>
-							<button onClick="inspector.unsubscribe()" class="nav-button">Disconnect</button>
-							<button onclick="inspector.copyToClipboard(this)" class="nav-button">Copy Telemetry</button>
-					</form>
-				</div>
-				<div class="monitor-box">
-					<h2 class="view-heading">Live Feed:</h2>
-					<div id="physics-stream" class="monitor-grid">
-						<!-- Row 1: Primary ID and Full Name -->
-						<div class="grid-item">ID: <span id="val-id">---</span></div>
-						<div class="grid-item full-width">Name: <span id="val-name">---</span></div>
-						
-						<!-- Row 2: Location Data -->
-						<div class="grid-item full-width">Coords: </div>
-						<div class="grid-item full-width"><span id="val-C0">---</span></div>
-						
-						<!-- Row 3: Flight/Motion Telemetry -->
-						<div class="grid-item">Body: <span id="val-body">---</span></div>
-						<div class="grid-item">Meta: <span id="val-meta">---</span></div>
-						<div class="grid-item">ASL: <span id="val-asl">---</span>m</div>
-						<div class="grid-item full-width">States: [<span id="val-states">---</span>]</div>
-						<div class="grid-item">velocity: <span id="val-Vmag">---</span> m/s - </div>
-						<div class="grid-item"><span id="val-knots">---</span> kts</div>
-						<div class="grid-item">Accel: <span id="val-Amag">---</span> m/s²</div>
-						<div class="grid-item full-width"></div>
-						<div class="grid-item">Omega: <span id="val-Rmag">---</span> rad/s</div>
-						<div class="grid-item">Alpha: <span id="val-Tmag">---</span> rad/s²</div>
-						<div class="grid-item">dR_mag: <span id="val-dR_mag">---</span> rad</div>
-						<div class="grid-item">Heading: <span id="val-heading">---</span>°</div>
-						<div class="grid-item">Pitch: <span id="val-pitch">---</span>°</div>
-						<div class="grid-item">Roll: <span id="val-roll">---</span>°</div>
-	
-						<!-- Row 4: Physics Metadata -->
-						<div class="grid-item full-width"></div>
-						<div class="grid-item-vector">R1: <span id="val-R1">---</span> rad/s</div> 
-						<div class="grid-item-vector">T1: <span id="val-T1">---</span> rad/s²</div> 
-						<div class="grid-item-vector">dR: <span id="val-dR">---</span> rad</div> 
-						<div class="grid-item-vector">Bdist: <span id="val-Bdist">---</span> rad/s</div>
-						<!-- Row 5: Navigation Targets -->
-						<div class="grid-item full-width"></div>
-						<div class="grid-item">[TARGET-
-							<span id="val-targetID">n/a</span>]: 
-							"<span id="val-targetName">n/a</span>"
-						</div>
-						<div class="grid-item full-width"></div>
-						<div class="grid-item">Target coords: [
-							<span id="val-Ct">---</span>]
-							Dist: <span id="val-dist">---</span> m
-							ETA: <span id="val-eta">---</span>
-						</div>
-						<div class="grid-item"></div>
-					</div>
-				</div>
-			</section>
-		</nav>
-		<nav class="nav-status" style="display: block;">
-			<div id="metadate" style="color: white; font-family: monospace;">Waiting for server...</div>
-		</nav>
-		<script src="/socket.io/socket.io.js"></script>
-		<script type="text/javascript" src="/main.js"></script>
-	</body>
+        </nav>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="/main.js"></script>
+    </body>
 </html>

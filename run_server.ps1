@@ -1,7 +1,7 @@
 do {
     # run server
     Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-    node SERVER.js
+    node --env-file=.env SERVER.js
     # capture exit code
     $exitCode = $LASTEXITCODE
     # decide what to do

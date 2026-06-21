@@ -1,12 +1,12 @@
-const { MAGPIE } = require("../core/index")
+const { MAGPIE } = require("../src/index")
 const { INDEX } = require("./states")
 /**
- * @typedef {import("../core/entity.js").MAGPIE_ENTITY} MAGPIE_ENTITY
- * @typedef {import("../core/component.js").MAGPIE_EXP} MAGPIE_EXP
- * @typedef {import("../core/index").vector3} vector3
+ * @typedef {import("../src/entity.js").MAGPIE_ENTITY} MAGPIE_ENTITY
+ * @typedef {import("../src/component.js").MAGPIE_EXP} MAGPIE_EXP
+ * @typedef {import("../src/index").vector3} vector3
  * @typedef {import("../SERVER.js").bivector} bivector
- * @typedef {import("../core/entity.js").fitness_index} fitness_index
- * @typedef {import("../core/index.js").stamina_index} stamina_index
+ * @typedef {import("../src/entity.js").fitness_index} fitness_index
+ * @typedef {import("../src/index.js").stamina_index} stamina_index
  */
 /** @type {import("../SERVER.js").exp_output} */
 const defaults = { exp: null, At: [0,0,0], Tt: [0,0,0], keys: [], persist: null };

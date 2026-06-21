@@ -5,6 +5,11 @@ ssh-key.*
 ./start.sh
 ./run_server.ps1
 *.sql
+jsconfig.json
+eslint.config.js
+.prettierignore
+
+.vscode/
 
 # admin 
 .admin/
@@ -75,9 +80,9 @@ lerna-debug.log*
 *.db-shm
 *.db-wal
 *.db
-sync_db.ps1
-pull_db.ps1
-db/
+# sync_db.ps1
+# pull_db.ps1
+
 
 # test
 test/

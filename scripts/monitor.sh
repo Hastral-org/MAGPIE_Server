@@ -1,15 +1,32 @@
 #!/bin/bash
 # monitor.sh - Resource monitoring loop for MAGPIE Server
-# Uses the customized top-like view for server, governor, and limiter
+# Uses cursor positioning to eliminate terminal flashing
+
+# Clear once at the very start of the script
+clear
 
 while true; do
-    clear
+    # Move cursor to top-left corner and clear from cursor to end of screen
+    printf "\033[H\033[J"
+
     echo "=== MAGPIE RESOURCE MONITOR ==="
     echo "Timestamp: $(date)"
     echo "----------------------------------------------------------------"
-    # Monitor only the server, the governor, and the cpulimit process
-    top -p $(pgrep -f "node.*SERVER.js|cpulimit|throttle_node.sh" | paste -sd, -) -n 1
+
+    # Grab active PIDs
+    PIDS=$(pgrep -f "node.*SERVER.js|cpulimit|throttle_node.sh" | paste -sd, -)
+
+    if [ ! -z "$PIDS" ]; then
+        # Run top in batch mode (-b) to prevent interactive redraw artifacts
+        top -p "$PIDS" -b -n 1
+    else
+        echo "No active MAGPIE processes found. Monitoring...             "
+        # Clear out a few lines below so old data doesn't linger
+        printf "\n\n\n\n\n"
+    fi
+
     echo "----------------------------------------------------------------"
     echo "Press Ctrl+C to exit"
+
     sleep 2
 done

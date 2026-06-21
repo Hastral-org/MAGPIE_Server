@@ -10,8 +10,8 @@
  * leapYear: Number,
  * dayLength: Number,
  * epochYear: Number
- * }} calendar
- * @type {Map<Number, calendar>}
+ * }} calendar_data
+ * @type {Map<Number, calendar_data>}
  * 
  */
 const INDEX = new Map();

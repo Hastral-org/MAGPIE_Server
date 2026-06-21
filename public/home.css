@@ -4,12 +4,13 @@
 :root {
     --crt-green: #33ff33;
     --crt-bright: #00ff00;
+    --crt-red: #ff0000;
     --crt-select: #146114;
     --crt-dark: #002104;
+    --crt-semidark: #18441d;
     --crt-white: #fff;
     --crt-bg: #0a0a0a;
     --crt-glow: rbga(51, 255, 51, 0.2);
-    --crt-fontMain: 'Courier New', monospace;
     --primary: #a855f7;
     --secondary: #ec4899;
     --accent: #06b6d4;
@@ -18,7 +19,9 @@
     --text: #fafafa;
     --text-muted: #71717a;
     --font-default: 'Inter', system-ui, sans-serif;
-    --crt-font-main: 'Courier New', Courier, monospace;
+    --crt-font-main: 'Consolas', 'Courier New', Courier, monospace;
+    --crt-font-nav: var(--crt-font-main);
+    --crt-font-monitor: var(--crt-font-main);
 }
 
 * {
@@ -59,7 +62,7 @@ body {
 
 /* #region navigation */
 
-.nav-status {
+#nav-status {
     width: 100vw;
     position: fixed;
     bottom: 0;
@@ -67,11 +70,14 @@ body {
     background: var(--crt-dark);
     padding-top: 10px;
     padding-bottom: 10px;
-    display: block;
+    display: flex;
     z-index: 999;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
-.nav-breadcrumbs {
+#nav-breadcrumbs {
     width: 100vw;
     position: fixed;
     top: 0;
@@ -83,13 +89,14 @@ body {
     padding: 10px 10px;
     align-items: stretch;
     z-index: 999;
+    justify-content: space-between;
 }
 
 .nav-button {
-    background: transparent;
+    background: var(--crt-semidark);
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
-    font-family:'Courier New', monospace;
+    font-family: var(--crt-font-nav);
     font-weight: bold;
     padding: 5px 15px;
     /* display: flex;         */
@@ -107,6 +114,15 @@ body {
 
 .nav-button:hover {
     background: var(--crt-select);
+}
+
+.nav-button-inactive {
+  background: var(--crt-dark);
+  border: 1px solid var(--crt-select);
+  color: var(--crt-green);
+  font-family: var(--crt-font-nav);
+  font-weight: bold;
+  padding: 5px 15px;
 }
 
 /* #endregion */
@@ -131,7 +147,7 @@ body {
     box-sizing: border-box;
     background: #111;
     color: #0f0; 
-    font-family: 'Courier New', monospace;
+    font-family: var(--crt-font-monitor);
     font-size: 14px;
     user-select: text; 
     overflow-x: hidden;
@@ -179,14 +195,12 @@ body {
 .table-header {
     font-weight: bold;
     border-bottom: 1px solid var(--crt-bright);
-    font-family: 'Courier-New', monospace;
     padding-bottom: 5px;
     margin-bottom: 10px;
 }
 
 .table-row {
     color: var(--crt-green);
-    font-family: 'Courier-New', monospace;
     /* display: contents; */
 }
 
@@ -201,7 +215,6 @@ body {
     background: transparent;
     border: 1px solid var(--crt-bright);
     color: var(--crt-white);
-    font-family:'Courier New', monospace;
     font-weight: bold;
     padding: 5px 15px;
     margin-bottom: 10px;
@@ -226,7 +239,6 @@ body {
     background: transparent;
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
-    font-family: 'Courier-New', monospace;
     cursor: pointer !important;
     margin-bottom: 15px;
     padding-top: 5px;
@@ -323,6 +335,7 @@ body {
 #terminal-output {
     height: calc(100% - 40px);
     width: calc(100% - 10);
+    font-family: var(--crt-font-main);
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
@@ -379,19 +392,19 @@ body {
     content: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
 }
 
-/* #endregion */
-
-/* #region pixel-perfect */
-.retro-counter {
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  font-smooth: never;
-  -webkit-font-smoothing: none;
+.cli-status {
+    color: var(--crt-green);
+    font-family: var(--crt-font-main);
+    padding-left: 15px;
 }
+
 /* #endregion */
 
 /* #region views */
 
+.view-common {
+    display: block;
+}
 
 #view-logo {
     white-space: pre;
@@ -400,11 +413,12 @@ body {
 }
 
 .view-home {
-    font-family: 'Courier New', Courier, monospace;   
+    font-family: var(--crt-font-main);
 }
 
 .view-heading {
     font-family:var(--crt-font-main);
+    font-weight: bold;
     padding-top: 20px;
     padding-bottom: 20px;
     /* margin-bottom: 20px; */
@@ -414,6 +428,84 @@ body {
     display: block;
     width: 100%;
 }
+
+/* #region login */
+.login-window {
+    border: 2px solid var(--crt-green);
+    background: var(--crt-dark);
+    padding: 20px;
+    box-shadow: 0 0 15px var(--crt-glow);
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* A "Title Bar" for the window */
+.login-window::before {
+    content: "SYSTEM ACCESS - AUTHENTICATION REQUIRED";
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--crt-bg);
+    color: var(--crt-green);
+    font-family: var(--crt-font-main);
+    font-size: 0.8rem;
+    padding: 0 5px;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column; /* Stacks label and input */
+    margin-bottom: 15px;
+    font-family: var(--crt-font-main);
+    font-size: 1.2rem; /* Increases overall text size */
+    gap: 5px;
+}
+
+.login-label {
+    color: var(--crt-green);
+    white-space: nowrap;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.login-label-error {
+    color: var(--crt-red);
+    white-space: nowrap;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.login-input {
+    background: var(--crt-semidark);
+    -webkit-box-shadow: 0 0 0px 1000px var(--crt-bg) inset !important;
+    box-shadow: 0 0 0px 1000px var(--crt-bg) inset !important;
+    -webkit-text-fill-color: var(--crt-bright) !important;
+    border: none;
+    border-bottom: 1px solid var(--crt-green);
+    color: var(--crt-green);
+    -webkit-text-fill-color: var(--crt-green) !important;
+    outline: none;
+    flex-grow: 1;
+    font-family: var(--crt-font-main) !important;
+    font-size: 1.2rem !important;
+    padding-left: 5px;
+    padding: 8px;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* #login-email-div, #login-password-div, #login-submit, #login-register {
+    justify-self: center;
+    font-size: 1.2rem !important;
+} */
+
+#form-login, #form-register {
+    display: grid;
+    justify-self: center;
+    width: 80%;
+    /* max-width: 200px; */
+}
+/* #endregion */
 
 /* #view-cli {
     position: fixed;
@@ -427,6 +519,71 @@ body {
     z-index: 20;
     background: transparent;
 } */
+
+/* #endregion */
+
+/* #region visitor counter */
+.retro-counter {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  padding-right: 20px;
+}
+
+.odometer-container {
+    display: inline-flex;
+    gap: 2px;
+    font-family: var(--crt-font-main);
+    color: var(--crt-green);
+    text-shadow: 0 0 5px var(--crt-green);
+    padding: 5px;
+    background: rgba(0, 33, 4, 0.5);
+    border: 1px solid var(--crt-green);
+    margin-right: 20px;
+}
+
+.digit-slot {
+    width: 1.2rem; /* Match your font size */
+    height: 1.2rem;
+    overflow: hidden; /* This is the "window" */
+    display: flex;
+    justify-content: center;
+}
+
+.digit-strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    text-align: center;
+}
+
+/* Each number in the strip must be exactly the height of the slot */
+.digit-strip span {
+    height: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.digit-strip {
+    line-height: 1.2rem;
+    font-size: 1.2rem;
+}
+/* #endregion */
+
+/* #region elements */
+.form-center-grid {
+    display: grid;
+    justify-self: inherit;
+    width: inherit;
+}
+
+.form-grid {
+    display: grid;
+    justify-self: left;
+    width: inherit;
+}
 
 /* #endregion */
 
