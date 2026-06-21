@@ -95,6 +95,8 @@ socket.on("connect", () => {
   const visitor = localStorage.getItem("new_visitor");
   if (visitor && JSON.parse(visitor)) socket.emit("new_visit");
   localStorage.setItem("new_visitor", false);
+  const isLoggedIn = localStorage.getItem("logged-in");
+  if (isLoggedIn) socket.emit("RELOG");
   if (entityID) {
     const entity = document.getElementById("entityID");
     if (entity) entity.value = entityID;
@@ -102,6 +104,7 @@ socket.on("connect", () => {
     MAGPIE_MONITOR.subscribe(entityID);
   }
 });
+
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -189,11 +192,16 @@ socket.on("subscribed_entity", (entityID) => {
 // #region > Account
 //------------------------------------------------------------------------
 socket.on("LOGIN_SUCCESS", (data) => {
-  console.log(`[SOCKET] [${data.code} - LOGIN SUCCESS]\n${data?.message}`);
+  console.log(`[SOCKET] [LOGIN_SUCCESS] [${data.code}] `);
+  router.loginSuccess(data);
+});
+socket.on("RELOGGED", (data) => {
+  console.log(`[SOCKET] [RELOGGED] [${data.code}] `);
   router.loginSuccess(data);
 });
 socket.on("LOGIN_ERROR", (data) => {
-  console.log(`[SOCKET] [${data.code} - LOGIN ERROR]\n${data?.message}`);
+  console.log(`[SOCKET] [LOGIN_ERROR] [${data.code}] `);
+  router.loginFail(data);
 });
 // #endregion
 //------------------------------------------------------------------------
@@ -240,7 +248,6 @@ socket.on("LOGIN_ERROR", (data) => {
 //------------------------------------------------------------------------
 /** @type {Map<String, {view: String, path: String[]>}} */
 router.map = new Map();
-router.map.set("login", { view: `login` });
 router.isCurrentMapped = function () {
   try {
     const view = MAGPIE_CLIENT.params.get("view");
@@ -359,6 +366,73 @@ router.on("adoption", (content, data) => {
   if (!data) return;
   const container = content.querySelector(".store-grid");
 });
+// #endregion
+//------------------------------------------------------------------------
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - STATE
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > handling
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.state = {
+  authN: false,
+  authZ: false,
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Auth
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.setAuthN = function (Boolean) {
+  this.state.authN = Boolean;
+  const classList = document.body.classList;
+  const In = "logged-in";
+  const Out = "logged-out";
+  classList.remove(In);
+  classList.remove(Out);
+  classList.add(Boolean ? In : Out);
+};
+MAGPIE_CLIENT.setAuthZ = function (Boolean) {
+  this.state.authZ = Boolean;
+};
+MAGPIE_CLIENT.setAuthAll = function (Boolean) {
+  MAGPIE_CLIENT.setAuthN(Boolean);
+  MAGPIE_CLIENT.setAuthZ(Boolean);
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Gate
+//------------------------------------------------------------------------
+
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -520,7 +594,7 @@ MAGPIE_MONITOR.copyToClipboard = function copyToClipboard(buttonElement) {
 //------------------------------------------------------------------------
 // #region > Login
 //------------------------------------------------------------------------
-router.map.set("login", { view: "login", path: "/adoption/login" });
+router.map.set("login", { view: "login", path: "/account/login" });
 /**
  *
  * @param {Event} event
@@ -550,7 +624,17 @@ router.loggingIn = function (data) {
  * @param {login_data} data
  */
 router.loginSuccess = function (data) {
-  //@todo login success
+  /** @type {player_data} */
+  const player = data?.player;
+  const { code, token, server, message } = data;
+  localStorage.setItem("playerID", player.ID);
+  localStorage.setItem("username", player.username);
+  localStorage.setItem("server_status", server);
+  localStorage.setItem("jwt_token", token);
+  router.go("account");
+};
+router.loginFail = function (data) {
+  //@todo login fail
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -562,6 +646,7 @@ router.loginSuccess = function (data) {
 //------------------------------------------------------------------------
 // #region > Register
 //------------------------------------------------------------------------
+router.map.set("register", { view: "register", path: "/account/login" });
 router.register = function () {
   const ePrefix = "[ROUTER] [register] ";
   try {
@@ -602,6 +687,24 @@ router.registerSubmit = async function (event) {
     socket.emit("REGISTER", { email, username, password });
   } catch (e) {
     console.error(ePrefix + e.message, e);
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > player
+//------------------------------------------------------------------------
+router.player = function () {
+  const ePrefix = "[ROUTER] [player] ";
+  try {
+    //
+  } catch (e) {
+    console.error(e);
   }
 };
 // #endregion

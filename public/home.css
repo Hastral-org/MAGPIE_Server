@@ -587,6 +587,24 @@ body {
 
 /* #endregion */
 
+/* #region state */
+.show-logged-in {
+    display: none;
+}
+
+.show-logged-out {
+    display: inline-block;
+}
+
+body.logged-in .show-logged-out {
+    display: none;
+}
+
+body.logged-in .show-logged-in {
+    display: inline-block;
+}
+/* #endregion */
+
 /* #region import: playcode.io SaaS */
 .container {
     width: 100%;

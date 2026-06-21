@@ -10,15 +10,15 @@
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="home.css">
     </head>
-    <body style="background-color: black;">
+    <body class="logged-out" style="background-color: black;">
         <nav id="nav-breadcrumbs">
             <span id="nav-buttons">
-                <button id="nav-buttom-home" onclick="router.go('home')" class="nav-button">HOME</button>
+                <button id="nav-buttom-home"  onclick="router.go('home')" class="nav-button">HOME</button>
                 <!-- <button id="nav-button-test" onclick="router.go('test')" class="nav-button">TEST</button> -->
-                <button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>
+								<button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>								
                 <button id="nav-button-monitor" onclick="router.go('monitor')" class="nav-button">MONITOR</button>
-                <button id="nav-button-login" onclick="router.go('login')" class="nav-button">LOGIN</button>
-                <button id="nav-button-account" onclick="router.request('account')" class="nav-button" style="display: none;">ACCOUNT</button>
+                <button id="nav-button-login" onclick="router.go('login')" class="nav-button show-logged-out">LOGIN</button>
+                <button id="nav-button-account" onclick="router.go('account')" class="nav-button show-logged-in">PLAYER HUB</button>
             </span>
             <span id="nav-title" class="retro-counter">M.A.G.P.I.E.™ Shelder Evolution™</span>
         </nav>
@@ -141,6 +141,11 @@
 						</template>
 						<template id="view-adoption">
 							<h1>Adoption store</h1>
+						</template>
+						<template id="view-account">
+							<div>
+								<h1 class="view-heading">PLAYER Hub</h1>
+							</div>
 						</template>
         </nav>
         <nav id="nav-status">

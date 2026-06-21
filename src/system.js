@@ -376,9 +376,8 @@ MAGPIE_SYSTEM.log = function systemLog(
  * @param {Error} error
  */
 MAGPIE_SYSTEM.sysLog = function systemLog(message, prefix, error = null) {
-  if (MAGPIE.config.isProduction) error = true;
-  if(Error.is)
-  MAGPIE_SYSTEM.log(message, prefix, error);
+  const logToConsole = error instanceof Error || !MAGPIE.config.isProduction;
+  MAGPIE_SYSTEM.log(message, prefix, logToConsole ? true : error);
 };
 /**
  *
@@ -3097,6 +3096,8 @@ MAGPIE_DATE.prototype._printSTZ = function _printSTZ(options) {
  * date: date_data
  * }} metastate_data
  * @typedef {import("../SERVER.js").player_cache} player_cache
+ * @typedef {import("socket.io").Socket} Socket
+ * @typedef {import("../SERVER").MAGPIE_SERVER} MAGPIE_SERVER
  *
  */
 //========================================================================
@@ -3136,7 +3137,7 @@ MAGPIE_METASTATE.prototype.initialize = function initializeMetastate(data) {
   if (!data?.contents) data.contents = {};
   /** @type {metastate_contents} */
   this.contents = data.contents;
-  /** @type {player_cache} */
+  /** @type {Map<playerID, player_cache>} */
   this.session = new Map();
   this.setup();
 };
@@ -3293,6 +3294,47 @@ MAGPIE_METASTATE.prototype._socketEmit = function _socketEmit() {
 MAGPIE_METASTATE._socketEmit = {};
 // #endregion
 //------------------------------------------------------------------------
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Player
+//------------------------------------------------------------------------
+/**
+ * 
+ * @param {{reason: String, socket: Socket, server: MAGPIE_SERVER}} data 
+ */
+MAGPIE_METASTATE.prototype._socket_disconnect = function (data) {
+  const ePrefix = "[METASTATE] [socket_disconnect] ";
+  try {
+    const { reason, socket, server } = data;
+    const playerID = socket.auth?.playerID;
+    if(!playerID) return;
+    const player_cache = this.session.get(playerID);
+    if(!player_cache) return;
+    const index = player_cache.sockets.indexOf(socket.id);
+    if(!index) return;
+    player_cache.sockets.splice(index, 1);
+    if(player_cache.sockets.length < 1)
+      player_cache.graceTimer = setTimeout(() => {
+        this._player_logout(playerID);
+      }, MAGPIE.KEY.SERVER.GRACE_TIMER_DISCONNECTION)
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+MAGPIE_METASTATE.prototype._player_logout = function(playerID) {
+  const ePrefix = "[METASTATE] [player_logout] ";
+  try {
+    
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**

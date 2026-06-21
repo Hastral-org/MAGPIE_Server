@@ -26,6 +26,7 @@ const http = MAGPIE.KEY.HTTP;
  * @typedef {import("../src/services/crypto").email_hashed} email_hashed
  * @typedef {import("../src/player").MAGPIE_PLAYER} MAGPIE_PLAYER
  * @typedef {import("../src/database").MAGPIE_DATABASE} MAGPIE_DATABASE
+ * @typedef {import("../src/system").MAGPIE_METASTATE} MAGPIE_METASTATE
  */
 //------------------------------------------------------------------------
 // #region > Utility
@@ -269,10 +270,9 @@ account.login = async function (data, socket, server) {
       http_code = code;
       throw new Error(`${ePrefix}${level}[${code}]`);
     }
-    const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
-    server.sysLog(success);
     player.status = true;
     const server_status = server.meta?.status;
+    /** @type {player_data} */
     const playerData = {
       ID: player.ID,
       username: player.username,
@@ -280,8 +280,12 @@ account.login = async function (data, socket, server) {
       EVP: player.EVP,
       CLOUT: player.CLOUT,
       status: player.status,
-      status: server_status,
     };
+    const state = server.METASTATE.session;
+    const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
+    state.set(player.ID, playerData);
+    const total = `Total player: ${state.size}`;
+    server.sysLog(success, "console");
     socket.emit("LOGIN_SUCCESS", {
       code,
       token,
@@ -292,6 +296,16 @@ account.login = async function (data, socket, server) {
   } catch (e) {
     socket.emit(`LOGIN_ERROR`, { message: e.message, code: http_code });
     server.sysLog(ePrefix + e.message, "server", e);
+  }
+};
+account.disconnect = async function (reason, socket, server) {
+  try {
+    /** @type {MAGPIE_METASTATE} */
+    const state = server.METASTATE;
+    state._socket_disconnect({ reason, socket, server });
+    server.sysLog(`${ePrefix} [disconnect] ${reason}.`);
+  } catch (e) {
+    server.error(ePrefix + e.message, e);
   }
 };
 account.logout = async function (data, socket, server) {
@@ -528,6 +542,9 @@ account.init = function (io, socket, server) {
   });
   socket.on("RESET_PASSWORD_REQUEST", async (data) => {
     await account.requestPasswordReset(data, socket, server);
+  });
+  socket.on("disconnect", async (reason) => {
+    await account.disconnect(reason, socket, server);
   });
 };
 // #endregion
