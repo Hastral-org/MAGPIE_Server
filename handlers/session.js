@@ -11,7 +11,12 @@
  * @typedef {import("../SERVER").MAGPIE_SERVER} MAGPIE_SERVER
  * @typedef {import("../src/system").MAGPIE_METASTATE} MAGPIE_METASTATE
  * @typedef {import("../src/player").playerID} playerID
- * @typedef {import("../SERVER").player_cache} player_cache
+ * @typedef {{
+ * sockets: socketID[],
+ * username: String,
+ * joined: epoch_real,
+ * graceTimer: graceTimer
+ * }} player_cache
  * @typedef {{
  * active: Map<playerID, player_cache>
  * }} session_data

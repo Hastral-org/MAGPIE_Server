@@ -286,7 +286,11 @@ account.setPlayerCache = function (player, socket, server) {
     /** @type {player_cache} */
     const cache = state.get(playerID) || {
       sockets: [],
+      playerID: player.ID,
       username: player.username,
+      slot: player.slots,
+      EVP: player.EVP,
+      CLOUT: player.CLOUT,
       joined: Date.now(),
       graceTimer: null,
     };
@@ -533,6 +537,46 @@ account.processPasswordReset = async function (token, newPassword, server) {
   } catch (e) {
     server.error(ePrefix + e.message, e);
     return { success: false };
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Session
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {playerID} playerID
+ * @param {Socket} socket
+ * @param {MAGPIE_SERVER} server
+ */
+account.verifySession = async function (playerID, socket, server) {
+  const level = "[verifySession] ";
+  try {
+    const state = server.METASTATE.session;
+    const handle = `[PLAYER-${playerID}]`;
+    /** @type {player_cache} */
+    const playerCache = state.get(playerID);
+    if (playerCache) {
+      const success = `${ePrefix}${level}${`resuming session for ${handle}. `}`;
+      server.sysLog(success, "console");
+      socket.emit("isAllowedBackIn", {
+        playerData: playerCache,
+        token: socket.data.token,
+      });
+    } else {
+      const fail = `${ePrefix}${level}no active sessions for ${handle}.`;
+      server.sysLog(fail, "console");
+      socket.emit("sessionTimedOut");
+    }
+  } catch (e) {
+    server.error(ePrefix + level + e.message, e);
+    socket.emit("sessionTimedOut");
   }
 };
 // #endregion

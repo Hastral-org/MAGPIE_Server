@@ -509,7 +509,7 @@ io.on("connection", (socket) => {
   const ePrefix = `[SOCKET-${socket?.id}] `;
   const ePlayer = `[PLAYER-${playerID}] `;
   MAGPIE_SERVER.sysLog(ePrefix + "connected. ");
-  
+
   socket.on("request_server_keys", () => {
     socket.emit("server_keys", MAGPIE.KEY);
   });
@@ -1884,12 +1884,7 @@ MAGPIE_SERVER.SESSION.meta = {
 };
 /**
  * @typedef {() => {}} graceTimer Enforce n-second grace period on disconnects (Anti-F5 spam) cancel timers upon successful reconnection.
- * @typedef {{
- * sockets: socketID[],
- * username: String,
- * joined: epoch_real,
- * graceTimer: graceTimer
- * }} player_cache
+ * @typedef {import("./handlers/session").player_cache} player_cache
  * @type {player_cache}
  */
 MAGPIE_SERVER.SESSION.active = new Map();
