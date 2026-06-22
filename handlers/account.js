@@ -295,10 +295,10 @@ account.setPlayerCache = function (player, socket, server) {
     server.sysLog(
       ePrefix +
         level +
-        `[PLAYER-${playerID}] set.\n
-      sockets: ${Number(cache.sockets.length)}\n
-      username: ${String(cache.username)}\n
-      joined: ${Number(cache.joined)}\n
+        `[PLAYER-${playerID}] set.
+      sockets: ${Number(cache.sockets.length)}
+      username: ${String(cache.username)}
+      joined: ${Number(cache.joined)}
       graceTimer: ${String(cache.graceTimer)}`,
     );
     return cache;
@@ -416,11 +416,17 @@ account.relog = async function (data, socket, server) {
     account.setPlayerData(socket, player, isOnline);
     const playerData = account.getPlayerData(player, isOnline);
     const code = http.STATUS_200.code;
+    const token = jwt.sign(
+      { id: player.ID, username: player.username },
+      server.config.jwtSecret,
+      { expiresIn: server.config.jwtExpire },
+    );
     const playerHandle = `[PLAYER-${playerID} | ${player.username}] `;
     const backOnline = `${playerHandle}is back online. `;
     socket.emit("RELOGGED", {
       code: code,
       message: backOnline,
+      token,
       server_status: server.meta?.status,
       playerData,
     });
