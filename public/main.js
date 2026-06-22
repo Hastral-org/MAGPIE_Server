@@ -23,8 +23,8 @@ MAGPIE_CLIENT.elements = {
     status: "monitor-status",
   },
 };
-/** @note isProduction */
-MAGPIE_CLIENT.isProduction = false;
+MAGPIE_CLIENT.KEY = {};
+MAGPIE_CLIENT.isProduction = true;
 /**
  * @desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
  */
@@ -114,7 +114,10 @@ socket.on("connect", () => {
     MAGPIE_MONITOR.subscribe(entityID);
   }
 });
-
+socket.on("server_keys", (data) => {
+  MAGPIE_CLIENT.KEY = data;
+  MAGPIE_CLIENT.isProduction = Boolean(MAGPIE_CLIENT.KEY?.SERVER?.IS_DEV);
+});
 socket.on("connect_error", (err) => {
   if (err.message.includes("401")) {
     console.warn(

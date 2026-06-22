@@ -509,6 +509,7 @@ io.on("connection", (socket) => {
   const ePrefix = `[SOCKET-${socket?.id}] `;
   const ePlayer = `[PLAYER-${playerID}] `;
   MAGPIE_SERVER.sysLog(ePrefix + "connected. ");
+  socket.emit("server_keys", MAGPIE.KEY);
   socket.use(([event, ...args], next) => {
     // MAGPIE_SERVER.sysLog(
     //   `${ePrefix}${ePlayer}${event} — ${JSON.stringify(args)}`,
