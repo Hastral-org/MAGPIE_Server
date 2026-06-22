@@ -691,7 +691,7 @@ router.loggingIn = function (data) {
   const prefix = `[ROUTER] logging in`;
   const productionString = "...";
   const debugString = ` as: \n[USER-${data?.email}]\n[PASS-${data?.password}]\n[DEBUG] ⧖`;
-  MAGPIE_CLIENT._log(prefix, productionString, debugString);
+  MAGPIE_CLIENT._log(prefix, debugString, debugString);
 };
 /**
  *@desc {@link MAGPIE_CLIENT.ACCOUNT.meta}

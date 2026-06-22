@@ -19,6 +19,7 @@ const EmailSecurity = {
    * @returns {email_hashed}
    */
   hashEmail: (email) => {
+    console.log(`[DEBUG] using HASH_SALT: ${HASH_SALT}`);
     const result = crypto
       .createHmac("sha256", HASH_SALT)
       .update(email.toLowerCase().trim())
