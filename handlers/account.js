@@ -712,6 +712,9 @@ account.init = function (io, socket, server) {
   socket.on("RESET_PASSWORD_REQUEST", async (data) => {
     await account.requestPasswordReset(data, socket, server);
   });
+  socket.on("am_I_allowed_back_in", async (playerID) => {
+    await account.verifySession(playerID, socket, server);
+  });
   socket.on("disconnect", async (reason) => {
     await account.disconnect(reason, socket, server);
   });
