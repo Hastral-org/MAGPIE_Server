@@ -3710,6 +3710,20 @@ MAGPIE_ENTITY.prototype._set_ASL = function setASL(meters) {
   if (P1) return [lat, lon, ASL];
 };
 /**
+ * 
+ * @param {duration} seconds 
+ * @returns {vector3}
+ */
+MAGPIE_ENTITY.prototype._U_advanceTime = function(seconds) {
+  const ePrefix = `[ENTITY-${this.ID}].advanceTime: `;
+  try {
+    const V1 = MAGPIE_PHYSICS.scaleVector(this._get_V0(), seconds);
+    return this._set_P1(MAGPIE_PHYSICS.addVectors(this._get_P0(), V1))
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
  *
  * @desc back to {@link }
  *
