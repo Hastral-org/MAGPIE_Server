@@ -797,7 +797,6 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
     const { Vmax, Vsafe, Amax, Asafe, Vcruise, Vcreep } = options;
     const getAt = this._getAt(P0, V0, P1, STATS, options);
     const At = this.scaleVector(getAt.At_raw, options.intensity);
-    // MAGPIE_SYSTEM._logging_debug(`At: ${this.mag(At)}`)
     const Ot_abs = this._getOtToP1(P0, P1);
     const Ot_hdg = this._rotor_toHeadingAbs(Ot_abs, P0);
     const Ot = options?.surface
@@ -847,7 +846,7 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
     defaults.Tt = newTt;
     defaults.state = options.state;
     defaults.raw = raw;
-    // MAGPIE_SYSTEM._logging_debug(ePrefix + `Tt_mag: ${this.mag(defaults.Tt)}`)
+    // MAGPIE_SYSTEM._logging_debug(ePrefix + `At_mag: ${this.mag(defaults.At)}`)
     return defaults;
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
@@ -1382,7 +1381,6 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const accel = Math.sign(dR_comp) * Tsafe; //R0_isStable ? 0 : Math.sign(dR_comp) * Tsafe
     const transit = options?.transit || 0.0001;
     const Tt_seek = Rcruise_margin > transit ? accel : decel;
-    // MAGPIE_SYSTEM._logging_debug(`dR_error: ${dR_error.toFixed(5)} | decel: ${decel_threshold.toFixed(5)} | Rsafe: ${Rsafe} | Tsafe: ${Tsafe}`)
     const adjust = R0_abs < Rcrawl ? accel * 0.25 : Tt_brake * 0.25;
     const Tt_align = dR_error > aligned_deadzone || R0_abs < Rcrawl 
       ? adjust 
