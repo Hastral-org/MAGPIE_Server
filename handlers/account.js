@@ -3,7 +3,7 @@
  * @author Matheraptor
  * @version 0.39.952
  *
- * @typedef {import("socket.io").Socket} Socket
+ *
  */
 const account = {};
 const express = require("express");
@@ -27,6 +27,8 @@ const http = MAGPIE.KEY.HTTP;
  * @typedef {import("../src/player").MAGPIE_PLAYER} MAGPIE_PLAYER
  * @typedef {import("../src/database").MAGPIE_DATABASE} MAGPIE_DATABASE
  * @typedef {import("../src/system").MAGPIE_METASTATE} MAGPIE_METASTATE
+ * @typedef {import("socket.io").Socket} Socket
+ * @typedef {import("./session").player_cache} player_cache
  */
 //------------------------------------------------------------------------
 // #region > Utility
@@ -257,6 +259,47 @@ account.joinPrivateRoom = function (socket, playerID) {
   socket.join(`account:${player.ID}`);
   server.log();
 };
+/**
+ *
+ * @param {MAGPIE_PLAYER} player
+ * @param {Socket} socket
+ * @param {MAGPIE_SERVER} server
+ * @returns {player_cache}
+ */
+account.setPlayerCache = function (player, socket, server) {
+  const level = "[setPlayerCache] ";
+  try {
+    if (!player?.ID) throw new Error(`${player} is invalid MAGPIE_PLAYER`);
+    const state = server.METASTATE.session;
+    const playerID = player.ID;
+    /** @type {player_cache} */
+    const cache = state.get(playerID) || {
+      sockets: [],
+      username: player.username,
+      joined: Date.now(),
+      graceTimer: null,
+    };
+    cache.sockets.push(socket.id);
+    state.set(playerID, cache);
+    server.sysLog(
+      ePrefix +
+        level +
+        `[PLAYER-${playerID}] set.\n
+      sockets: ${Number(cache.sockets.length)}\n
+      username: ${String(cache.username)}\n
+      joined: ${Number(cache.joined)}\n
+      graceTimer: ${String(cache.graceTimer)}`,
+    );
+  } catch (e) {
+    server.error(ePrefix + level + e.message, e);
+  }
+};
+/**
+ *
+ * @param {Object} data
+ * @param {Socket} socket
+ * @param {MAGPIE_SERVER} server
+ */
 account.login = async function (data, socket, server) {
   const level = "[login] ";
   let http_code = NaN;
@@ -270,40 +313,40 @@ account.login = async function (data, socket, server) {
       http_code = code;
       throw new Error(`${ePrefix}${level}[${code}]`);
     }
-    player.status = true;
     const server_status = server.meta?.status;
-    /** @type {player_data} */
-    const playerData = {
-      ID: player.ID,
-      username: player.username,
-      slots: player.slots,
-      EVP: player.EVP,
-      CLOUT: player.CLOUT,
-      status: player.status,
-    };
-    const state = server.METASTATE.session;
     const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
-    state.set(player.ID, playerData);
-    const total = `Total player: ${state.size}`;
-    server.sysLog(success, "console");
+    account.setPlayerSession(socket, player, success, server);
     socket.emit("LOGIN_SUCCESS", {
       code,
-      token,
-      player: playerData,
-      server: server_status,
       message: success,
+      token,
+      server_status,
     });
+    server.sysLog(`${success}`, "console");
   } catch (e) {
     socket.emit(`LOGIN_ERROR`, { message: e.message, code: http_code });
     server.sysLog(ePrefix + e.message, "server", e);
   }
 };
+account.setPlayerSession = function (socket, player, message, server) {
+  /** @type {MAGPIE_METASTATE} */
+  const state = server.METASTATE.session;
+  /** @type {player_cache} */
+  const player_cache = account.setPlayerCache(player, socket, server);
+  const isOnline = true;
+  const data = account.setPlayerData(socket, player, isOnline);
+  server.sysLog(
+    ePrefix + `[setPlayerSession] socket.data: ${JSON.stringify(data)}`,
+  );
+};
+/**
+ * @audit replacing account.disconnect with [session.disconnect]("./session.js")
+ */
 account.disconnect = async function (reason, socket, server) {
   try {
-    /** @type {MAGPIE_METASTATE} */
-    const state = server.METASTATE;
-    state._socket_disconnect({ reason, socket, server });
-    server.sysLog(`${ePrefix} [disconnect] ${reason}.`);
+    // /** @type {MAGPIE_METASTATE} */
+    // const state = server.METASTATE;
+    // state._socket_disconnect({ reason, socket, server });
   } catch (e) {
     server.error(ePrefix + e.message, e);
   }
@@ -311,37 +354,97 @@ account.disconnect = async function (reason, socket, server) {
 account.logout = async function (data, socket, server) {
   try {
     //@todo logout logic here
-    server.sysLog(`${ePrefix}logout called for [USER: ${data?.username}]. `);
+    server.sysLog(`${ePrefix} [PLAYER-${data?.username}] logging out. `);
+    socket.emit("LOGGED_OUT", {
+      code: http.STATUS_205.code,
+      message: "player logged out. ",
+    });
   } catch (e) {
     server.error(ePrefix + e.message, e);
-    socket.emit("LOGOUT_ERROR", { message: "Logout failed. " });
+    socket.emit("LOGOUT_ERROR", {
+      code: http.STATUS_500.code,
+      message: "Logout failed. ",
+    });
   }
 };
 account.relog = async function (data, socket, server) {
+  const level = "[relog] ";
   try {
-    const { player, token } = await server.DATABASE.loadPlayer(data?.playerID);
-    if (!player)
+    /** @type {MAGPIE_METASTATE} */
+    const state = server.METASTATE.session;
+    if (!data?.playerID) {
+      const code = http.STATUS_401.code;
+      server.sysLog(
+        ePrefix + level + `[${code}]: playerID: ${data?.playerID}. `,
+      );
       return socket.emit("LOGIN_ERROR", {
-        message: "Unable to sync player data. ",
+        code: code,
+        message: "Invalid credentials. Fresh login required. ",
       });
-    server.sysLog(`${ePrefix}${account.printPlayerAuth(player)} logged in. `);
-    player.status = true;
-    socket.emit("LOGIN_SUCCESS", {
-      token,
-      ID: player.ID,
-      username: player.username,
-      email: player.email,
-      creatureID: player.creatureID,
-      EVP: player.EVP,
-      CLOUT: player.CLOUT,
-      slots: player.slots,
-      status: player.status,
-      server: server.status,
+    }
+    const playerID = data.playerID;
+    /** @type {MAGPIE_PLAYER} */
+    const player = await server.DATABASE.loadPlayer(playerID);
+    if (!player) {
+      state.delete(playerID);
+      const code = http.STATUS_404.code;
+      server.sysLog(ePrefix + level + `[${code}] `);
+      return socket.emit("LOGIN_ERROR", {
+        code: code,
+        message: `[PLAYER-${playerID}] not in database. Please, register. `,
+      });
+    }
+    const isOnline = true;
+    /** @type {player_cache} */
+    const player_cache = account.setPlayerCache(player, server);
+    player_cache.joined = Date.now();
+    player_cache.graceTimer = null;
+    account.setPlayerData(socket, player, isOnline);
+    const code = http.STATUS_200.code;
+    const playerHandle = `[PLAYER-${playerID} | ${player.username}] `;
+    const backOnline = `${playerHandle}is back online. `;
+    socket.emit("RELOGGED", {
+      code: code,
+      message: backOnline,
+      server_status: server.meta?.status,
     });
+    server.sysLog(ePrefix + level + `[${code}]: ${backOnline}`);
   } catch (e) {
     socket.emit(`LOGIN_ERROR`, { message: e.message });
     server.error(ePrefix + e.message, e);
   }
+};
+/**
+ *
+ * @param {MAGPIE_PLAYER} player
+ * @param {Boolean} isOnline
+ * @returns {player_data}
+ */
+account.getPlayerData = function (player, isOnline = true) {
+  if (!player) return false;
+  return {
+    playerID: player.ID,
+    username: player.username,
+    playerSlots: player.slots,
+    playerEVP: player.EVP,
+    playerCLOUT: player.CLOUT,
+    playerStatus: isOnline,
+  };
+}; /**
+ *
+ * @param {*} socket
+ * @param {MAGPIE_PLAYER} player
+ * @param {Boolean} isOnline
+ * @returns {Boolean}
+ */
+account.setPlayerData = function (socket, player, isOnline = true) {
+  if (!socket || !player) return false;
+  const data = account.getPlayerData(player, isOnline);
+  for (const [key, value] of Object.entries(data)) {
+    // Avoid '@socket.io/admin-ui' proxy crashing on `null` values
+    socket.data[key] = value === null ? undefined : value;
+  }
+  return socket.data;
 };
 // #endregion
 //------------------------------------------------------------------------

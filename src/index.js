@@ -1314,6 +1314,27 @@ MAGPIE.KEY.HTTP.STATUS_200 = {
   codes in the 400s and 500s mean a request has failed.`,
 };
 /**
+ * @desc No content
+ * @desc The request was successful, but there's no content
+ */
+MAGPIE.KEY.HTTP.STATUS_204 = {
+  code: 204,
+  message: "No content",
+  desc: "The request was successful, but there's no content.",
+};
+/**
+ * @desc Reset content
+ * @desc The request was successful, and the user agent (e.g., browser)
+ * should reset the document
+ */
+MAGPIE.KEY.HTTP.STATUS_205 = {
+  code: 205,
+  message: "Reset content",
+  desc:
+    "The request was successful, and the user agent (e.g., browser) " +
+    "should reset the document",
+};
+/**
  * @desc Bad Request
  * @desc The 400 (Bad Request) status code indicates that the server
  * cannot or will not process the request due to something that is

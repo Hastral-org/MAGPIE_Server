@@ -3317,12 +3317,12 @@ MAGPIE_METASTATE._socketEmit = {};
 //------------------------------------------------------------------------
 /**
  * 
- * @param {{reason: String, socket: Socket, server: MAGPIE_SERVER}} data 
+ * @param {{socket: Socket, server: MAGPIE_SERVER}} data 
  */
 MAGPIE_METASTATE.prototype._socket_disconnect = function (data) {
   const ePrefix = "[METASTATE] [socket_disconnect] ";
   try {
-    const { reason, socket, server } = data;
+    const { socket, server } = data;
     const playerID = socket.auth?.playerID;
     if(!playerID) return;
     const player_cache = this.session.get(playerID);

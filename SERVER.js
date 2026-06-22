@@ -1886,7 +1886,7 @@ MAGPIE_SERVER.SESSION.meta = {
  * @typedef {{
  * sockets: socketID[],
  * username: String,
- * joined: epoch_real
+ * joined: epoch_real,
  * graceTimer: graceTimer
  * }} player_cache
  * @type {player_cache}

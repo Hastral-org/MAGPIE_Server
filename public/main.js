@@ -26,6 +26,15 @@ MAGPIE_CLIENT.elements = {
 /** @note isProduction */
 MAGPIE_CLIENT.isProduction = false;
 /**
+ * @desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
+ */
+MAGPIE_CLIENT.ACCOUNT = {};
+MAGPIE_CLIENT.DATA = {};
+/**
+ * @type {player_data}
+ */
+MAGPIE_CLIENT.DATA.PLAYER = {};
+/**
  * @static
  */
 class MAGPIE_MONITOR {
@@ -92,11 +101,12 @@ socket.on("connect", () => {
     "color: green; font-weight: bold;",
   );
   const entityID = MAGPIE_CLIENT.params.get("entityID");
-  const visitor = localStorage.getItem("new_visitor");
-  if (visitor && JSON.parse(visitor)) socket.emit("new_visit");
-  localStorage.setItem("new_visitor", false);
-  const isLoggedIn = localStorage.getItem("logged-in");
-  if (isLoggedIn) socket.emit("RELOG");
+  const hasVisited = localStorage.getItem("hasVisited");
+  if (!hasVisited) socket.emit("new_visit");
+  localStorage.setItem("hasVisited", true);
+  /** @desc {@link router.loginSuccess} */
+  const isLoggedIn = localStorage.getItem("playerID");
+  if (isLoggedIn) socket.emit("RELOG", { playerID: isLoggedIn });
   if (entityID) {
     const entity = document.getElementById("entityID");
     if (entity) entity.value = entityID;
@@ -105,6 +115,20 @@ socket.on("connect", () => {
   }
 });
 
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Debug
+//------------------------------------------------------------------------
+socket.on("DEBUG", (data) => {
+  console.log(Object.entries(data));
+  MAGPIE_CLIENT.DATA.DEBUG = data;
+});
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -186,22 +210,36 @@ socket.on("subscribed_entity", (entityID) => {
  * CLOUT: CLOUT,
  * status: player_status
  * }} player_data
- * @typedef {{server: String, player: player_data, token: String}} login_data
+ * @typedef {{
+ * code: Number,
+ * message: String,
+ * serverStatus: String,
+ * playerData: player_data,
+ * token: String
+ * }} login_data
  */
 //------------------------------------------------------------------------
 // #region > Account
 //------------------------------------------------------------------------
-socket.on("LOGIN_SUCCESS", (data) => {
-  console.log(`[SOCKET] [LOGIN_SUCCESS] [${data.code}] `);
-  router.loginSuccess(data);
+/**
+ *
+ */
+MAGPIE_CLIENT.ACCOUNT.meta = "";
+socket.on("LOGIN_SUCCESS", (response) => {
+  console.log(`[SOCKET] [LOGIN_SUCCESS] [${response?.code}] `);
+  router.loginSuccess(response);
 });
-socket.on("RELOGGED", (data) => {
-  console.log(`[SOCKET] [RELOGGED] [${data.code}] `);
-  router.loginSuccess(data);
+socket.on("RELOGGED", (respose) => {
+  console.log(`[SOCKET] [RELOGGED] [${respose.code}] `);
+  router.loginSuccess(respose);
 });
 socket.on("LOGIN_ERROR", (data) => {
   console.log(`[SOCKET] [LOGIN_ERROR] [${data.code}] `);
   router.loginFail(data);
+});
+socket.on("LOGGED_OUT", (data) => {
+  console.log(`[SOCKET] [LOGGED_OUT] [${data.code}] `);
+  router.loggedOut(data);
 });
 // #endregion
 //------------------------------------------------------------------------
@@ -596,7 +634,8 @@ MAGPIE_MONITOR.copyToClipboard = function copyToClipboard(buttonElement) {
 //------------------------------------------------------------------------
 router.map.set("login", { view: "login", path: "/account/login" });
 /**
- *
+ * @audit-ok
+ * @desc called by [view-login from-login]("./index.html")
  * @param {Event} event
  */
 router.login = async function (event) {
@@ -612,29 +651,51 @@ router.login = async function (event) {
     console.error(ePrefix + e.message, e);
   }
 };
+/**
+ *
+ * @param {*} data
+ */
 router.loggingIn = function (data) {
   //@todo css/html styling while waiting for socket response
   const prefix = `[ROUTER] logging in`;
   const productionString = "...";
-  const debugString = ` as: \n[USER-${data?.email}]\n[PASS-${data?.password}]\n⧖`;
+  const debugString = ` as: \n[USER-${data?.email}]\n[PASS-${data?.password}]\n[DEBUG] ⧖`;
   MAGPIE_CLIENT._log(prefix, productionString, debugString);
 };
 /**
- *
- * @param {login_data} data
+ *@desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
+ * @param {login_data} response
  */
-router.loginSuccess = function (data) {
-  /** @type {player_data} */
-  const player = data?.player;
-  const { code, token, server, message } = data;
-  localStorage.setItem("playerID", player.ID);
-  localStorage.setItem("username", player.username);
-  localStorage.setItem("server_status", server);
+router.loginSuccess = function (response) {
+  const { token } = response;
+  const playerData = response?.playerData;
+  const {
+    playerID,
+    username,
+    playerSlots,
+    playerEVP,
+    playerCLOUT,
+    playerStatus,
+  } = playerData;
+  localStorage.setItem("playerID", playerID);
+  localStorage.setItem("username", username);
   localStorage.setItem("jwt_token", token);
+  MAGPIE_CLIENT.DATA.PLAYER = playerData;
+  MAGPIE_CLIENT.setAuthN(true);
   router.go("account");
 };
 router.loginFail = function (data) {
-  //@todo login fail
+  //@todo router.loginFail
+};
+router.isLoggedIn = function (data) {
+  //@todo router.isLoggedIn
+};
+router.logout = function (reason) {
+  //@todo router.logout
+  socket.emit("LOGOUT", reason);
+};
+router.loggedOut = function (data) {
+  //@todo loggedOut
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -647,6 +708,10 @@ router.loginFail = function (data) {
 // #region > Register
 //------------------------------------------------------------------------
 router.map.set("register", { view: "register", path: "/account/login" });
+/**
+ * @audit-ok
+ * @desc called by [view-register form-register]("./index.html")
+ */
 router.register = function () {
   const ePrefix = "[ROUTER] [register] ";
   try {
