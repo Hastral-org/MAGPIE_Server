@@ -118,6 +118,7 @@ socket.on("server_keys", (data) => {
   MAGPIE_CLIENT.KEY = data;
   MAGPIE_CLIENT.isProduction = Boolean(MAGPIE_CLIENT.KEY?.SERVER?.IS_DEV);
   const message = `[SOCKET] [server_keys] received ${Object.keys(data).length}x keys. `;
+  //
   console.log(message);
 });
 socket.on("connect_error", (err) => {
