@@ -115,6 +115,16 @@ socket.on("connect", () => {
   }
 });
 
+socket.on("connect_error", (err) => {
+  if (err.message.includes("401")) {
+    console.warn("[AUTH] Stale or invalid token. Clearing and redirecting to login.");
+    localStorage.removeItem("jwt_token");
+    localStorage.removeItem("playerID");
+    localStorage.removeItem("username");
+    router.go("login");
+  }
+});
+
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -240,6 +250,14 @@ socket.on("LOGIN_ERROR", (data) => {
 socket.on("LOGGED_OUT", (data) => {
   console.log(`[SOCKET] [LOGGED_OUT] [${data.code}] `);
   router.loggedOut(data);
+});
+socket.on("RESUME_SESSION_SUCCESS", (response) => {
+  console.log(`[SOCKET] [RESUME_SESSION_SUCCESS] [${response?.code}] `);
+  router.loginSuccess(response);
+});
+socket.on("RESUME_SESSION_FAIL", (data) => {
+  console.log(`[SOCKET] [RESUME_SESSION_FAIL] ${data?.message}`);
+  router.loginFail(data);
 });
 // #endregion
 //------------------------------------------------------------------------

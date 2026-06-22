@@ -241,14 +241,25 @@ account.authenticateToken = (req, res, server, next) => {
   });
 };
 account.resumeSession = async function (data, socket, server) {
+  const level = "[resumeSession] ";
   try {
     const { player, token, code } = await account.verifyCredentials(
       data.email,
       data.password,
       server,
     );
-    server.log(`${ePrefix}${account.printPlayerAuth(player)}resumed session. `);
-    socket.emit("RESUME_SESSION_SUCCESS", { username: player.username, token });
+    if (code !== http.STATUS_200.code)
+      throw new Error(`${ePrefix}${level} [${code}] `);
+    const success = `${ePrefix}${account.printPlayerAuth(player)}resumed session. `;
+    account.setPlayerSession(socket, player, success, server);
+    const playerData = account.getPlayerData(player, true);
+    socket.emit("RESUME_SESSION_SUCCESS", {
+      code,
+      token,
+      server_status: server.meta?.status,
+      playerData,
+    });
+    server.sysLog(success, "console");
   } catch (e) {
     socket.emit("RESUME_SESSION_FAIL", { message: e.message });
     server.error(ePrefix + e.message, e);
@@ -290,6 +301,7 @@ account.setPlayerCache = function (player, socket, server) {
       joined: ${Number(cache.joined)}\n
       graceTimer: ${String(cache.graceTimer)}`,
     );
+    return cache;
   } catch (e) {
     server.error(ePrefix + level + e.message, e);
   }
