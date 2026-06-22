@@ -1093,15 +1093,15 @@ MAGPIE_EXP.prototype._set_target = function _set_target(targetID, entity) {
  *
  * @param {MAGPIE_KEY} key
  * @param {MAGPIE_ENTITY} target
- * @returns
+ * @returns {entityID}
  */
-MAGPIE_EXP.prototype._key_nextWaypoint = function (key, target) {
-  if (!key.label || key.label === "undefined") return;
+MAGPIE_EXP.prototype._key_nextWp = function (key, target) {
+  if (!key.label || key.label === "undefined") return false;
   const coords = JSON.parse(key.label);
-  if (!Array.isArray(coords)) return;
+  if (!Array.isArray(coords)) return false;
   key.type = MAGPIE.KEY.TYPE.SPAREKEY;
   target._set_C1(coords);
-  target.setSync();
+  return target.ID;
 };
 /**
  * @audit-issue must refactor for modularity
@@ -1116,42 +1116,43 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
     if (!key) return false;
     const route = MAGPIE.KEY.INDEX.ROUTE;
     const waypoint = MAGPIE.KEY.INDEX.WAYPOINT;
-    let targetID = NaN;
-    if (key.type === route || key.type === waypoint) {
-      const target = entity._get_target() || entity._new_target();
-      if (!target) return false;
-      targetID = target.ID;
-      if (this.targetID !== target.ID) this._set_target(target.ID, entity);
-      if (key.type === waypoint) this._key_nextWaypoint(key, target);
-      else {
-        /** @type {MAGPIE_KEY} */
-        let spareKey = this.getKeys().find((key) => !key.type);
-        if (!spareKey) {
-          spareKey = new MAGPIE_KEY({
-            type: MAGPIE.KEY.INDEX.WAYPOINT,
-          });
-          const context = entity._get_contexts()[0];
-          context._set_key(spareKey.ID);
-          spareKey.requestHost();
-          this.keys.splice(this.keys.indexOf(key.ID) + 1, 0, spareKey.ID);
-        }
-        /** @type {coords[]} */
-        const route = JSON.parse(key.label);
-        const coords = route.shift();
-        if (Array.isArray(coords)) {
-          key.label = JSON.stringify(route);
-          target._set_C1(coords);
-        }
-      }
-    } else targetID = Number(key.label);
-    if (targetID) {
-      key.type = MAGPIE.KEY.TYPE.SPAREKEY;
-      key.setSync();
-    }
-    return targetID;
+    if (!key) throw new Error(`${key} is invalid MAGPIE_KEY. `);
+    if (!entity) throw new Error(`${entity} is invalid MAGPIE_ENTITY. `);
+    const target = entity._get_target();
+    if (!target || !target?.ID)
+      throw new Error(`${target} is invalid target. `);
+    const targetID = target.ID;
+    if (this.targetID !== target.ID) this._set_target(target.ID, entity);
+    if (key.type === route) return this._key_nextRouteWp(key, target);
+    if (key.type === waypoint) return this._key_nextWp(key, target);
+    key.type = MAGPIE.KEY.TYPE.SPAREKEY;
+    key.setSync();
+    return Number(key.label);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     return false;
+  }
+};
+/**
+ *
+ * @param {MAGPIE_KEY} key
+ * @param {MAGPIE_ENTITY} target
+ * @returns {entityID} targetID
+ */
+MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
+  const ePrefix = `[EXP-${this.ID}].keyTargetNextRouteWp: `;
+  try {
+    if (!target || !key) throw new Error("invalid parameters. ");
+    const coords = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
+    if (!coords || !Array.isArray(coords))
+      throw new Error(`${coords} is invalid coords. `);
+    if (coords.length < 1) return (key.type = MAGPIE.KEY.TYPE.SPAREKEY);
+    target._set_C1(coords.shift());
+    key.label = JSON.stringify(coords);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  } finally {
+    return target.ID;
   }
 };
 /**
