@@ -111,6 +111,7 @@ socket.on("connect", () => {
   /** @desc {@link router.loginSuccess} */
   const isLoggedIn = localStorage.getItem("playerID");
   if (isLoggedIn) socket.emit("RELOG", { playerID: isLoggedIn });
+  socket.emit("request_server_keys");
   if (entityID) {
     const entity = document.getElementById("entityID");
     if (entity) entity.value = entityID;
