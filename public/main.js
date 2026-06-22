@@ -117,6 +117,9 @@ socket.on("connect", () => {
 socket.on("server_keys", (data) => {
   MAGPIE_CLIENT.KEY = data;
   MAGPIE_CLIENT.isProduction = Boolean(MAGPIE_CLIENT.KEY?.SERVER?.IS_DEV);
+  console.log(
+    `[SOCKET] [server_keys] received ${Object.keys(data).length}x keys. `,
+  );
 });
 socket.on("connect_error", (err) => {
   if (err.message.includes("401")) {
