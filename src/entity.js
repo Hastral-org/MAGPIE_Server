@@ -726,6 +726,25 @@ MAGPIE_ENTITY.prototype._get_traits = function getTraits() {
   );
 };
 /**
+ * 
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_ENTITY.prototype._get_all_traits = function() {
+  const ePrefix = `[ENTITY-${this.ID}].getAllTraits: `
+  try {
+    const traitIDs = this._get_traits();
+    if(!Array.isArray(traitIDs)) 
+      throw new Error(`${traits} is invalid traitsIDs. `)
+    if(traitIDs.length < 1) return []
+    const traits = traitIDs.map(traidID => MAGPIE_ENTITY.__hiveSync("_get_symbol", [traidID]))
+    if(!Array.isArray(traits || traits.length))
+      throw new Error(`${traits} is invalid traits. `);
+    return traits
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
  *
  * @returns {stateID[]} stateID[]
  */
@@ -2704,14 +2723,14 @@ MAGPIE_ENTITY.prototype._get_emoteSeekOptions = function(exp, data) {
       surface: surface,
     };
     const overrideVspeed = exp._key_mapVspeeds();
+    // MAGPIE_SYSTEM._logging_debug(`Vspeeds: ${Object.entries(overrideVspeed)}`)
     const speeds = this._get_speeds(overrideVspeed);
-    Object.entries(speeds).forEach((entry) => {
-      const key = entry[0];
-      const value = entry[1];
-      if (key && !isNaN(value)) options[key] = value;
-    });
+    for(const [key, value] of Object.entries(speeds)) {
+      if(key && !isNaN(value)) options[key] = value;
+    };
     options.Rstate = this._get_Rstate();
-    // MAGPIE_SYSTEM._logging_debug(Object.entries(options))
+    // if(this.ID === 1782090960583)
+    // MAGPIE_SYSTEM._logging_debug(`Vcruise: ${options.Vcruise}`)
     options.STATS = this.STATS;
     const WPkey = exp._key_findWPoptions();
     const WPoptions = exp._key_mapWPoptions(WPkey) || {};
@@ -2738,7 +2757,6 @@ MAGPIE_ENTITY.prototype._emote_seekTarget = function (exp, fitness_index) {
     const currentTarget = this._get_target()
     const targetID = currentTarget?.ID
     // || exp._target_next(this);
-    // MAGPIE_SYSTEM._logging_debug(`target: ${targetID}`)
     const POVART0 = this._get_POVART();
     const data = {};
     const options = this._get_emoteSeekOptions(exp, data)

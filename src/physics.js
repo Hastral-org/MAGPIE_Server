@@ -818,12 +818,13 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
     const getTt = this._getTt(dR, R0, O0, options);
     options.state = pR > 0.5 ? getAt.Vstate : getTt.Rstate;
     const Tt = getTt.Tt;
-    const Rstate = getTt.Rstate;
+    const Rstate = getTt?.Rstate;
+    const Bdist = getTt?.Bdist
     const raw = defaults.raw;
     raw.At = At;
     raw.Tt = Tt;
     raw.Rstate = Rstate;
-    raw.Bdist = getTt?.Bdist;
+    raw.Bdist = Bdist;
     raw.pR = pR;
     raw.dR = dR;
     raw.dRmag = dRmag;
@@ -1351,7 +1352,7 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const last_state = options?.Rstate;
     const Rmax = Number(options[`Rmax_${axisID}`]) || Number(options?.Rmax) || 0.001
     if (isNaN(Rmax)) return;
-    const hold_threshold = options?.hold_threshold ?? this._U_deg_to_rad(10);
+    const hold_threshold = 0.1//@audit options?.hold_threshold ?? this._U_deg_to_rad(10);
     const R0_abs = Math.abs(R0_comp);
     const Rsafe = Number(options[`Rsafe_${axisID}`]) || Number(options?.Rsafe) || Rmax * reserve;
     const Bdist = Math.min(Math.PI, R0_abs ** 2 / (2 * Tsafe)) || 0;
@@ -1369,7 +1370,7 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const Rcrawl = 0.001;
     const sticky_align = dR_error < brake_threshold || last_state === STATE_INDEX.ALIGNING_TARGET;
     const align_trigger = dR_error < decel_threshold ? true : sticky_align;
-    const HOLD = R0_abs > Rcrawl ? false : dR_error < hold_threshold;
+    const HOLD = dR_error < hold_threshold;
     const FACE = HOLD || align_trigger ? false : R0_abs < Rsafe;
     const DRIFT = HOLD || FACE || align_trigger ? false : true;
     const R_stop = R0_abs < 1e-6 ? 0 : R0_abs * -Tsafe;
@@ -1383,7 +1384,9 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const Tt_seek = Rcruise_margin > transit ? accel : decel;
     // MAGPIE_SYSTEM._logging_debug(`dR_error: ${dR_error.toFixed(5)} | decel: ${decel_threshold.toFixed(5)} | Rsafe: ${Rsafe} | Tsafe: ${Tsafe}`)
     const adjust = R0_abs < Rcrawl ? accel * 0.25 : Tt_brake * 0.25;
-    const Tt_align = dR_error > aligned_deadzone ? adjust : R_stop;
+    const Tt_align = dR_error > aligned_deadzone || R0_abs < Rcrawl 
+      ? adjust 
+      : R_stop;
     const distanceFactor = Math.min(dR_error / (Bdist * 2.0), 1.0);
     let Tt = 0;
     let state = STATE_INDEX.SPOOFED;
@@ -1404,7 +1407,6 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     // if(state === STATE_INDEX.LOCKING_TARGET) Tt = Tt_align;
     // if(state === STATE_INDEX.FACING_TARGET) Tt = Tt_seek;
     // MAGPIE_SYSTEM._logging_debug(`Rt_err: ${Rt_error.toFixed(5)} | dR: ${dR_comp.toFixed(5)} | R0: ${R0_comp.toFixed(5)} | Tt: ${Tt.toFixed(5)} | Bdist: ${Bdist.toFixed(5)} | state: ${state}`)
-    // MAGPIE_SYSTEM._logging_debug(`state: ${state}`)
     if (isNaN(Tt))
       throw new Error(
         `${Tt} is invalid Tₜ[${Array.from(MAGPIE.KEY.POVART.R_AXES.keys())[axis]}]`,
@@ -1652,8 +1654,7 @@ MAGPIE_PHYSICS._POVART_distanceTravelled = function _POVART_distanceTravelled(
 MAGPIE_PHYSICS._geod_distanceTo = function _geod_distanceTo(P0, P1, r) {
   const ePrefix = `[PHYSICS].geodDistanceTo: `;
   try {
-    if (!this.isValidVector(P0)) throw new Error(`${P0} is invalid vector P₀`);
-    if (!this.isValidVector(P1)) throw new Error(`${P1} is invalid vector P₁`);
+    if (!this.isValidVector(P0) || !this.isValidVector(P1)) return false;
     const celestial_radius = this._geod_verifyRadius(r);
     const raw_dist = this.distanceTo(P0, P1);
     if(!celestial_radius || raw_dist < MAGPIE.KEY.PHYSICS.HORIZON) return raw_dist;

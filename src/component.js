@@ -1061,7 +1061,9 @@ MAGPIE_EXP.prototype._get_targetSTATS = function _get_targetSTATS() {
 MAGPIE_EXP.prototype._get_key_target = function getKeyTarget() {
   const target = MAGPIE.KEY.INDEX.TARGET;
   const wp = MAGPIE.KEY.INDEX.WAYPOINT;
-  return this.getKeys()?.find((key) => key.type === target || key.type === wp);
+  const route = MAGPIE.KEY.INDEX.ROUTE;
+  const list = [target, wp, route];
+  return this.getKeys()?.find((key) => list.includes(key.type));
 };
 /**
  *
@@ -1273,6 +1275,18 @@ MAGPIE_EXP.prototype._key_mapVspeeds = function mapVspeeds() {
   const keys = this.getKeys();
   if (keys.length < 1) return;
   const Vspeeds = {};
+  const speedsKey = keys.find((key) => key.type === MAGPIE.KEY.INDEX.VSPEED);
+  // if (this.ID === 1782093138801)
+  //   MAGPIE_SYSTEM._logging_debug(`speedsKey: ${speedsKey}`);
+  if (speedsKey) {
+    const speeds = MAGPIE_SYSTEM.Parsing.json(speedsKey?.label)[1];
+    if (speeds) {
+      for (const [key, value] of Object.entries(speeds)) {
+        Vspeeds[key.toUpperCase()] = value;
+      }
+      return Vspeeds;
+    }
+  }
   for (const key of keys) {
     const isVSPEED = key.type >= K.VMAX && key.type <= K.TDOCK_Z;
     const type = MAGPIE.KEY.INDEX.VSPEEDS.get(key.type);

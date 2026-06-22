@@ -1929,7 +1929,7 @@ MAGPIE_HIVE.host = function hostOnHive(
         if (contextID && !exists.contexts?.includes(contextID))
           exists.contexts.push(contextID);
       }
-      if (exists.layerID < layerID)
+      if (exists.layerID > layerID)
         return MAGPIE_HIVE.move(entity.ID, layerID, targetLayerID);
       const message_exists = `[ENTITY-${entity.ID}] is already at [LAYER-${exists.layerID}][${exists.slot}]`;
       return MAGPIE_SYSTEM.log(message_exists, "console", false);
@@ -1944,9 +1944,9 @@ MAGPIE_HIVE.host = function hostOnHive(
       const celestial_in_registry = MAGPIE_HIVE._registry.get(celestialID);
       const hostID = entity.STATS[MAGPIE.KEY.STATS.HOST];
       const host = MAGPIE_HIVE._registry.get(hostID);
-      if (!celestial_in_registry)
-        throw new Error(`missing [CELESTIAL-${celestialID}] in registry`);
-      if (!host) throw new Error(`missing [HOST-${hostID}] in registry`);
+      // if (!celestial_in_registry)
+      //   throw new Error(`missing [CELESTIAL-${celestialID}] in registry`);
+      // if (!host) throw new Error(`missing [HOST-${hostID}] in registry`);
     }
     const layerName = K?.name;
     let slot = Number(MAGPIE_HIVE.nextSlot(layerID));

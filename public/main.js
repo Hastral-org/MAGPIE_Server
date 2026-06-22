@@ -117,7 +117,9 @@ socket.on("connect", () => {
 
 socket.on("connect_error", (err) => {
   if (err.message.includes("401")) {
-    console.warn("[AUTH] Stale or invalid token. Clearing and redirecting to login.");
+    console.warn(
+      "[AUTH] Stale or invalid token. Clearing and redirecting to login.",
+    );
     localStorage.removeItem("jwt_token");
     localStorage.removeItem("playerID");
     localStorage.removeItem("username");
@@ -700,7 +702,7 @@ router.loginSuccess = function (response) {
   localStorage.setItem("jwt_token", token);
   MAGPIE_CLIENT.DATA.PLAYER = playerData;
   MAGPIE_CLIENT.setAuthN(true);
-  router.go("account");
+  // router.go("account");
 };
 router.loginFail = function (data) {
   //@todo router.loginFail

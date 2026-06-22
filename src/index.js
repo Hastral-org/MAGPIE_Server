@@ -819,6 +819,8 @@ MAGPIE.KEY.INDEX.VOLUME = 2021;
 /** @type {Map<key_index, key_label>} */
 MAGPIE.KEY.INDEX.VSPEEDS = new Map();
 /** @type {key_index} */
+MAGPIE.KEY.INDEX.VSPEED = 2999;
+/** @type {key_index} */
 MAGPIE.KEY.INDEX.VMAX = 3000;
 /** @type {key_index} */
 MAGPIE.KEY.INDEX.VSAFE = 3001;
