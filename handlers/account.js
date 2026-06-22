@@ -316,11 +316,13 @@ account.login = async function (data, socket, server) {
     const server_status = server.meta?.status;
     const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
     account.setPlayerSession(socket, player, success, server);
+    const playerData = account.getPlayerData(player, true);
     socket.emit("LOGIN_SUCCESS", {
       code,
       message: success,
       token,
       server_status,
+      playerData,
     });
     server.sysLog(`${success}`, "console");
   } catch (e) {
@@ -396,10 +398,11 @@ account.relog = async function (data, socket, server) {
     }
     const isOnline = true;
     /** @type {player_cache} */
-    const player_cache = account.setPlayerCache(player, server);
+    const player_cache = account.setPlayerCache(player, socket, server);
     player_cache.joined = Date.now();
     player_cache.graceTimer = null;
     account.setPlayerData(socket, player, isOnline);
+    const playerData = account.getPlayerData(player, isOnline);
     const code = http.STATUS_200.code;
     const playerHandle = `[PLAYER-${playerID} | ${player.username}] `;
     const backOnline = `${playerHandle}is back online. `;
@@ -407,6 +410,7 @@ account.relog = async function (data, socket, server) {
       code: code,
       message: backOnline,
       server_status: server.meta?.status,
+      playerData,
     });
     server.sysLog(ePrefix + level + `[${code}]: ${backOnline}`);
   } catch (e) {
