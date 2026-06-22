@@ -261,7 +261,7 @@ MAGPIE_DATABASE.getPlayerByUsername = async function (username) {
  * @param {Number} playerID
  * @returns {Promise<MAGPIE_PLAYER>}
  */
-MAGPIE_DATABASE.loadPlayer = async function loadPlayer(playerID) {
+MAGPIE_DATABASE.loadPlayer = async function (playerID) {
   const ePrefix = "[DATABASE].loadPlayer: ";
   try {
     const player = await MAGPIE_DATABASE.call(
@@ -281,7 +281,7 @@ MAGPIE_DATABASE.loadPlayer = async function loadPlayer(playerID) {
  * @param {Number} playerID
  * @returns {MAGPIE_PLAYER}
  */
-MAGPIE_DATABASE.loadPlayerSync = function loadPlayer(playerID) {
+MAGPIE_DATABASE.loadPlayerSync = function (playerID) {
   const ePrefix = "[DATABASE].loadPlayer: ";
   try {
     const player = MAGPIE_DATABASE.sync.loadServerRow("MAGPIE_PLAYER", {

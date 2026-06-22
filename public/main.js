@@ -713,7 +713,7 @@ router.loginSuccess = function (response) {
   localStorage.setItem("jwt_token", token);
   MAGPIE_CLIENT.DATA.PLAYER = playerData;
   MAGPIE_CLIENT.setAuthN(true);
-  // router.go("account");
+  router.go("account");
 };
 router.loginFail = function (data) {
   //@todo router.loginFail

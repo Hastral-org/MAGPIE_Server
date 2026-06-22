@@ -19,10 +19,14 @@ const EmailSecurity = {
    * @returns {email_hashed}
    */
   hashEmail: (email) => {
-    return crypto
+    const result = crypto
       .createHmac("sha256", HASH_SALT)
       .update(email.toLowerCase().trim())
       .digest("hex");
+    console.log(
+      `[DEBUG] [CRYPTO] [hashEmail] input: '${email} => result: ${result}`,
+    );
+    return result;
   },
   /**
    * @desc Encrypts email for storage.
