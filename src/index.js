@@ -23,6 +23,13 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.956 2026 06 22
+ * - ADDED: entity._U_advanceTime
+ * - FIXED: entity._target_next
+ * - FIXED: Hive.host gets confused with mulitple contexts
+ * - FIXED: db corruption caused by entity.setupParents
+ *
+ *
  * @version 0.39.955 2026 06 21
  * - TWEAKED: default game frequency to 0.1s (10Hz)
  *
@@ -540,9 +547,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 955],
+  version: [0, 39, 956],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260621",
+  firmwareDate: "20260622",
 };
 /**
  *

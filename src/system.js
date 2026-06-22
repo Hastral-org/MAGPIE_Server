@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.955 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.956 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -286,7 +286,7 @@ MAGPIE_LOG.prototype.initialize = function initializeLog(data) {
 MAGPIE_SYSTEM.meta = {
   name: MAGPIE.meta.name + " system",
   desc: "",
-  version: [0, 39, 0],
+  version: MAGPIE.meta.version,
   firmwareName: "MAGPIE_SYSTEM",
   firmwareDate: MAGPIE.meta.firmwareDate,
 };
