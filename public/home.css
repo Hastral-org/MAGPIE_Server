@@ -92,7 +92,7 @@ body {
     justify-content: space-between; 
 }
 
-.nav-button {
+.nav-button .inline-button {
     background: var(--crt-semidark);
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
@@ -123,6 +123,16 @@ body {
   font-family: var(--crt-font-nav);
   font-weight: bold;
   padding: 5px 15px;
+}
+
+.inline-button::after {
+    display: inline-block;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    
 }
 
 /* #endregion */

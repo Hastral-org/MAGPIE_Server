@@ -381,74 +381,19 @@ account.disconnect = async function (reason, socket, server) {
   }
 };
 account.logout = async function (data, socket, server) {
+  const level = "[logout] ";
   try {
     //@todo logout logic here
-    server.sysLog(`${ePrefix} [PLAYER-${data?.username}] logging out. `);
-    socket.emit("LOGGED_OUT", {
-      code: http.STATUS_205.code,
-      message: "player logged out. ",
-    });
-  } catch (e) {
-    server.error(ePrefix + e.message, e);
-    socket.emit("LOGOUT_ERROR", {
-      code: http.STATUS_500.code,
-      message: "Logout failed. ",
-    });
-  }
-};
-account.relog = async function (data, socket, server) {
-  const level = "[relog] ";
-  try {
-    /** @type {MAGPIE_METASTATE} */
+    const playerID = Number(data?.playerID);
+    if (!playerID) throw new Error(http.STATUS_400.code);
     const state = server.METASTATE.session;
-    if (!data?.playerID) {
-      const code = http.STATUS_401.code;
-      server.sysLog(
-        ePrefix + level + `[${code}]: playerID: ${data?.playerID}. `,
-      );
-      return socket.emit("LOGIN_ERROR", {
-        code: code,
-        message: "Invalid credentials. Fresh login required. ",
-      });
-    }
-    const playerID = data.playerID;
-    /** @type {MAGPIE_PLAYER} */
-    const player = await server.DATABASE.loadPlayer(playerID);
-    if (!player) {
-      state.delete(playerID);
-      const code = http.STATUS_404.code;
-      server.sysLog(ePrefix + level + `[${code}] `);
-      return socket.emit("LOGIN_ERROR", {
-        code: code,
-        message: `[PLAYER-${playerID}] not in database. Please, register. `,
-      });
-    }
-    const isOnline = true;
-    /** @type {player_cache} */
-    const player_cache = account.setPlayerCache(player, socket, server);
-    player_cache.joined = Date.now();
-    player_cache.graceTimer = null;
-    account.setPlayerData(socket, player, isOnline);
-    const playerData = account.getPlayerData(player, isOnline);
-    const code = http.STATUS_200.code;
-    const token = jwt.sign(
-      { id: player.ID, username: player.username },
-      server.config.jwtSecret,
-      { expiresIn: server.config.jwtExpire },
-    );
-    const playerHandle = `[PLAYER-${playerID} | ${player.username}] `;
-    const backOnline = `${playerHandle}is back online. `;
-    socket.emit("RELOGGED", {
-      code: code,
-      message: backOnline,
-      token,
-      server_status: server.meta?.status,
-      playerData,
-    });
-    server.sysLog(ePrefix + level + `[${code}]: ${backOnline}`);
+    if (!state.get(playerID)) throw new Error(http.STATUS_401.code);
+    state.delete(playerID);
+    server.sysLog(`${ePrefix} [PLAYER-${data?.username}] logging out. `);
+    socket.emit("LOGGED_OUT", { code: http.STATUS_205.code });
   } catch (e) {
-    socket.emit(`LOGIN_ERROR`, { message: e.message });
-    server.error(ePrefix + e.message, e);
+    server.sysLog(ePrefix + level + e.message, "error", e);
+    socket.emit("LOGOUT_ERROR", { code: e.message });
   }
 };
 /**
@@ -725,9 +670,6 @@ account.init = function (io, socket, server) {
   });
   socket.on("LOGOUT", async (data) => {
     await account.logout(data, socket, server);
-  });
-  socket.on("RELOG", async (data) => {
-    await account.relog(data, socket, server);
   });
   socket.on("RESET_PASSWORD_REQUEST", async (data) => {
     await account.requestPasswordReset(data, socket, server);

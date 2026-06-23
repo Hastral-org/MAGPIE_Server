@@ -29,11 +29,22 @@ MAGPIE_CLIENT.isProduction = true;
  * @desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
  */
 MAGPIE_CLIENT.ACCOUNT = {};
+/**
+ * @typedef {String} clientView
+ */
+/**
+ *
+ */
 MAGPIE_CLIENT.DATA = {};
 /**
  * @type {player_data}
  */
 MAGPIE_CLIENT.DATA.PLAYER = {};
+/**
+ *
+ * @type {clientView}
+ */
+MAGPIE_CLIENT.DATA.CURRENT_VIEW = null;
 /**
  * @static
  */
@@ -259,10 +270,6 @@ socket.on("LOGIN_SUCCESS", (response) => {
   console.log(`[SOCKET] [LOGIN_SUCCESS] [${response?.code}] `);
   router.loginSuccess(response);
 });
-socket.on("RELOGGED", (respose) => {
-  console.log(`[SOCKET] [RELOGGED] [${respose.code}] `);
-  router.loginSuccess(respose);
-});
 socket.on("LOGIN_ERROR", (data) => {
   console.log(`[SOCKET] [LOGIN_ERROR] [${data.code}] `);
   router.loginFail(data);
@@ -428,11 +435,54 @@ router.go = function routerGo(view, serverData = null) {
     container.innerHTML = "";
     const content = template.content.cloneNode(true);
     container.appendChild(content);
+    sessionStorage.setItem("view", view);
+    router.fillPlayerData();
     console.log(ePrefix + `${view}...`);
   } catch (e) {
     console.error(ePrefix + e.message, e);
     // socket?.emit("master_queue", { message: e.message, error: e });
   }
+};
+router.fillPlayerData = function () {
+  const playerID = document.getElementById("playerID");
+  const username = document.getElementById("username");
+  const slots = document.getElementById("slots");
+  const EVP = document.getElementById("EVP");
+  const CLOUT = document.getElementById("CLOUT");
+  const status = document.getElementById("playerStatus");
+  const server_status = document.getElementById("server_status");
+  if (playerID) playerID.textContent = localStorage.getItem("playerID");
+  if (username) username.textContent = localStorage.getItem("username");
+  if (slots) {
+    slots.textContent = "";
+    const playerSlots = localStorage.getItem("playerSlots");
+    if (playerSlots) {
+      const renderedSlots = playerSlots.split(",").map(Number);
+      renderedSlots.forEach((slot) => {
+        const btn = router.renderSlotButton(slot);
+        slots.appendChild(btn);
+      });
+    }
+  }
+  if (EVP) EVP.textContent = localStorage.getItem("playerEVP");
+  if (CLOUT) CLOUT.textContent = localStorage.getItem("playerCLOUT");
+  if (status) {
+    const playerStatus = localStorage.getItem("playerStatus");
+    status.textContent = playerStatus ? "ONLINE" : "OFFLINE";
+  }
+  if (server_status)
+    server_status.textContent = localStorage.getItem("server_status");
+};
+router.renderSlotButton = function (slot) {
+  const btn = document.createElement("button");
+  btn.textContent = `[CREATURE-${slot}]`;
+  btn.style = "inline-button";
+  btn.onclick = () => router.pop("slot", slot);
+  return btn;
+};
+router.pop = function (popupType, data) {
+  const overlay = document.createElement("div");
+  overlay.style = "popup-overlay";
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -748,7 +798,9 @@ router.rehydrateSession = function (data) {
   localStorage.setItem("playerEVP", playerData.playerEVP);
   localStorage.setItem("playerCLOUT", playerData.playerCLOUT);
   localStorage.setItem("playerStatus", playerData.playerStatus);
+  const view = sessionStorage.getItem("view");
   MAGPIE_CLIENT.setAuthN(true);
+  if (view) router.go(view);
 };
 // #endregion
 //------------------------------------------------------------------------
