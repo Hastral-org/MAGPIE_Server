@@ -110,7 +110,10 @@ socket.on("connect", () => {
   localStorage.setItem("hasVisited", true);
   /** @desc {@link router.loginSuccess} */
   const isLoggedIn = localStorage.getItem("playerID");
-  if (isLoggedIn) socket.emit("RELOG", { playerID: isLoggedIn });
+  if (isLoggedIn)
+    socket.emit("am_I_allowed_back_in", {
+      playerID: isLoggedIn,
+    });
   socket.emit("request_server_keys");
   if (entityID) {
     const entity = document.getElementById("entityID");
@@ -271,6 +274,15 @@ socket.on("RESUME_SESSION_SUCCESS", (response) => {
 socket.on("RESUME_SESSION_FAIL", (data) => {
   console.log(`[SOCKET] [RESUME_SESSION_FAIL] ${data?.message}`);
   router.loginFail(data);
+});
+socket.on("isAllowedBackIn", (data) => {
+  const { playerData, token, server_status } = data;
+  const currentToken = localStorage.getItem("jwt_token");
+  if (currentToken !== token) localStorage.setItem("jwt_token", token);
+  localStorage.setItem("server_status", server_status);
+  const { username, joinedAt } = playerData;
+  localStorage.setItem("username", username);
+  localStorage.setItem("joinedAt", playerData);
 });
 // #endregion
 //------------------------------------------------------------------------

@@ -568,6 +568,7 @@ account.verifySession = async function (playerID, socket, server) {
       socket.emit("isAllowedBackIn", {
         playerData: playerCache,
         token: socket.data.token,
+        server_status: server.meta?.status,
       });
     } else {
       const fail = `${ePrefix}${level}no active sessions for ${handle}.`;
