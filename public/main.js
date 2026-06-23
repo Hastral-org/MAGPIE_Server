@@ -287,6 +287,7 @@ socket.on("isAllowedBackIn", (data) => {
 socket.on("sessionExpired", () => {
   console.log("[SOCKET] [sessionExpired]. ");
   MAGPIE_CLIENT.setAuthAll(false);
+  MAGPIE_CLIENT.clearLocalStorage();
   router.go("login");
 });
 // #endregion
@@ -508,6 +509,9 @@ MAGPIE_CLIENT.setAuthAll = function (Boolean) {
   MAGPIE_CLIENT.setAuthN(Boolean);
   MAGPIE_CLIENT.setAuthZ(Boolean);
 };
+MAGPIE_CLIENT.clearLocalStorage = function () {
+  localStorage.clear();
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -715,21 +719,7 @@ router.loggingIn = function (data) {
  * @param {login_data} response
  */
 router.loginSuccess = function (response) {
-  const { token } = response;
-  const playerData = response?.playerData;
-  const {
-    playerID,
-    username,
-    playerSlots,
-    playerEVP,
-    playerCLOUT,
-    playerStatus,
-  } = playerData;
-  localStorage.setItem("playerID", playerID);
-  localStorage.setItem("username", username);
-  localStorage.setItem("jwt_token", token);
-  MAGPIE_CLIENT.DATA.PLAYER = playerData;
-  MAGPIE_CLIENT.setAuthN(true);
+  router.rehydrateSession(response);
   router.go("account");
 };
 router.loginFail = function (data) {
@@ -750,6 +740,7 @@ router.rehydrateSession = function (data) {
   /** @type {player_data} */
   const playerData = data?.playerData;
   const currentToken = localStorage.getItem("jwt_token");
+  localStorage.setItem("playerID", playerData.playerID);
   localStorage.setItem("jwt_token", token);
   localStorage.setItem("server_status", server_status);
   localStorage.setItem("username", playerData.username);
@@ -758,7 +749,6 @@ router.rehydrateSession = function (data) {
   localStorage.setItem("playerCLOUT", playerData.playerCLOUT);
   localStorage.setItem("playerStatus", playerData.playerStatus);
   MAGPIE_CLIENT.setAuthN(true);
-  router.go("account");
 };
 // #endregion
 //------------------------------------------------------------------------
