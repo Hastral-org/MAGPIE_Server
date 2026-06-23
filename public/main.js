@@ -110,10 +110,14 @@ socket.on("connect", () => {
   localStorage.setItem("hasVisited", true);
   /** @desc {@link router.loginSuccess} */
   const isLoggedIn = localStorage.getItem("playerID");
-  if (isLoggedIn)
+  if (Number(isLoggedIn)) {
+    console.log(
+      `[SOCKET] [am_I_allowed_back_in] [playerID-${isLoggedIn}] found in localStorage`,
+    );
     socket.emit("am_I_allowed_back_in", {
       playerID: isLoggedIn,
     });
+  }
   socket.emit("request_server_keys");
   if (entityID) {
     const entity = document.getElementById("entityID");
@@ -229,12 +233,12 @@ socket.on("subscribed_entity", (entityID) => {
  * @typedef {Number} CLOUT
  * @typedef {Boolean} player_status
  * @typedef {{
- * ID: playerID,
+ * playerID: playerID,
  * username: username,
- * slots: creatureID[],
- * EVP: EVP,
- * CLOUT: CLOUT,
- * status: player_status
+ * playerSlots: creatureID[],
+ * playerEVP: EVP,
+ * playerCLOUT: CLOUT,
+ * playerStatus: player_status
  * }} player_data
  * @typedef {{
  * code: Number,
@@ -276,13 +280,14 @@ socket.on("RESUME_SESSION_FAIL", (data) => {
   router.loginFail(data);
 });
 socket.on("isAllowedBackIn", (data) => {
-  const { playerData, token, server_status } = data;
-  const currentToken = localStorage.getItem("jwt_token");
-  if (currentToken !== token) localStorage.setItem("jwt_token", token);
-  localStorage.setItem("server_status", server_status);
-  const { username, joinedAt } = playerData;
-  localStorage.setItem("username", username);
-  localStorage.setItem("joinedAt", playerData);
+  const handle = `[PLAYER-${data?.playerData?.playerID}]`;
+  console.log(`[SOCKET] [isAllowedBackIn] ${handle}`);
+  router.rehydrateSession(data);
+});
+socket.on("sessionExpired", () => {
+  console.log("[SOCKET] [sessionExpired]. ");
+  MAGPIE_CLIENT.setAuthAll(false);
+  router.go("login");
 });
 // #endregion
 //------------------------------------------------------------------------
@@ -739,6 +744,21 @@ router.logout = function (reason) {
 };
 router.loggedOut = function (data) {
   //@todo loggedOut
+};
+router.rehydrateSession = function (data) {
+  const { token, server_status } = data;
+  /** @type {player_data} */
+  const playerData = data?.playerData;
+  const currentToken = localStorage.getItem("jwt_token");
+  localStorage.setItem("jwt_token", token);
+  localStorage.setItem("server_status", server_status);
+  localStorage.setItem("username", playerData.username);
+  localStorage.setItem("slots", playerData.playerSlots);
+  localStorage.setItem("playerEVP", playerData.playerEVP);
+  localStorage.setItem("playerCLOUT", playerData.playerCLOUT);
+  localStorage.setItem("playerStatus", playerData.playerStatus);
+  MAGPIE_CLIENT.setAuthN(true);
+  router.go("account");
 };
 // #endregion
 //------------------------------------------------------------------------

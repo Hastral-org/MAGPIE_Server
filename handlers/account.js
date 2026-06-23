@@ -94,13 +94,15 @@ account.register = async function (data, server) {
   try {
     if (!data) throw new Error("Invalid socket registration data");
     const { username, password, email } = data;
+    /** @desc [config](../config/server_config.js) */
+    const expiration = server.config.jwtExpire;
     const token = jwt.sign(
       {
         username,
         isRegistrationToken: true,
       },
       server.config.jwtSecret,
-      { expiresIn: server.config.jwtExpire },
+      { expiresIn: expiration },
     );
     const emailHash = crypto.EmailSecurity.hashEmail(data.email);
     const emailEncrypted = crypto.EmailSecurity.encryptEmail(data.email);
@@ -201,6 +203,22 @@ account.processEmailConfirmation = async function (req, res, token, server) {
 //------------------------------------------------------------------------
 /**
  *
+ * @param {MAGPIE_PLAYER} player
+ * @param {MAGPIE_SERVER} server
+ * @returns {String}
+ */
+account.generateToken = function (player, server) {
+  return jwt.sign(
+    {
+      id: player.ID,
+      username: player.username,
+    },
+    server.config.jwtSecret,
+    { expiresIn: server.config.jwtExpire },
+  );
+};
+/**
+ *
  * @param {email} email
  * @param {String} password
  * @param {Object} server
@@ -220,14 +238,7 @@ account.verifyCredentials = async function (email, password, server) {
     server.sysLog(message, "server");
     return { code: code };
   }
-  const token = jwt.sign(
-    {
-      id: player.ID,
-      username: player.username,
-    },
-    server.config.jwtSecret,
-    { expiresIn: server.config.jwtExpire },
-  );
+  const token = account.generateToken(player, server);
   return { player, token, code: http.STATUS_200.code };
 };
 account.authenticateToken = (req, res, server, next) => {
@@ -563,21 +574,29 @@ account.verifySession = async function (playerID, socket, server) {
     /** @type {player_cache} */
     const playerCache = state.get(playerID);
     if (playerCache) {
+      /** @type {MAGPIE_PLAYER} */
+      const player = await server.DATABASE.loadPlayer(playerID);
+      if (!player) {
+        server.sysLog(ePrefix + level + `[${http.STATUS_404.code}]`);
+        return socket.emit("sessionExpired");
+      }
       const success = `${ePrefix}${level}${`resuming session for ${handle}. `}`;
       server.sysLog(success, "console");
-      socket.emit("isAllowedBackIn", {
-        playerData: playerCache,
-        token: socket.data.token,
+      const isOnline = true;
+      return socket.emit("isAllowedBackIn", {
+        /** @type {player_data} */
+        playerData: account.getPlayerData(player, isOnline),
+        token: account.generateToken(player, server),
         server_status: server.meta?.status,
       });
     } else {
       const fail = `${ePrefix}${level}no active sessions for ${handle}.`;
       server.sysLog(fail, "console");
-      socket.emit("sessionTimedOut");
+      socket.emit("sessionExpired");
     }
   } catch (e) {
-    server.error(ePrefix + level + e.message, e);
-    socket.emit("sessionTimedOut");
+    server.sysLog(ePrefix + level + e.message, "error", e);
+    socket.emit("sessionExpired");
   }
 };
 // #endregion
@@ -713,7 +732,13 @@ account.init = function (io, socket, server) {
   socket.on("RESET_PASSWORD_REQUEST", async (data) => {
     await account.requestPasswordReset(data, socket, server);
   });
-  socket.on("am_I_allowed_back_in", async (playerID) => {
+  socket.on("am_I_allowed_back_in", async (data) => {
+    const playerID = Number(data?.playerID);
+    if (!playerID) return;
+    server.sysLog(
+      ePrefix + `[am_I_allowed_back_in] [PLAYER-${playerID}]`,
+      "console",
+    );
     await account.verifySession(playerID, socket, server);
   });
   socket.on("disconnect", async (reason) => {
