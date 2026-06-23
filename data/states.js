@@ -1,6 +1,6 @@
 /**
  * @name states
- * @version 0.39.93
+ * @version 0.39.957
  *
  */
 const { MAGPIE } = require("../src/index");

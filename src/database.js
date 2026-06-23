@@ -944,18 +944,12 @@ MAGPIE_DATABASE.prepareEntity = function prepareEntity(entity) {
 /**
  *
  * @param {[String, ...args]} payload
+ * @returns {Promise<worker_result>}
  */
 MAGPIE_DATABASE._set_relationWorld = async function (payload) {
   const ePrefix = "[DATABASE].setRelation: ";
   try {
-    if (!payload) throw new Error(`${payload} is invalid relation payload. `);
-    const db = MAGPIE_DATABASE.sync.world;
-    const [tableName, args] = payload;
-    const values = Object.values(args);
-    const columns = Object.keys(args);
-    if (!values) throw new Error(`${values} is invalid values. `);
-    if (!columns) throw new Error(`${columns} is invalid columns. `);
-    return await MAGPIE_DATABASE.call("setRow", tableName, values, columns, db);
+    return await MAGPIE_DATABASE.call("setRelationWorld", payload);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
@@ -1524,6 +1518,7 @@ MAGPIE_DATABASE.setup = function setupDatabase() {
       updated: integer,
       compoundID: integerNullable,
       hostID: integerNullable,
+      growth: integerNullable,
       data: blob,
       fk1: "FOREIGN KEY (compoundID) REFERENCES MAGPIE_ENTITY(ID)",
       fk2: "FOREIGN KEY (hostID) REFERENCES MAGPIE_ENTITY(ID)",

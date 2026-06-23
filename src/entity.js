@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.956
+ * @version 0.39.957
  * @desc
  * @param {{
  * name: String,
@@ -356,26 +356,27 @@ MAGPIE_ENTITY.prototype.initialize = function initialize(data) {
   const now = Date.now();
   this._firmware = "MAGPIE_ENTITY";
   /** @type {entityID} */
-  this.ID = now;
+  this.ID = Number(data?.ID) || now;
   this.name = String(data?.name);
   /** @type {entity_type} @desc {@link MAGPIE.KEY.ENTITY.TYPE}*/
   this.type = Number(data?.type || 0);
   /** @type {epoch_real_s} time in s since epoch J2000 */
   this.updated = now;
+  const stats = Array.isArray(data?.STATS) ? data.STATS : 0;
   /** @type {STATS} @desc {@link MAGPIE.KEY.STATS.meta} */
-  this.STATS = new Float64Array(0);
+  this.STATS = new Float64Array(stats);
   /**
    * @type {entity_fitness}
    * @desc {@link MAGPIE.KEY.TRAIT} {@link MAGPIE.KEY.ECG}
    *
    **/
-  this.fitness = [];
+  this.fitness = data?.fitness || [];
   /** @type {expID[]} */
-  this.exps = [];
-  if(this.STATS.length > 0)
-    setTimeout(() => {
-      this.setup(data);
-    }, 1000);
+  this.exps = data?.exps || [];
+  // if(data && data?.STATS)
+  //   setTimeout(() => {
+  //     this.setup(data);
+  //   }, 1000);
 };
 MAGPIE_ENTITY.prototype.isValid = function isValid() {
   return true;
@@ -387,15 +388,22 @@ MAGPIE_ENTITY.prototype._stat_endurance = function _stat_endurance() {
 /**
  *
  * @param {entity_data} data
+ * @returns {Promise<Boolean>}
  */
 MAGPIE_ENTITY.prototype.setup = async function setup(data) {
-  if (this.type < 1) return;
-  this.birth = Number(data?.birth) || 0;
-  this.setupSTATS(data?.STATS);
-  await this.setupParents();
-  await this.setupCompound();
-  await this.setupHost();
-  this.setupFitness(fitness);
+  const ePrefix = `[ENTITY-${this.ID}].setup: `
+  try {
+    if (this.type < 1) return;
+    this.birth = Number(data?.birth) || 0;
+    this.setupSTATS(data?.STATS);
+    await this.setupParents();
+    await this.setupCompound();
+    await this.setupHost();
+    this.setupFitness(fitness);
+    return true
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
 };
 /**
  * @audit-issue git-issue #12
@@ -780,6 +788,20 @@ MAGPIE_ENTITY.prototype._get_growthLevel = function _get_growthLevel() {
   return this.STATS[MAGPIE.KEY.STATS.G_LVL];
 };
 /**
+ * @returns {stateID}
+ */
+MAGPIE_ENTITY.prototype._get_growthState = function getEntityGrowthState() {
+  const states = this._get_states()
+  if(!states) return false
+  /** @type {stateID[]} */
+  const range = Object.values(MAGPIE.KEY.GROWTH).map(e => e[0]);
+  for(const stateID of range) {
+    if(states.includes(stateID))
+      return stateID
+  }
+  return null
+}
+/**
  *
  * @returns {stateID[]}
  */
@@ -916,9 +938,9 @@ MAGPIE_ENTITY.prototype._get_data = function getData() {
     type: this.type,
     name: this.name,
     updated: this.updated,
-    STATS: this.STATS,
-    fitness: this.fitness,
-    exps: this.exps,
+    STATS: Array.from(this.STATS),
+    fitness: Array.from(this.fitness),
+    exps: Array.from(this.exps),
   });
 };
 /**

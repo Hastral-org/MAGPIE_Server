@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.956
+ * @version 0.39.957
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -68,6 +68,7 @@ const { MAGPIE_DATABASE } = require("./src/database");
 const STATES = require("./data/states");
 const COMPONENTS = require("./data/components");
 const EMOTES = require("./data/emotes");
+const { MAGPIE_ECOSYSTEM } = require("./src/ecosystem");
 // MAGPIE.KEY.STATE.TYPE = STATE?.TYPE || {}
 // MAGPIE.KEY.STATE.INDEX = STATE?.INDEX || {}
 const {
@@ -1107,7 +1108,7 @@ MAGPIE_HIVE._new_entity = function (data, dummy) {
 /**
  *
  * @param {String} method
- * @param {*} arguments
+ * @param {[]} arguments
  * @returns {Promise<database_result>}
  */
 MAGPIE_HIVE._set_database = async function _set_database(method, arguments) {

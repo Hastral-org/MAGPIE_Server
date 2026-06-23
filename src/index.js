@@ -23,6 +23,11 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.957 2026 06 23
+ * - ADDED: PLAYER Hub data and creature slots selection
+ * - FIXED: account.login/resume
+ * - FIXED: firewall
+ *
  * @version 0.39.956 2026 06 22
  * - ADDED: entity._U_advanceTime
  * - FIXED: entity._target_next
@@ -547,9 +552,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 956],
+  version: [0, 39, 957],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260622",
+  firmwareDate: "20260623",
 };
 /**
  *
