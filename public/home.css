@@ -92,7 +92,7 @@ body {
     justify-content: space-between; 
 }
 
-.nav-button .inline-button {
+.nav-button {
     background: var(--crt-semidark);
     border: 1px solid var(--crt-bright);
     color: var(--crt-green);
@@ -125,14 +125,19 @@ body {
   padding: 5px 15px;
 }
 
-.inline-button::after {
+.inline-button {
     display: inline-block;
 }
 
 .popup-overlay {
-    position: fixed;
+    position: absolute;
     top: 0;
-    
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 9999;
+    pointer-events:all;
 }
 
 /* #endregion */
@@ -804,3 +809,42 @@ body.logged-in .show-logged-in {
   transition: color 0.3s ease;
 }
 /* #endregion */
+
+/* #region popup */
+
+.popup-overlay {
+    position: "fixed";
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 9999;
+}
+
+.popup-slot {
+    position: absolute;
+    background-color: var(--crt-semidark);
+    padding: 12px;
+    border-radius: 6px;
+    min-width: 200px;
+    color: var(--crt-bright);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid var(--crt-bright)
+}
+
+/* endregion */
+
+/* #region rmmz */
+
+.rpg-icon {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-image: url('./assets/IconSet.png');
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+
+/* #endregion */ 

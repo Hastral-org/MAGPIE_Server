@@ -278,8 +278,10 @@ account.resumeSession = async function (data, socket, server) {
 };
 /** @param {Socket} socket */
 account.joinPrivateRoom = function (socket, playerID) {
-  socket.join(`account:${player.ID}`);
-  server.log();
+  const level = "[joinPrivateRoom] ";
+  const room = `account:${player.ID}`;
+  socket.join(room);
+  server.sysLog(ePrefix + level + `[PLAYER-${playerID}] joined ${room}`);
 };
 /**
  *

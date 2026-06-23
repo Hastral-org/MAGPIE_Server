@@ -46,6 +46,10 @@ MAGPIE_CLIENT.DATA.PLAYER = {};
  */
 MAGPIE_CLIENT.DATA.CURRENT_VIEW = null;
 /**
+ * @desc {@link MAGPIE_CLIENT.UI.meta}
+ */
+MAGPIE_CLIENT.UI = {};
+/**
  * @static
  */
 class MAGPIE_MONITOR {
@@ -475,14 +479,50 @@ router.fillPlayerData = function () {
 };
 router.renderSlotButton = function (slot) {
   const btn = document.createElement("button");
-  btn.textContent = `[CREATURE-${slot}]`;
-  btn.style = "inline-button";
-  btn.onclick = () => router.pop("slot", slot);
+  btn.id = `slot-${slot}`;
+  btn.classList.add("nav-button");
+  const icon = router.renderIcon(MAGPIE_CLIENT.UI.ICON_CREATURE);
+  icon.style.marginRight = "8px";
+  const textLabel = document.createTextNode(`[CREATURE-${slot}]`);
+  btn.appendChild(icon);
+  btn.appendChild(textLabel);
+  btn.onclick = (e) => router.pop("slot", slot, e);
   return btn;
 };
-router.pop = function (popupType, data) {
+/**
+ *
+ * @param {Number} iconIndex
+ * @returns
+ */
+router.renderIcon = function (iconIndex) {
+  const icon = document.createElement("span");
+  icon.classList.add("rpg-icon");
+  const positionStyles = router.getIconStyles(iconIndex);
+  Object.assign(icon.style, positionStyles);
+  return icon;
+};
+/**
+ *
+ * @param {popupType} popupType
+ * @param {creatureID} slot
+ * @param {MouseEvent} event
+ */
+router.pop = function (popupType, slot, event) {
+  const buttonRect = event.currentTarget.getBoundingClientRect();
   const overlay = document.createElement("div");
-  overlay.style = "popup-overlay";
+  overlay.classList.add("popup-overlay");
+  const contentBox = document.createElement("div");
+  contentBox.classList.add(`popup-${popupType}`);
+  contentBox.style.top = `${buttonRect.bottom + window.scrollY + 4}px`;
+  contentBox.style.left = `${buttonRect.left + window.scrollX}px`;
+  contentBox.innerHTML = `
+    <strong>[CREATURE-${slot}]</strong>
+    <p style="margin: 4px 0 0 0;">Type: ${popupType}</p>`;
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+  overlay.appendChild(contentBox);
+  document.body.appendChild(overlay);
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -503,6 +543,25 @@ router.on("adoption", (content, data) => {
   if (!data) return;
   const container = content.querySelector(".store-grid");
 });
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Icons
+//------------------------------------------------------------------------
+router.getIconStyles = function (iconIndex) {
+  const iconSize = 32;
+  const gridWidth = 16;
+  const x = (iconIndex % gridWidth) * iconSize;
+  const y = Math.floor(iconIndex / gridWidth) * iconSize;
+  return {
+    backgroundPosition: `-${x}px -${y}px`,
+  };
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -877,6 +936,69 @@ router.player = function () {
     console.error(e);
   }
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ * @typedef {String} popupType
+ */
+//========================================================================
+// #region - UI
+//========================================================================
+/**
+ *
+ */
+MAGPIE_CLIENT.UI.meta = "";
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Icons
+//------------------------------------------------------------------------
+
+MAGPIE_CLIENT.UI.ICON_DATE = 172;
+MAGPIE_CLIENT.UI.ICON_SHELDEX = 173;
+MAGPIE_CLIENT.UI.ICON_EGG = 235;
+MAGPIE_CLIENT.UI.ICON_SPECIES = 234;
+MAGPIE_CLIENT.UI.ICON_BREED = 237;
+MAGPIE_CLIENT.UI.ICON_GROUP = 250;
+MAGPIE_CLIENT.UI.ICON_CREATURE = 251;
+MAGPIE_CLIENT.UI.ICON_MUTATION = 252;
+MAGPIE_CLIENT.UI.ICON_TRAIT = 253;
+MAGPIE_CLIENT.UI.ICON_MALE = 254;
+MAGPIE_CLIENT.UI.ICON_FEMALE = 255;
+MAGPIE_CLIENT.UI.ICON_PLAYER = 159;
+MAGPIE_CLIENT.UI.ICON_EVOLUTION = 174;
+MAGPIE_CLIENT.UI.ICON_CLOUT = 175;
+MAGPIE_CLIENT.UI.ICON_DAWN = 282;
+MAGPIE_CLIENT.UI.ICON_MORNING = 283;
+MAGPIE_CLIENT.UI.ICON_NOON = 284;
+MAGPIE_CLIENT.UI.ICON_AFTERNOON = 285;
+MAGPIE_CLIENT.UI.ICON_DUSK = 286;
+MAGPIE_CLIENT.UI.ICON_NIGHT = 287;
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Popup
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.UI.POPUP_TYPES = {};
+MAGPIE_CLIENT.UI.POPUP_TYPES.SLOT = "slot";
 // #endregion
 //------------------------------------------------------------------------
 /**
