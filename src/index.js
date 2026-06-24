@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.958 2026 06 24
+ * - FIXED: router.logout not logging out
+ *
  * @version 0.39.957 2026 06 23
  * - ADDED: PLAYER Hub data and creature slots selection
  * - FIXED: account.login/resume
@@ -552,9 +555,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 957],
+  version: [0, 39, 958],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260623",
+  firmwareDate: "20260624",
 };
 /**
  *

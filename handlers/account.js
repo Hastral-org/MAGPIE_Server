@@ -1,7 +1,7 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.39.956
+ * @version 0.39.958
  *
  *
  */
