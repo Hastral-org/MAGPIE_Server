@@ -391,7 +391,7 @@ account.logout = async function (data, socket, server) {
     const state = server.METASTATE.session;
     if (!state.get(playerID)) throw new Error(http.STATUS_401.code);
     state.delete(playerID);
-    server.sysLog(`${ePrefix} [PLAYER-${data?.username}] logging out. `);
+    server.sysLog(`${ePrefix} [PLAYER-${playerID}] logging out. `);
     socket.emit("LOGGED_OUT", { code: http.STATUS_205.code });
   } catch (e) {
     server.sysLog(ePrefix + level + e.message, "error", e);

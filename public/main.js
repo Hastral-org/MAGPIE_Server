@@ -835,10 +835,14 @@ router.isLoggedIn = function (data) {
 };
 router.logout = function (reason) {
   //@todo router.logout
-  socket.emit("LOGOUT", reason);
+  const playerID = localStorage.getItem("playerID");
+  console.log(`[SOCKET] [logout] [PLAYER-${playerID}]: ${reason}`);
+  socket.emit("LOGOUT", { reason, playerID });
 };
 router.loggedOut = function (data) {
   //@todo loggedOut
+  MAGPIE_CLIENT.setAuthAll(false);
+  router.go("home");
 };
 router.rehydrateSession = function (data) {
   const { token, server_status } = data;
