@@ -115,10 +115,6 @@ socket.on("connect", () => {
     `%c Connected to server! ID: ${socket.id}`,
     "color: green; font-weight: bold;",
   );
-  console.log(
-    "[DEBUG] Socket connected. Transport:",
-    socket.io.engine.transport.name,
-  );
   const entityID = MAGPIE_CLIENT.params.get("entityID");
   const hasVisited = localStorage.getItem("hasVisited");
   if (!hasVisited) socket.emit("new_visit");
@@ -821,7 +817,7 @@ router.loggingIn = function (data) {
   const prefix = `[ROUTER] logging in`;
   const productionString = "...";
   const debugString = ` as: \n[USER-${data?.email}]\n[PASS-${data?.password}]\n[DEBUG] ⧖`;
-  MAGPIE_CLIENT._log(prefix, debugString, debugString);
+  MAGPIE_CLIENT._log(prefix, productionString, debugString);
 };
 /**
  *@desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
