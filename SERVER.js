@@ -287,13 +287,7 @@ MAGPIE_SERVER.handlers = {
 // #region > App
 //------------------------------------------------------------------------
 const app = express();
-const server = createServer(
-  {
-    key: fs.readFileSync("./shelderevolution.org.key.pem"),
-    cert: fs.readFileSync("./shelderevolution.org.pem"),
-  },
-  app,
-);
+const server = createServer(app);
 MAGPIE_SERVER.SOCKET.io = "Server";
 const io = new Server(server, {
   //@audit-ok cors configs
@@ -1964,9 +1958,9 @@ MAGPIE_SERVER.NODE_HTTP = {};
 //------------------------------------------------------------------------
 MAGPIE_SERVER.BOOT.connect = async function serverConnect() {
   const S = MAGPIE.KEY.SERVER;
-  MAGPIE_SERVER.NODE_HTTP = server.listen(2053, "0.0.0.0", () => {
+  MAGPIE_SERVER.NODE_HTTP = server.listen(S.PORT, "0.0.0.0", () => {
     const domain = `${MAGPIE.KEY.SERVER.DOMAIN}`;
-    const message = `${S.MESSAGE.BOOTED}${domain} (Listening on All Interfaces via Port 2053)...`;
+    const message = `${S.MESSAGE.BOOTED}${domain}...`;
     MAGPIE_SERVER.log(message);
   });
   // MAGPIE_SERVER.CLI._incrementLoadBar(20);
