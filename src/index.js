@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.959 2026 06 25
+ * - FIXED: [SE_CLI](../../ShelderEvo/js/app/cli.js)
+ *
  * @version 0.39.958 2026 06 24
  * - FIXED: router.logout not logging out
  *
@@ -555,9 +558,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 958],
+  version: [0, 39, 959],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260624",
+  firmwareDate: "20260625",
 };
 /**
  *
@@ -1438,19 +1441,6 @@ MAGPIE.KEY.HTTP.STATUS_410 = {
     "and will not return.",
 };
 /**
- * @desc Internal Server Error
- * @desc An HTTP 500 status code (Internal Server Error) indicates
- * that the server encountered an unexpected condition that prevented
- * it from fulfilling the request.
- */
-MAGPIE.KEY.HTTP.STATUS_500 = {
-  code: 500,
-  message: "Internal Server Error",
-  desc: `An HTTP 500 status code (Internal Server Error) indicates 
-  that the server encountered an unexpected condition that prevented 
-  it from fulfilling the request.`,
-};
-/**
  * @desc "too many requests"
  * @desc The HTTP 429 "Too Many Requests" status code indicates the user
  * has sent too many requests to a server within a given timeframe,
@@ -1469,6 +1459,19 @@ MAGPIE.KEY.HTTP.STATUS_429 = {
     "from abuse, such as DDoS attacks, scrapers, or excessive bot activity. " +
     "It is commonly resolved by waiting, reducing request frequency, " +
     "or checking API limits.",
+};
+/**
+ * @desc Internal Server Error
+ * @desc An HTTP 500 status code (Internal Server Error) indicates
+ * that the server encountered an unexpected condition that prevented
+ * it from fulfilling the request.
+ */
+MAGPIE.KEY.HTTP.STATUS_500 = {
+  code: 500,
+  message: "Internal Server Error",
+  desc: `An HTTP 500 status code (Internal Server Error) indicates 
+  that the server encountered an unexpected condition that prevented 
+  it from fulfilling the request.`,
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -2564,6 +2567,8 @@ MAGPIE.KEY.SYMBOL.TYPE.SPECIES = 11;
 MAGPIE.KEY.SYMBOL.TYPE.PLAYER = 12;
 /** @type {symbol_type} */
 MAGPIE.KEY.SYMBOL.TYPE.MARKER = 13;
+/** @type {symbol_type} */
+MAGPIE.KEY.SYMBOL.TYPE.ARCHETYPE = 14;
 MAGPIE.KEY.SYMBOL.INDEX = {};
 // #endregion
 //------------------------------------------------------------------------
