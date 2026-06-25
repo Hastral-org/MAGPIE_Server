@@ -312,8 +312,11 @@ instrument(io, {
 });
 app.use((req, res, next) => {
   // @audit-ok [HTTP REQUEST] debug logging
+  const allowedHost = "shelderevolution.org";
+  const incomingHost = req.headers.host || "";
   MAGPIE_SERVER.log(`[HTTP REQUEST] ${req.method} ${req.url}`);
-  next();
+  if (incomingHost.includes(allowedHost)) next();
+  return res.status(MAGPIE.KEY.HTTP.STATUS_444.code).destroy();
 });
 const accountRouter = require("./handlers/account").router;
 app.use((req, res, next) => {

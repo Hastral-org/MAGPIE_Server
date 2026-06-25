@@ -1461,6 +1461,20 @@ MAGPIE.KEY.HTTP.STATUS_429 = {
     "or checking API limits.",
 };
 /**
+ * @desc No response
+ * @desc The 444 No Response status code is an nginx directive causing the
+ * server to close the HTTP Connection without sending any data, including
+ * the status code itself.
+ */
+MAGPIE.KEY.HTTP.STATUS_444 = {
+  code: 444,
+  message: "No response",
+  desc:
+    "The 444 No Response status code is an nginx directive causing " +
+    "the server to close the HTTP Connection without sending any data, " +
+    "including the status code itself.",
+};
+/**
  * @desc Internal Server Error
  * @desc An HTTP 500 status code (Internal Server Error) indicates
  * that the server encountered an unexpected condition that prevented
