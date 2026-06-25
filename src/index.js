@@ -23,8 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.959 2026 06 25
+ * @version 0.39.960 2026 06 25
  * - FIXED: [SE_CLI](../../ShelderEvo/js/app/cli.js)
+ * - FIXED: HTTP security layer
  *
  * @version 0.39.958 2026 06 24
  * - FIXED: router.logout not logging out
@@ -558,7 +559,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 959],
+  version: [0, 39, 960],
   firmwareName: "MAGPIE",
   firmwareDate: "20260625",
 };
