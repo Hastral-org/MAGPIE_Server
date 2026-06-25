@@ -1958,9 +1958,9 @@ MAGPIE_SERVER.NODE_HTTP = {};
 //------------------------------------------------------------------------
 MAGPIE_SERVER.BOOT.connect = async function serverConnect() {
   const S = MAGPIE.KEY.SERVER;
-  MAGPIE_SERVER.NODE_HTTP = server.listen(S.PORT, "0.0.0.0", () => {
+  MAGPIE_SERVER.NODE_HTTP = server.listen(S.PORT, "127.0.0.1", () => {
     const domain = `${MAGPIE.KEY.SERVER.DOMAIN}`;
-    const message = `${S.MESSAGE.BOOTED}${domain}...`;
+    const message = `${S.MESSAGE.BOOTED}${domain} (Locked to Localhost Loopback)...`;
     MAGPIE_SERVER.log(message);
   });
   // MAGPIE_SERVER.CLI._incrementLoadBar(20);
