@@ -313,10 +313,13 @@ instrument(io, {
 app.use((req, res, next) => {
   // @audit-ok [HTTP REQUEST] debug logging
   const allowedHost = "shelderevolution.org";
-  const incomingHost = req.headers.host || "";
-  MAGPIE_SERVER.log(`[HTTP REQUEST] ${req.method} ${req.url}`);
-  if (incomingHost.includes(allowedHost)) next();
-  return res.status(MAGPIE.KEY.HTTP.STATUS_444.code).destroy();
+  const incomingHost = req?.headers?.host || "";
+  const request = `${req.method} ${req.url}`;
+  MAGPIE_SERVER.log(`[HTTP] ${request} | ${incomingHost}`, "server", true);
+  // if (incomingHost.includes(allowedHost))
+  const code = MAGPIE.KEY.HTTP.STATUS_444.code;
+  next();
+  // return res.status(code).destroy();
 });
 const accountRouter = require("./handlers/account").router;
 app.use((req, res, next) => {
