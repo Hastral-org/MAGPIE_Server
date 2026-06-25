@@ -312,14 +312,16 @@ instrument(io, {
 });
 app.use((req, res, next) => {
   // @audit-ok [HTTP REQUEST] debug logging
-  const allowedHost = "shelderevolution.org";
+  const allowedHost = MAGPIE.KEY.SERVER.DOMAIN.split("://")[1];
   const incomingHost = req?.headers?.host || "";
   const request = `${req.method} ${req.url}`;
-  MAGPIE_SERVER.log(`[HTTP] ${request} | ${incomingHost}`, "server", true);
-  // if (incomingHost.includes(allowedHost))
+  const allowed = allowedHost === incomingHost;
+  const message = `[HTTP] ${request} | ${allowed ? "✅" : "⚠️"}: ${incomingHost}`;
+  MAGPIE_SERVER.log(message, "server", true);
+  if (allowed) return next();
   const code = MAGPIE.KEY.HTTP.STATUS_444.code;
-  next();
-  // return res.status(code).destroy();
+  // console.warn(`allowed: ${allowed}⚠️`);
+  return res.status(code).destroy();
 });
 const accountRouter = require("./handlers/account").router;
 app.use((req, res, next) => {
