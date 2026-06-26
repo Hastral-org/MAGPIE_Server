@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.956
+ * @version 0.39.962
  */
 //========================================================================
 // #region - INDEX
@@ -243,8 +243,6 @@ MAGPIE_SYMBOL.meta = "";
  * type: symbol_type,
  * name: String,
  * desc: String,
- * requirementID: symbolID,
- * compoundID: symbolID,
  * STATS: Float64Array
  * }} symbol_data
  * @param {symbol_data} data
@@ -259,9 +257,22 @@ MAGPIE_SYMBOL.prototype.initialize = function initialize(data) {
   const reqs = K.REQUIREMENTS;
   const comps = K.COMPOUNDS;
   const stats = K.STATS;
+  /** @type {Float64Array} */
   this.STATS = new Float64Array(data?.STATS || [reqs, comps, stats]);
 };
-
+/**
+ *
+ * @returns {symbol_data}
+ */
+MAGPIE_SYMBOL.prototype._get_data = function () {
+  return {
+    ID: this.ID,
+    type: this.type,
+    name: this.name,
+    desc: this.desc,
+    STATS: Array.from(this.STATS),
+  };
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -440,6 +451,15 @@ MAGPIE_SYMBOL.prototype.getKeys = function getKeys() {
 MAGPIE_SYMBOL.prototype._get_keyID = function getKeyID(keyID) {
   const index = this.STATS.indexOf(keyID);
   if (index % 2 !== 0) return;
+  return this.STATS[index + 1];
+};
+/**
+ *
+ * @param {keyID} statID
+ * @returns {STAT}
+ */
+MAGPIE_SYMBOL.prototype._get_STATbyID = function getSymbolSTATbyID(statID) {
+  const index = this.STATS.indexOf(statID);
   return this.STATS[index + 1];
 };
 // #endregion
@@ -764,6 +784,17 @@ MAGPIE_SYMBOL.prototype._species_EVP_cost = function () {
   const index = this.STATS.indexOf(MAGPIE.KEY.INDEX.EVP);
   return this.STATS[index + 1];
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region >
+//------------------------------------------------------------------------
+
 // #endregion
 //------------------------------------------------------------------------
 /**

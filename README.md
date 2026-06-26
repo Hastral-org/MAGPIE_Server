@@ -236,7 +236,7 @@ The base interaction in the game is the **ACTION**, with its alternative of inac
 
 ### Lore themes and the meta-narrative
 
-The base goal of the game is the acquisition of **EVOLUTION POINTS (EVP)**, which are necessary for meta-interactions, chief among them being adoption:
+The base goal of the game is the acquisition of **EVOLUTION POINTS (EVP)**, which are necessary for meta-interactions, chief among them being adoption[^adoption]:
 
 - Adopting creatures costs EVP. Unless the cost is 0 (like for 'starter species'), you pay in evolution points, effectively treating them as meta-currency.
 - EVP can also be invested to develop exotic traits and hack evolution.
@@ -418,5 +418,7 @@ Thus, a rivalry forms between the majority of the digital minds (the pro-tech/an
 [^metastate]: METASTATE is a server component that handles the current server session data, like the gamedate, the state of server events, and the register of active entities a.k.a. `hive._registry`.
 
 [^affinity]: AFFINITY //@todo affinity
+
+[^adoption]: [adoption](./.private/docs/spec/adoption.md)
 
 ---

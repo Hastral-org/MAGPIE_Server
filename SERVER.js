@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.961
+ * @version 0.39.962
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {

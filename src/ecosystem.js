@@ -2,7 +2,7 @@
  *
  * @name ecosystem
  * @author Matheraptor
- * @version 0.39.957
+ * @version 0.39.962
  *
  */
 class MAGPIE_ECOSYSTEM {
@@ -70,6 +70,47 @@ function newCreature(server, creature_data) {
 // #endregion
 //------------------------------------------------------------------------
 /**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Population
+//------------------------------------------------------------------------
+
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Adoption
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {entityID} speciesID
+ * @returns {MAGPIE_ENTITY[]}
+ */
+MAGPIE_ECOSYSTEM._get_activeEmbryos = function (server, speciesID) {
+  const level = "[_get_activeEmbryos] ";
+  try {
+    const db = server.DATABASE.sync.world;
+    const criteria = {
+      type: speciesID,
+      growth: MAGPIE.KEY.STATE.EMBRYO,
+    };
+    return server.DATABASE.sync.getRow("MAGPIE_ENTITY", criteria, db);
+  } catch (e) {
+    error(server, e);
+    return [];
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -82,11 +123,86 @@ function newCreature(server, creature_data) {
  * @desc
  * @typedef {import("../SERVER").MAGPIE_SERVER} MAGPIE_SERVER
  * @typedef {import("./entity").MAGPIE_ENTITY} MAGPIE_ENTITY
+ * @typedef {import("./component").MAGPIE_SYMBOL} MAGPIE_SYMBOL
+ * @typedef {import("./component").symbolID} symbolID
+ * @typedef {import("./entity").entityID} entityID
  * @typedef {import("./entity").entity_data} creature_data
+ * @typedef {import("./component").symbol_data} archetype_data
  */
 //========================================================================
 // #region - GENERATOR
 //========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Symbol
+//------------------------------------------------------------------------
+/**
+ *
+ * @returns {archetype_data}
+ */
+MAGPIE_ECOSYSTEM._generateArchetypeData = function () {
+  const K = MAGPIE.KEY.INDEX;
+  const reqs = K.REQUIREMENTS;
+  const comps = K.COMPOUNDS;
+  const stats = K.STATS;
+  return {
+    ID: NaN,
+    type: NaN,
+    name: "",
+    desc: "",
+    STATS: [reqs, comps, stats],
+  };
+};
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {archetype_data} data
+ */
+MAGPIE_ECOSYSTEM.generateArchetype = async function (server, data) {
+  const level = "[generateArchetype] ";
+  try {
+    /** @type {MAGPIE_SYMBOL} */
+    const archetype = server.HIVE._new_symbol(server.MAGPIE_SYMBOL, data);
+    if (!archetype?.ID)
+      throw new Error(`${archetype} is invalid MAGPIE_SYMBOL`);
+    const result = await archetype.set();
+    if (!result) throw new Error(`unable to save [ARCHETYPE-${archetype.ID}. `);
+  } catch (e) {
+    error(server, e);
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Species
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {MAGPIE_SYMBOL} aType
+ * @param {symbolID[]} mutations
+ */
+MAGPIE_ECOSYSTEM.generateSpecies = async function (server, aType, mutations) {
+  const level = "[generateSpecies] ";
+  try {
+    if (!server?.meta.firmwareName) throw new Error(`invalid server callback`);
+    if (!aType?._firmware) throw new Error("invalid archetype");
+    if (!mutations) mutations = [];
+  } catch (e) {
+    error(server, e);
+  }
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  * @name
  * @desc

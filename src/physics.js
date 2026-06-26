@@ -1,7 +1,7 @@
 /**
  * @name
  * @desc
- * @version 0.39.956
+ * @version 0.39.962
  *
  */
 //========================================================================
@@ -812,7 +812,8 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
     const dR = this.rotorApply(O0_inv, dR_global);
     // const dR = this._getDeltaR_euler(O0, Ot, P0)	const dR = this._getDeltaR(dO);
     const dRmag = this.mag(dR);
-    const pR = this._getATpR(dRmag, V0, R0, getAt.Vstate, options);
+    /** @todo .getATpR */
+    const pR = this._U_clampRange(this._getATpR(dRmag, V0, R0, getAt.Vstate, options), 0.1, 0.9);
     options.pR = pR;
     const getTt = this._getTt(dR, R0, O0, options);
     options.state = pR > 0.5 ? getAt.Vstate : getTt.Rstate;

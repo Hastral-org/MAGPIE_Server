@@ -23,7 +23,7 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.961 2026 06 26
+ * @version 0.39.962 2026 06 26
  * - FIXED: client.playerData
  *
  * @version 0.39.960 2026 06 25
@@ -562,7 +562,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 961],
+  version: [0, 39, 962],
   firmwareName: "MAGPIE",
   firmwareDate: "20260626",
 };
@@ -1565,6 +1565,7 @@ MAGPIE.KEY.SERVER.MESSAGE.BOOTED = "SERVER ONLINE listening on: ";
 MAGPIE.KEY.SERVER.MESSAGE.INTERNAL_ERROR = `<h1>Internal server error</h1>
     <p>Please, try again later.</p>
     <p>If you see this persist for over 1 hour, please, report it to [${MAGPIE.KEY.SERVER.ADMIN_EMAIL}].</p>`;
+MAGPIE.KEY.SERVER.MESSAGE.INVALID_CREDENTIALS = "<h1>Invalid credentials</h1>";
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -2778,6 +2779,7 @@ MAGPIE.KEY.EMOTE.INDEX = {};
 MAGPIE.KEY.EMOTE.INDEX.meta = "index of all emotes";
 MAGPIE.KEY.EMOTE.INDEX.SEEK_TARGET = 302;
 MAGPIE.KEY.EMOTE.INDEX.SCHEDULE = 310;
+MAGPIE.KEY.EMOTE.INDEX.EVAL_KEY = 311;
 // #endregion
 //------------------------------------------------------------------------
 /**

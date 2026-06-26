@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.957
+ * @version 0.39.962
  * @desc
  * @param {{
  * name: String,
@@ -2204,6 +2204,17 @@ MAGPIE_ENTITY.prototype._container_get_resources = function () {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name 
+ * @desc 
+ * 
+ */
+//------------------------------------------------------------------------
+// #region > Generation
+//------------------------------------------------------------------------
+// @todo entity.inheritTraits MAGPIE_ENTITY.prototype.
 // #endregion
 //------------------------------------------------------------------------
 /**

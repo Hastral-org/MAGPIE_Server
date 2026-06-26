@@ -719,7 +719,6 @@ account.init = function (io, socket, server) {
       );
       if (!result) throw new Error(http.STATUS_500.code);
       const success = result?.success;
-      const token = result?.token;
       const playerID = result?.playerID;
       if (!success || !token || !playerID)
         throw new Error(http.STATUS_401.code);
