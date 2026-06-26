@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Client
  * @author Matheraptor
  * @licence GPL-3.0
- * @version 0.39.958
+ * @version 0.39.961
  *
  */
 class MAGPIE_CLIENT {
@@ -29,6 +29,10 @@ MAGPIE_CLIENT.isProduction = true;
  * @desc {@link MAGPIE_CLIENT.ACCOUNT.meta}
  */
 MAGPIE_CLIENT.ACCOUNT = {};
+/**
+ * @desc {@link MAGPIE_CLIENT.ACCOUNT.REGISTER.meta}
+ */
+MAGPIE_CLIENT.ACCOUNT.REGISTER = {};
 /**
  * @typedef {String} clientView
  */
@@ -67,13 +71,40 @@ class KEY {
 /**
  * @name
  * @desc
- *
+ * @typedef {Number} playerID
+ * @typedef {String} username
+ * @typedef {Number} creatureID
+ * @typedef {Number} EVP
+ * @typedef {Number} CLOUT
+ * @typedef {Boolean} player_status
+ * @typedef {import("../handlers/account").playerRole} playerRole
+ * @typedef {{
+ * playerID: playerID,
+ * username: username,
+ * playerSlots: creatureID[],
+ * playerRole: playerRole,
+ * playerEVP: EVP,
+ * playerCLOUT: CLOUT,
+ * playerStatus: player_status
+ * }} player_data
+ * @typedef {{
+ * code: Number,
+ * message: String,
+ * serverStatus: String,
+ * playerData: player_data,
+ * token: String
+ * }} login_data
  */
 //========================================================================
 // #region - KEY
 //========================================================================
+/**
+ *
+ */
 KEY.PRINT = {};
 KEY.PRINT.NA = "n/a";
+KEY.SERVER_ON = "✅ RUNNING";
+KEY.SERVER_OFF = "⚠️ NOT RESPONDING";
 /**
  *
  * @desc back to {@link }
@@ -154,6 +185,10 @@ socket.on("connect_error", (err) => {
     localStorage.removeItem("username");
     router.go("login");
   }
+});
+socket.on("disconnect", (reason) => {
+  console.log(`[SOCKET] [disconnect] ${reason}`);
+  localStorage.setItem("serverStatus", KEY.SERVER_OFF);
 });
 
 // #endregion
@@ -236,28 +271,39 @@ socket.on("subscribed_entity", (entityID) => {
 //------------------------------------------------------------------------
 /**
  * @name
+ * @desc {@link router.probeUsername}
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Register
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.ACCOUNT.REGISTER.meta = "";
+socket.on("PROBE_USERNAME_AVAILABLE", () => {
+  const usernameInput = MAGPIE_CLIENT.UI.usernameInput();
+  const usernameFeedback = MAGPIE_CLIENT.UI.usernameFeedback();
+  const registerSubmit = MAGPIE_CLIENT.UI.registerSubmit();
+  registerSubmit.disabled = false;
+  usernameFeedback.textContent = "✅ Username is available!";
+  usernameFeedback.className = "feedback-text success";
+  usernameInput.classList.remove("input-error");
+  usernameInput.classList.add("input-success");
+});
+socket.on("PROBE_USERNAME_UNAVAILABLE", () => {
+  const usernameInput = MAGPIE_CLIENT.UI.usernameInput();
+  const usernameFeedback = MAGPIE_CLIENT.UI.usernameFeedback();
+  const registerSubmit = MAGPIE_CLIENT.UI.registerSubmit();
+  usernameFeedback.textContent = "⚠️ Username is unavailable.";
+  usernameFeedback.className = "feedback-text error";
+  usernameInput.classList.remove("input-success");
+  usernameInput.classList.add("input-error");
+  registerSubmit.disabled = true;
+});
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
  * @desc
- * @typedef {Number} playerID
- * @typedef {String} username
- * @typedef {Number} creatureID
- * @typedef {Number} EVP
- * @typedef {Number} CLOUT
- * @typedef {Boolean} player_status
- * @typedef {{
- * playerID: playerID,
- * username: username,
- * playerSlots: creatureID[],
- * playerEVP: EVP,
- * playerCLOUT: CLOUT,
- * playerStatus: player_status
- * }} player_data
- * @typedef {{
- * code: Number,
- * message: String,
- * serverStatus: String,
- * playerData: player_data,
- * token: String
- * }} login_data
+ *
  */
 //------------------------------------------------------------------------
 // #region > Account
@@ -445,14 +491,16 @@ router.go = function routerGo(view, serverData = null) {
 };
 router.fillPlayerData = function () {
   const playerID = document.getElementById("playerID");
-  const username = document.getElementById("username");
-  const slots = document.getElementById("slots");
-  const EVP = document.getElementById("EVP");
-  const CLOUT = document.getElementById("CLOUT");
+  const username = document.getElementById("playerUsername");
+  const role = document.getElementById("playerRole");
+  const slots = document.getElementById("playerSlots");
+  const EVP = document.getElementById("playerEVP");
+  const CLOUT = document.getElementById("playerCLOUT");
   const status = document.getElementById("playerStatus");
-  const server_status = document.getElementById("server_status");
+  const serverStatus = document.getElementById("serverStatus");
   if (playerID) playerID.textContent = localStorage.getItem("playerID");
-  if (username) username.textContent = localStorage.getItem("username");
+  if (username) username.textContent = localStorage.getItem("playerUsername");
+  if (role) role.textContent = localStorage.getItem("playerRole");
   if (slots) {
     slots.textContent = "";
     const playerSlots = localStorage.getItem("playerSlots");
@@ -470,8 +518,8 @@ router.fillPlayerData = function () {
     const playerStatus = localStorage.getItem("playerStatus");
     status.textContent = playerStatus ? "ONLINE" : "OFFLINE";
   }
-  if (server_status)
-    server_status.textContent = localStorage.getItem("server_status");
+  if (serverStatus)
+    serverStatus.textContent = localStorage.getItem("serverStatus");
 };
 router.renderSlotButton = function (slot) {
   const btn = document.createElement("button");
@@ -845,21 +893,32 @@ router.loggedOut = function (data) {
   router.go("home");
 };
 router.rehydrateSession = function (data) {
-  const { token, server_status } = data;
+  const { token } = data;
+  localStorage.setItem("jwt_token", token);
+  const view = sessionStorage.getItem("view");
+  router.rehydratePlayerData(data);
+  MAGPIE_CLIENT.setAuthN(true);
+  if (view) router.go(view);
+};
+/**
+ *
+ * @param {{
+ * playerData: player_data
+ * }} data
+ */
+router.rehydratePlayerData = function (data) {
   /** @type {player_data} */
   const playerData = data?.playerData;
-  const currentToken = localStorage.getItem("jwt_token");
+  const serverStatus = playerData ? KEY.SERVER_ON : KEY.SERVER_OFF;
   localStorage.setItem("playerID", playerData.playerID);
-  localStorage.setItem("jwt_token", token);
-  localStorage.setItem("server_status", server_status);
+  localStorage.setItem("serverStatus", serverStatus);
   localStorage.setItem("username", playerData.username);
   localStorage.setItem("slots", playerData.playerSlots);
+  localStorage.setItem("playerRole", playerData.playerRole);
   localStorage.setItem("playerEVP", playerData.playerEVP);
   localStorage.setItem("playerCLOUT", playerData.playerCLOUT);
   localStorage.setItem("playerStatus", playerData.playerStatus);
-  const view = sessionStorage.getItem("view");
-  MAGPIE_CLIENT.setAuthN(true);
-  if (view) router.go(view);
+  console.log("[ROUTER] [rehydratePlayerData]: 200");
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -887,8 +946,33 @@ router.register = function () {
       document.getElementById("register-password-confirm").value = "";
       console.log(ePrefix + "inputs reset. ");
     }, 500);
+    const usernameInput = document.getElementById("register-username");
+    usernameInput.addEventListener(
+      "input",
+      debounce((e) => {
+        router.probeUsername(e.target.value.trim());
+      }, 500),
+    );
   } catch (e) {
     console.error(ePrefix + e.message, e);
+  }
+};
+/**
+ * @desc {@link MAGPIE_CLIENT.ACCOUNT.REGISTER.meta}
+ * @param {String} username
+ */
+router.probeUsername = function (username) {
+  console.log(`[ROUTER] [probeUsername]: [${username}]...`);
+  const usernameInput = document.getElementById("register-username");
+  const feedback = document.getElementById("username-feedback");
+  if (usernameInput.value.length >= 4) {
+    feedback.textContent = "Checking availability...";
+    feedback.className = "feedback-text checking";
+    socket.emit("PROBE_USERNAME", { username });
+  } else {
+    feedback.textContent = "⚠️ username too short!";
+    feedback.className = "feedback-text error";
+    MAGPIE_CLIENT.UI.registerSubmit().disabled = true;
   }
 };
 router.registerSubmit = async function (event) {
@@ -935,6 +1019,34 @@ router.player = function () {
   } catch (e) {
     console.error(e);
   }
+};
+router.syncPlayer = async function () {
+  const ePrefix = "[ROUTER] [syncPlayer] ";
+  const playerID = localStorage.getItem("playerID");
+  if (!playerID)
+    return console.warn(`${ePrefix}${playerID} is invalid playerID. `);
+  socket.emit("please, sync my data", { playerID });
+  console.log(
+    `[SOCKET] [syncPlayer]: [please, sync my data] [PLAYER-${playerID}]`,
+  );
+  return new Promise((resolve, reject) => {
+    socket.on("player_sync", (data) => {
+      console.log(`[SOCKET] [player_sync] [${data?.code}]`);
+      /** @type {player_data} */
+      const playerData = data?.playerData;
+      if (!playerData?.playerID) return;
+      router.rehydratePlayerData(data);
+      router.fillPlayerData();
+    });
+    socket.on("player_sync_error", (data) => {
+      console.error(ePrefix);
+      const status = document.getElementById("playerStatus");
+      status.textContent = `[${data?.code}] ERROR`;
+    });
+  });
+};
+router.refreshPlayerHub = async function () {
+  await router.syncPlayer();
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -1002,6 +1114,22 @@ MAGPIE_CLIENT.UI.POPUP_TYPES.SLOT = "slot";
 // #endregion
 //------------------------------------------------------------------------
 /**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > HTML
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.UI.usernameFeedback = () =>
+  document.getElementById("username-feedback");
+MAGPIE_CLIENT.UI.usernameInput = () =>
+  document.getElementById("register-username");
+MAGPIE_CLIENT.UI.registerSubmit = () =>
+  document.getElementById("register-submit");
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -1030,6 +1158,31 @@ MAGPIE_CLIENT._log = function (message, productionString, debugString) {
   const suffix = MAGPIE_CLIENT.isProduction ? productionString : debugString;
   console.log(message + suffix);
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Throttling
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {Function} func
+ * @param {Number} delay in ms
+ * @returns
+ */
+function debounce(func, delay) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(null, args);
+    }, delay);
+  };
+}
 // #endregion
 //------------------------------------------------------------------------
 /**

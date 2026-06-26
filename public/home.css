@@ -1,10 +1,11 @@
-/* public/cli/cli.css version 0.39.956 */
+/* public/cli/cli.css version 0.39.961 */
 
 /* #region defaults */
 :root {
     --crt-green: #33ff33;
     --crt-bright: #00ff00;
     --crt-red: #ff0000;
+    --crt-orange: #ff9900;
     --crt-select: #146114;
     --crt-dark: #002104;
     --crt-semidark: #18441d;
@@ -116,7 +117,7 @@ body {
     background: var(--crt-select);
 }
 
-.nav-button-inactive {
+.nav-button-inactive, .nav-button:disabled {
   background: var(--crt-dark);
   border: 1px solid var(--crt-select);
   color: var(--crt-green);
@@ -509,6 +510,31 @@ body {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+.feedback-text {
+    display: block;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.input-success {
+    border-color: var(--crt-green);
+}
+
+.input-error {
+    border-color: var(--crt-red);
+}
+
+.success {
+    color: var(--crt-green);
+}
+
+.error {
+    color: var(--crt-red);
+}
+
+.checking {
+    color: var(--crt-orange);
+}
 /* #login-email-div, #login-password-div, #login-submit, #login-register {
     justify-self: center;
     font-size: 1.2rem !important;

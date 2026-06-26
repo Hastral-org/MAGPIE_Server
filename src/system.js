@@ -1469,7 +1469,8 @@ MAGPIE_HIVE.meta.desc = "";
  * @typedef {import("./index").keyID} keyID
  * @typedef {import("./component").symbolID} symbolID
  * @typedef {Number} contextID
- * @typedef {import("./core/entity").entity_data} entity_data
+ * @typedef {import("./entity").entity_data} entity_data
+ * @typedef {import("./component").symbol_data} symbol_data
  * @typedef {{
  * registry: hive_registry,
  * exps: expID[],
@@ -1610,6 +1611,22 @@ MAGPIE_HIVE._set_new_entity = async function newEntity(data) {
 MAGPIE_HIVE._new_entity = function (data, dummy = true) {
   //
 };
+/**
+ * 
+ * @param {MAGPIE_SYMBOL} constructor 
+ * @param {symbol_data} data 
+ * @returns {MAGPIE_SYMBOL}
+ */
+MAGPIE_HIVE._new_symbol = function(constructor, data) {
+  const ePrefix = "[HIVE].newSymbol: ";
+  try {
+    if(!constructor || constructor?.meta.firmwareName !== "MAGPIE_SYMBOL")
+      throw new Error("invalid constructor")
+    return new constructor(data); 
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 /**
  *
  * @param {String} method
@@ -2550,6 +2567,19 @@ MAGPIE_HIVE._entity_exists = function(entityID) {
   const entity = MAGPIE_HIVE._get_databaseSync("getWorldRow", ["MAGPIE_ENTITY", entityID])
   if(!entity) return false;
   return true
+}
+/**
+ * 
+ * @param {entity_data} criteria 
+ */
+MAGPIE_HIVE._get_all_entities = function(criteria) {
+  const ePrefix = "[HIVE]._get_all_entities: ";
+  try {
+    const pool = [];
+    //@todo HIVE._get_all_entities(criteria)   
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
 }
 // #endregion
 //------------------------------------------------------------------------

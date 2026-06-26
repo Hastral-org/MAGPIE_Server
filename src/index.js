@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.961 2026 06 26
+ * - FIXED: client.playerData
+ *
  * @version 0.39.960 2026 06 25
  * - FIXED: [SE_CLI](../../ShelderEvo/js/app/cli.js)
  * - FIXED: HTTP security layer
@@ -559,9 +562,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 960],
+  version: [0, 39, 961],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260625",
+  firmwareDate: "20260626",
 };
 /**
  *
@@ -1410,6 +1413,24 @@ MAGPIE.KEY.HTTP.STATUS_404 = {
     "The server can’t find the resource. " +
     "Often because a browser is requesting an incorrect URL or " +
     "the content no longer exists.",
+};
+/**
+ * @desc [Not Acceptable](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/406)
+ * @desc The HTTP 406 Not Acceptable client error response status code
+ * indicates that the server could not produce a response matching the
+ * list of acceptable values defined in the request's proactive content
+ * negotiation headers and that the server was unwilling to supply a
+ * default representation.
+ */
+MAGPIE.KEY.HTTP.STATUS_406 = {
+  code: 406,
+  message: "Not Acceptable",
+  desc:
+    "The HTTP 406 Not Acceptable client error response status code " +
+    "indicates that the server could not produce a response matching " +
+    "the list of acceptable values defined in the request's proactive " +
+    "content negotiation headers and that the server was unwilling " +
+    "to supply a default representation.",
 };
 /**
  * @desc "Conflict"

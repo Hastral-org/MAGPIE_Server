@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Server
  * @name session
  * @desc session Manager
- * @version 0.39.956
+ * @version 0.39.961
  * @typedef {import("socket.io").Server} io
  * @typedef {import("socket.io").Socket} socket
  * @typedef {import("../SERVER").socketID} socketID
@@ -107,6 +107,10 @@ module.exports = function (io, socket, server) {
     });
     socket.on("LOGOUT", (reason) => {
       session_manager.disconnect(reason, socket, server);
+    });
+    socket.on("client_ticket", (ticket) => {
+      const level = "[client_ticket] ";
+      server.sysLog(ePrefix + level + `[${ticket?.code}] ${ticket?.message}`);
     });
     const visitors = session.get("visitors");
     if (visitors)

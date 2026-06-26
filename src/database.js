@@ -419,12 +419,13 @@ MAGPIE_DATABASE.preparePlayer = function preparePlayer(player) {
     const now = MAGPIE_DATABASE.timestamp();
     player.saved = now;
     const payload = {
-      ID: player.ID,
-      username: player.username,
-      email_hash: player?.email_hash,
-      email_encrypted: player?.email_encrypted,
-      PASS: player.PASS,
-      isFrozen: player.isFrozen ? 1 : 0,
+      ID: Number(player.ID),
+      username: String(player.username),
+      email_hash: String(player?.email_hash),
+      email_encrypted: String(player?.email_encrypted),
+      PASS: String(player.PASS),
+      role: Number(player.role),
+      isFrozen: Number(player.isFrozen ? 1 : 0),
       data: player,
     };
     return payload;
@@ -927,6 +928,7 @@ MAGPIE_DATABASE.prepareEntity = function prepareEntity(entity) {
     const K = MAGPIE.KEY.STATS;
     const compoundID = entity.STATS[K.COMPOUND];
     const hostID = entity.STATS[K.HOST];
+    const growthState = entity._get_growthState();
     const payload = {
       ID: entity.ID,
       type: entity.type,
@@ -934,6 +936,7 @@ MAGPIE_DATABASE.prepareEntity = function prepareEntity(entity) {
       updated: entity.updated,
       compoundID: compoundID || null,
       hostID: hostID || null,
+      growth: growthState || null,
       data: entity,
     };
     return payload;
@@ -1657,6 +1660,7 @@ MAGPIE_DATABASE.setup = function setupDatabase() {
       email_hash: text,
       email_encrypted: text,
       PASS: text,
+      role: integer,
       isFrozen: integer,
       data: blob,
     });

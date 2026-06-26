@@ -1,7 +1,7 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.39.958
+ * @version 0.39.961
  *
  *
  */
@@ -70,6 +70,12 @@ const printPlayer = function (ID, email, username) {
 account.printPlayerAuth = function (player) {
   return `[PLAYER-${player?.ID} | ${player?.username}] `;
 };
+function printSocket(socket) {
+  return `[SOCKET-${socket?.id}]`;
+}
+function printCode(code) {
+  return `[$${code}]`;
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -267,7 +273,6 @@ account.resumeSession = async function (data, socket, server) {
     socket.emit("RESUME_SESSION_SUCCESS", {
       code,
       token,
-      server_status: server.meta?.status,
       playerData,
     });
     server.sysLog(success, "console");
@@ -342,7 +347,6 @@ account.login = async function (data, socket, server) {
       http_code = code;
       throw new Error(`${ePrefix}${level}[${code}]`);
     }
-    const server_status = server.meta?.status;
     const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
     account.setPlayerSession(socket, player, success, server);
     const playerData = account.getPlayerData(player, true);
@@ -350,7 +354,6 @@ account.login = async function (data, socket, server) {
       code,
       message: success,
       token,
-      server_status,
       playerData,
     });
     server.sysLog(`${success}`, "console");
@@ -409,6 +412,7 @@ account.getPlayerData = function (player, isOnline = true) {
   return {
     playerID: player.ID,
     username: player.username,
+    playerRole: account.playerRoles.get(player.role),
     playerSlots: player.slots,
     playerEVP: player.EVP,
     playerCLOUT: player.CLOUT,
@@ -534,7 +538,6 @@ account.verifySession = async function (playerID, socket, server) {
         /** @type {player_data} */
         playerData: account.getPlayerData(player, isOnline),
         token: account.generateToken(player, server),
-        server_status: server.meta?.status,
       });
     } else {
       const fail = `${ePrefix}${level}no active sessions for ${handle}.`;
@@ -567,12 +570,24 @@ account.verifySession = async function (playerID, socket, server) {
 /**
  * @name
  * @desc
- *
+ * @typedef {Number} playerRoleID
+ * @typedef {String} playerRole
  */
 //------------------------------------------------------------------------
 // #region > Roles
 //------------------------------------------------------------------------
-
+/** @type {Map<playerRoleID, playerRole>} */
+account.playerRoles = new Map();
+account.playerRoles.set(0, "STANDARD");
+account.playerRoles.set(1, "SUBSCRIBER");
+account.playerRoles.set(2, "LEADER");
+account.playerRoles.set(3, "LEGEND");
+account.playerRoles.set(4, "ELDER");
+account.playerRoles.set(5, "GUIDE");
+account.playerRoles.set(6, "EXPERT");
+account.playerRoles.set(7, "MODERATOR");
+account.playerRoles.set(8, "DEV");
+account.playerRoles.set(9, "REYA");
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -636,32 +651,38 @@ account.init = function (io, socket, server) {
       `[SOCKET-${socket?.id}] initialized. ${server.meta.firmwareDate} `,
   );
   socket.on("PROBE_USERNAME", async (data) => {
-    const now = Date.now();
-    /**
-     * @audit @desc [C.L.I.E.N.T.](../src/cli/client.js)
-     * */
-    const cooldown = 1000;
-    const lastProbe = socket.data?.lastProbe || 0;
-    if (now - lastProbe < cooldown)
-      return socket.emit("PROBE_USERNAME_ERROR", {
-        code: MAGPIE.KEY.HTTP.STATUS_403.code,
-        message: "Please, wait...",
-      });
-    socket.data.lastProbe = now;
-    const isAvailableUsername = server.DATABASE.isUsernameAvailable(
-      data?.username,
-    );
-    const not = isAvailableUsername ? " " : " not ";
-    const message = ePrefix + `[USERNAME-${data.username}] is${not}available. `;
-    if (isAvailableUsername)
-      return socket.emit("PROBE_USERNAME_AVAILABLE", {
-        code: MAGPIE.KEY.HTTP.STATUS_200.code,
+    const level = "[PROBE_USERNAME] ";
+    try {
+      const now = Date.now();
+      const cooldown = 1000;
+      /** @type {MAGPIE_DATABASE} */
+      const db = server.DATABASE;
+      const username = data?.username;
+      const lastProbe = socket.data?.lastProbe || 0;
+      const socketHandle = `${printSocket(socket)} `;
+      if (now - lastProbe < cooldown) {
+        const code = http.STATUS_429.code;
+        const message = printCode(code) + " Please, wait...";
+        server.sysLog(ePrefix + level + message);
+        return socket.emit("PROBE_USERNAME_ERROR", { code });
+      }
+      socket.data.lastProbe = now;
+      const isAvailableUsername = !db.isUsernameAvailable(username);
+      const not = isAvailableUsername ? " " : " not ";
+      const message = `[USERNAME-${data.username}] is${not}available. `;
+      server.sysLog(ePrefix + level + socketHandle + message);
+      if (isAvailableUsername)
+        return socket.emit("PROBE_USERNAME_AVAILABLE", {
+          code: MAGPIE.KEY.HTTP.STATUS_200.code,
+          message: ePrefix + message,
+        });
+      return socket.emit("PROBE_USERNAME_UNAVAILABLE", {
+        code: MAGPIE.KEY.HTTP.STATUS_409.code,
         message: message,
       });
-    return socket.emit("PROBE_USERNAME_UNAVAILABLE", {
-      code: MAGPIE.KEY.HTTP.STATUS_409.code,
-      message: message,
-    });
+    } catch (e) {
+      server.error(ePrefix + level + e.message, e);
+    }
   });
   socket.on("REGISTER", async (data) => {
     server.sysLog(ePrefix + `[SOCKET-${socket.id}] [REGISTER] ⧖`);
@@ -687,6 +708,22 @@ account.init = function (io, socket, server) {
   });
   socket.on("disconnect", async (reason) => {
     await account.disconnect(reason, socket, server);
+  });
+  socket.on("please, sync my data", async (data) => {
+    const level = "[please, sync my data] ";
+    server.sysLog(ePrefix + level + printSocket(socket), "server");
+    const playerID = Number(data?.playerID);
+    const e = http.STATUS_401.code;
+    const isOnline = server.METASTATE.session.get(playerID);
+    const message = `[PLAYER-${playerID}] is not online.`;
+    if (!playerID || !isOnline) {
+      server.sysLog(ePrefix + level + `[${e}] ` + message);
+      return socket.emit("player_sync_error", { code: e });
+    }
+    const player = await server.DATABASE.loadPlayer(playerID);
+    const playerData = account.getPlayerData(player);
+    const success = http.STATUS_200.code;
+    socket.emit("player_sync", { code: success, playerData });
   });
 };
 // #endregion
@@ -811,7 +848,7 @@ router.get("/verify-email", async (req, res) => {
       <p>Your account has been activated.</p>
       <p>You may now close this window.</p>`;
     res.status(http.STATUS_200.code).send(successMessage);
-    return PLAYER;
+    await PLAYER.setup();
   } catch (e) {
     server.error(ePrefix + level + e.message, e);
     res

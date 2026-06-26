@@ -1,4 +1,4 @@
-<!-- version 0.39.958 -->
+<!-- version 0.39.961 -->
  <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -97,11 +97,11 @@
 								<form onsubmit="router.login(event)" id="form-login" class="form-center-grid">
 									<div class="login-field">
 										<span class="login-label">EMAIL</span>
-										<input type="email" id="login-email" name="email" required placeholder="Enter your email address" class="login-input">
+										<input type="email" id="login-email" name="email" required placeholder="Enter your email address" class="login-input" autocomplete="email">
 									</div>
 									<div class="login-field">
 										<span class="login-label">PASSWORD</span>
-										<input type="password" id="login-password" name="password" require placeholder="Enter your password" class="login-input">
+										<input type="password" id="login-password" name="password" require placeholder="Enter your password" class="login-input" autocomplete="current-password">
 									</div>
 									<div style="display: inline-block;">
 										<button type="submit" id="login-submit" class="nav-button">📨 SUBMIT</button>
@@ -123,13 +123,14 @@
 									</div>
 									<div class="login-field">
 										<span class="login-label">USERNAME</span>
-										<input type="text" id="register-username" minlength="4" name="username" required placeholder="Enter your desired username" class="login-input">
+										<input type="text" id="register-username" minlength="4" name="username" required placeholder="Enter your desired username" class="login-input" autocomplete="off">
+										<span id="username-feedback" class="feedback-text"></span>
 									</div>
 									<div class="login-field">
 										<span id="password-label" class="login-label">PASSWORD</span>
-										<input type="password" id="register-password" minlength="8" name="password" require placeholder="Enter your password" class="login-input">
+										<input type="password" id="register-password" minlength="8" name="password" require placeholder="Enter your password" class="login-input" autocomplete="new-password">
 										<span id="password-confirm-label" class="login-label">CONFIRM PASSWORD</span>
-										<input type="password" id="register-password-confirm" name="password-confirm" require placeholder="Confirm your password" class="login-input">
+										<input type="password" id="register-password-confirm" name="password-confirm" require placeholder="Confirm your password" class="login-input" autocomplete="new-password">
 									</div>
 									<div>
 										<button onclick="router.go('login')" id="login-submit" class="nav-button">⏮️ LOGIN</button>
@@ -151,23 +152,27 @@
 								<span id="playerID">loading...</span>
 								<br><br>
 								<h4>PLAYER username: </h4>
-								<span id="username">loading...</span>
+								<span id="playerUsername">loading...</span>
+								<br><br>
+								<h4>PLAYER role: </h4>
+								<span id="playerRole">loading...</span>
 								<br><br>
 								<h4>PLAYER EVP: </h4>
-								<span id="EVP">loading...</span>
+								<span id="playerEVP">loading...</span>
 								<br><br>
 								<h4>PLAYER CLOUT: </h4>
-								<span id="CLOUT">loading...</span>
+								<span id="playerCLOUT">loading...</span>
 								<br><br>
 								<h4>PLAYER status: </h4>
 								<span id="playerStatus">loading...</span>
 								<br><br>
 								<h4>SERVER status: </h4>
-								<span id="server_status">loading...</span>
+								<span id="serverStatus">loading...</span>
 								<br><br>
 								<h4>PLAYER slots: </h4>
-								<span id="slots">loading...</span>
+								<span id="playerSlots">loading...</span>
 								<br><br>
+								<script>router.refreshPlayerHub();</script>
 							</div>
 						</template>
         </nav>
