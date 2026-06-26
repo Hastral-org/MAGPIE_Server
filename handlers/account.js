@@ -345,6 +345,13 @@ account.login = async function (data, socket, server) {
     );
     if (code !== 200) {
       http_code = code;
+      if (code === http.STATUS_401.code) {
+        server.sysLog(ePrefix + level + printCode(code) + printSocket(socket));
+        return socket.emit("LOGIN_ERROR", {
+          code: http.STATUS_401.code,
+          message: "Invalid credentials",
+        });
+      }
       throw new Error(`${ePrefix}${level}[${code}]`);
     }
     const success = `${ePrefix}${account.printPlayerAuth(player)} logged in. `;
@@ -358,7 +365,7 @@ account.login = async function (data, socket, server) {
     });
     server.sysLog(`${success}`, "console");
   } catch (e) {
-    socket.emit(`LOGIN_ERROR`, { message: e.message, code: http_code });
+    socket.emit(`LOGIN_ERROR`, { message: message, code: http_code });
     server.sysLog(ePrefix + e.message, "server", e);
   }
 };
@@ -484,10 +491,12 @@ account.processPasswordReset = async function (token, newPassword, server) {
   try {
     if (!token || !newPassword) throw new Error("Missing required reset data");
     const decoded = jwt.verify(token, server.config.jwtSecret);
-    if (!decoded.isRecoveryToken) throw new Error("Invalid token type");
+    const playerID = Number(decoded?.id);
+    const isRecoveryToken = Boolean(decoded?.isRecoveryToken);
+    if (!isRecoveryToken) throw new Error("Invalid token type");
     const secureNewHash = await hashPassword(newPassword);
     const db = server.DATABASE;
-    const oldPlayer = await db.loadPlayer(decoded.id);
+    const oldPlayer = await db.loadPlayer(playerID);
     if (!oldPlayer) throw new Error("Account not found!");
     oldPlayer.PASS = secureNewHash;
     const updatedPlayer = await db.savePlayer(oldPlayer);
@@ -495,10 +504,10 @@ account.processPasswordReset = async function (token, newPassword, server) {
     server.log(
       `${ePrefix}${account.printPlayerAuth(decoded)}password updated.`,
     );
-    return { success: true };
+    return { success: true, playerID, token };
   } catch (e) {
     server.error(ePrefix + e.message, e);
-    return { success: false };
+    return { success: false, token, message: e.message };
   }
 };
 // #endregion
@@ -697,6 +706,29 @@ account.init = function (io, socket, server) {
   socket.on("RESET_PASSWORD_REQUEST", async (data) => {
     await account.requestPasswordReset(data, socket, server);
   });
+  socket.on("RESET_PASSWORD_SUBMIT", async (data) => {
+    const level = "[RESET_PASSWORD_SUBMIT] ";
+    try {
+      const token = data?.token;
+      const newPassword = data?.password;
+      if (!token || !newPassword) throw new Error(http.STATUS_401.code);
+      const result = await account.processPasswordReset(
+        token,
+        newPassword,
+        server,
+      );
+      if (!result) throw new Error(http.STATUS_500.code);
+      const success = result?.success;
+      const token = result?.token;
+      const playerID = result?.playerID;
+      if (!success || !token || !playerID)
+        throw new Error(http.STATUS_401.code);
+      socket.emit("RESET_PASSWORD_CONFIRMED", { code: http.STATUS_205.code });
+    } catch (e) {
+      server.error(ePrefix + level + e.message, e);
+      socket.emit("RESET_PASSWORD_CONFIRMED", { code: e.message });
+    }
+  });
   socket.on("am_I_allowed_back_in", async (data) => {
     const playerID = Number(data?.playerID);
     if (!playerID) return;
@@ -860,6 +892,31 @@ router.get("/test", (req, res) => {
   const server = req.server;
   res.send("hello");
   server.log(ePrefix + "hello");
+});
+/** @desc {@link account.requestPasswordReset} */
+router.get("/reset-password", async (req, res) => {
+  /** @audit @desc email confirmation */
+  const level = "[GET /reset-password ";
+  const server = req.server;
+  try {
+    res.setHeader(
+      MAGPIE.KEY.SERVER.CSP.name,
+      `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
+    );
+    const { token } = req.query;
+    if (!token) return invalidToken();
+    const { playerID, isRecoveryToken } = jwt.verify(token);
+    if (!playerID || !isRecoveryToken) {
+      const code = http.STATUS_401.code;
+      server.sysLog(ePrefix + level + printCode(code));
+      return res.status(code).redirect("/?view=login&error=invalid_token");
+    }
+    res.redirect(`/?view=reset-password&token=${encodeURIComponent(token)}`);
+  } catch (e) {
+    const message = MAGPIE.KEY.SERVER.MESSAGE.INTERNAL_ERROR;
+    server.error(ePrefix + level + e.message, e);
+    res.status(http.STATUS_500.code).send(message);
+  }
 });
 
 // #endregion

@@ -93,7 +93,7 @@
 						</template>
 						<template id="view-login">
 							<div class="login-window">
-								<h1 class="view-heading" style="justify-self: center;">Login to PLAYER Hub</h1>
+								<h1 class="view-heading centered">Login to PLAYER Hub</h1>
 								<form onsubmit="router.login(event)" id="form-login" class="form-center-grid">
 									<div class="login-field">
 										<span class="login-label">EMAIL</span>
@@ -103,13 +103,48 @@
 										<span class="login-label">PASSWORD</span>
 										<input type="password" id="login-password" name="password" require placeholder="Enter your password" class="login-input" autocomplete="current-password">
 									</div>
+									<br>
 									<div style="display: inline-block;">
 										<button type="submit" id="login-submit" class="nav-button">📨 SUBMIT</button>
-										<span>
-											--- or ---
-										</span>
+										<button id="login-recover" onclick="router.go('recover-password')" class="nav-button">🔑 RECOVER PASSWORD</button>
 										<button id="login-register" onclick="router.register()" class="nav-button">⏺️ REGISTER</button>
 									</div>
+									<div id="login-feedback"></div>
+								</form>
+							</div>
+						</template>
+						<template id="view-recover-password">
+							<div class="login-window">
+								<h1 class="view-heading centered">Recover your password</h1>
+								<form onsubmit="router.recoverPassword(event)" id="form-recover-password" class="form-center-grid">
+									<div class="login-field">
+										<span class="login-label">EMAIL</span>
+										<input type="email" id="recover-email" name="email" required placeholder="Enter your email address" class="login-input" autocomplete="email">
+									</div>
+									<br>
+									<div style="display: inline-block">
+										<button type="submit" id="recover-submit" class="nav-button">📨 SUBMIT</button>
+										<button onclick="router.go('login')" class="nav-button">⏮️ LOGIN</button>
+										<button id="login-register" onclick="router.register()" class="nav-button">⏺️ REGISTER</button>
+									</div>
+									<div id="recover-feedback"></div>
+								</form>
+							</div>
+						</template>
+						<template id="view-reset-password">
+							<div class="login-window">
+								<h1 class="view-heading centered">Reset your password</h1>
+								<form onsubmit="router.resetPassword(event)" id="form-reset-password" class="form-center-grid">
+									<div class="login-field">
+										<span id="password-label" class="login-label">PASSWORD</span>
+										<input type="password" id="reset-password" minlength="8" name="password" require placeholder="Enter your password" class="login-input" autocomplete="new-password">
+										<span id="password-confirm-label" class="login-label">CONFIRM PASSWORD</span>
+										<input type="password" id="reset-password-confirm" name="password-confirm" require placeholder="Confirm your password" class="login-input" autocomplete="new-password">
+									</div>
+									<div>
+										<button type="submit" id="reset-password-submit" class="nav-button">📨 SUBMIT</button>
+									</div>
+									<div id="reset-password-feedback"></div>
 								</form>
 							</div>
 						</template>
@@ -134,10 +169,9 @@
 									</div>
 									<div>
 										<button onclick="router.go('login')" id="login-submit" class="nav-button">⏮️ LOGIN</button>
-										--- or ---
 										<button type="submit" id="register-submit" class="nav-button">📨 SUBMIT</button>
 									</div>
-									<div id="status_message" class="login-label"></div>
+									<div id="status_message"></div>
 								</form>
 							</div>
 						</template>

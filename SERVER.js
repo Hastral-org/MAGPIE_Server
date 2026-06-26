@@ -1901,7 +1901,7 @@ MAGPIE_SERVER.SESSION.newVisit = function () {
   MAGPIE_SERVER.METASTATE.session = MAGPIE_SERVER.SESSION.active;
   const visitors = MAGPIE_SERVER.METASTATE.session.get("visitors");
   if (!visitors)
-    return MAGPIE_SERVER.METASTATE.session.set("visitors", { count: 0 });
+    return MAGPIE_SERVER.METASTATE.session.set("visitors", { count: 1 });
   visitors.count++;
 };
 /**

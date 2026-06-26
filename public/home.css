@@ -59,6 +59,10 @@ body {
     padding-bottom: 5px;
 }
 
+.centered {
+    justify-self: center;
+}
+
 /* #endregion */
 
 /* #region navigation */
@@ -451,7 +455,7 @@ body {
     background: var(--crt-dark);
     padding: 20px;
     box-shadow: 0 0 15px var(--crt-glow);
-    max-width: 500px;
+    width: 600px;
     margin: 0 auto;
     position: relative;
 }
@@ -859,7 +863,7 @@ body.logged-in .show-logged-in {
     border: 1px solid var(--crt-bright)
 }
 
-/* endregion */
+/* #endregion */
 
 /* #region rmmz */
 

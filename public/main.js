@@ -306,6 +306,25 @@ socket.on("PROBE_USERNAME_UNAVAILABLE", () => {
  *
  */
 //------------------------------------------------------------------------
+// #region > Recover
+//------------------------------------------------------------------------
+/**
+ * @desc {@link router.recoverPassword}
+ */
+socket.on("RESET_PASSWORD_SUCCESS", () => {
+  router.recoverPasswordConfirm();
+});
+socket.on("RESET_PASSWORD_CONFIRMED", (data) => {
+  router.resetPasswordConfirmed(data);
+});
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
 // #region > Account
 //------------------------------------------------------------------------
 /**
@@ -877,6 +896,9 @@ router.loginSuccess = function (response) {
 };
 router.loginFail = function (data) {
   //@todo router.loginFail
+  const status = document.getElementById("login-feedback");
+  status.className = "feedback-text error";
+  status.innerText = `[${data?.code}]: ${data?.message}`;
 };
 router.isLoggedIn = function (data) {
   //@todo router.isLoggedIn
@@ -912,8 +934,8 @@ router.rehydratePlayerData = function (data) {
   const serverStatus = playerData ? KEY.SERVER_ON : KEY.SERVER_OFF;
   localStorage.setItem("playerID", playerData.playerID);
   localStorage.setItem("serverStatus", serverStatus);
-  localStorage.setItem("username", playerData.username);
-  localStorage.setItem("slots", playerData.playerSlots);
+  localStorage.setItem("playerUsername", playerData.username);
+  localStorage.setItem("playerSlots", playerData.playerSlots);
   localStorage.setItem("playerRole", playerData.playerRole);
   localStorage.setItem("playerEVP", playerData.playerEVP);
   localStorage.setItem("playerCLOUT", playerData.playerCLOUT);
@@ -975,6 +997,11 @@ router.probeUsername = function (username) {
     MAGPIE_CLIENT.UI.registerSubmit().disabled = true;
   }
 };
+/**
+ *
+ * @param {HTMLFormElement} event
+ * @returns
+ */
 router.registerSubmit = async function (event) {
   const ePrefix = "[ROUTER] [register submit] ";
   try {
@@ -1001,6 +1028,95 @@ router.registerSubmit = async function (event) {
   } catch (e) {
     console.error(ePrefix + e.message, e);
   }
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Recover
+//------------------------------------------------------------------------
+/**
+ *
+ * @param {HTMLFormElement} event
+ */
+router.recoverPassword = function (event) {
+  const ePrefix = "[ROUTER] [recoverPassword] ";
+  try {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const email = formData.get("email");
+    const registerMessage = ePrefix + "recovering";
+    const productionString = "...";
+    const debugString = ` as: \n[USER-${email}]\n\n⧖`;
+    MAGPIE_CLIENT._log(ePrefix, productionString, debugString);
+    socket.emit("RESET_PASSWORD_REQUEST", { email });
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+  }
+};
+router.recoverPasswordConfirm = function () {
+  const ePrefix = "[ROUTER] [recoverPasswordSuccess] ";
+  console.log(ePrefix);
+  const feedback = document.getElementById("recover-feedback");
+  feedback.className = "feedback-text success";
+  feedback.textContent = "Request sent. Check your email.";
+};
+/**
+ *
+ * @param {HTMLFormElement} event
+ */
+router.resetPassword = async function (event) {
+  const ePrefix = "[ROUTER] [resetPassword] ";
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+  event.preventDefault();
+  console.log(ePrefix);
+  const feedback = document.getElementById("reset-password-feedback");
+  const formData = new FormData(event.target);
+  const password1 = formData.get("reset-password");
+  const password2 = formData.get("reset-password-confirm");
+  if (password1 !== password2) {
+    const text = "WARNING: the provided passwords do not match.";
+    const status_text = document.getElementById("status_message");
+    status_text.innerText = text;
+    status_text.className = "login-label-error";
+    document.getElementById("password-label").style.color = "#cf1212";
+    document.getElementById("password-confirm-label").style.color = "#cf1212";
+    return console.warn(ePrefix + "[401] invalid credentials. ");
+  }
+  const resetMessage = `[ROUTER] resetting password`;
+  const productionString = "...";
+  const debugString = ` as: \n[PASS-${password1}]\n⧖`;
+  MAGPIE_CLIENT._log(resetMessage, productionString, debugString);
+  socket.emit("RESET_PASSWORD_SUBMIT", { token, password: password1 });
+  const requestSuccess = await new Promise((parentResolve) => {
+    const timedOut = setTimeout(() => {
+      socket.off("RESET_PASSWORD_CONFIRMED");
+      feedback.className = "feedback-text error";
+      feedback.textContent = "[504] Server timed out. Please, try again.";
+      parentResolve(false);
+    }, 10_000);
+    socket.once("RESET_PASSWORD_CONFIRMED", async (data) => {
+      clearTimeout(timedOut);
+      const code = data?.code;
+      const SE = code === 500;
+      const INV = code === 401;
+      const fail = SE || INV;
+      const error = !code || fail ? " error" : " success";
+      feedback.className = `feedback-text${error}`;
+      const messageError = "[500] Internal server error";
+      const invalid = "[401] Invalid credentials";
+      const success = "[205] Success!";
+      feedback.textContent = SE ? messageError : INV ? invalid : success;
+      await sleep(1000);
+      parentResolve(!fail);
+    });
+  });
+  if (requestSuccess) router.go("login");
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -1168,6 +1284,9 @@ MAGPIE_CLIENT._log = function (message, productionString, debugString) {
 //------------------------------------------------------------------------
 // #region > Throttling
 //------------------------------------------------------------------------
+function sleep(ms) {
+  return new Promise((res) => setTimeout(res, ms));
+}
 /**
  *
  * @param {Function} func
