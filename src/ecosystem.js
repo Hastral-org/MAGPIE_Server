@@ -108,6 +108,42 @@ MAGPIE_ECOSYSTEM._get_activeEmbryos = function (server, speciesID) {
     return [];
   }
 };
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {entityID} speciesID
+ * @returns {MAGPIE_ENTITY[]}
+ */
+MAGPIE_ECOSYSTEM._generateEmbryos = function (server, speciesID) {
+  const level = "[_generateEmbryos] ";
+  try {
+    //
+  } catch (e) {
+    error(server, e);
+  }
+};
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {entityID} speciesID
+ * @returns {MAGPIE_ENTITY[]}
+ */
+MAGPIE_ECOSYSTEM._get_adoptionList = function (server, speciesID) {
+  const level = "[get_adoptionList] ";
+  try {
+    const activeEmbryos = MAGPIE_ECOSYSTEM._get_activeEmbryos(
+      server,
+      speciesID,
+    );
+    const generatedEmbryos = MAGPIE_ECOSYSTEM._generateEmbryos(
+      server,
+      speciesID,
+    );
+    return [...activeEmbryos, ...generatedEmbryos];
+  } catch (e) {
+    error(server, e);
+  }
+};
 // #endregion
 //------------------------------------------------------------------------
 /**

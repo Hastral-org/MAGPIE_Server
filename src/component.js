@@ -468,7 +468,7 @@ MAGPIE_SYMBOL.prototype._get_STATbyID = function getSymbolSTATbyID(statID) {
  * @returns {MAGPIE_SYMBOL[]}
  */
 MAGPIE_SYMBOL.prototype._get_components = function () {
-  MAGPIE_COMPONENT.__get("_get_databaseSync", [
+  return MAGPIE_COMPONENT.__get("_get_databaseSync", [
     "_get_symbolComponents",
     [this.ID],
   ]);
@@ -477,7 +477,7 @@ MAGPIE_SYMBOL.prototype._get_components = function () {
  * @returns {MAGPIE_SYMBOL[]}
  */
 MAGPIE_SYMBOL.prototype._get_recipes = function () {
-  MAGPIE_COMPONENT.__get("_get_databaseSync", [
+  return MAGPIE_COMPONENT.__get("_get_databaseSync", [
     "_get_symbolRecipes",
     [this.ID],
   ]);

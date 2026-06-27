@@ -1379,9 +1379,13 @@ MAGPIE_DATABASE.loadEquipsSync = function loadEquipsSync(hostID) {
 MAGPIE_DATABASE._get_symbolComponents = function (compoundID) {
   const ePrefix = "[DATABASE]._get_symbolComponents ";
   try {
-    const raw = MAGPIE_DATABASE.sync.getRow("symbol_components", {
-      compoundID: compoundID,
-    });
+    const raw = MAGPIE_DATABASE.sync.getRow(
+      "symbol_components",
+      {
+        compoundID: compoundID,
+      },
+      MAGPIE_DATABASE.sync.world,
+    );
     if (!raw || raw.length < 1) return [];
     return raw.map((row) => MAGPIE_DATABASE.loadSymbolSync(row.componentID));
   } catch (e) {
