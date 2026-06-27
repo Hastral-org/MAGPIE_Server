@@ -1,7 +1,7 @@
 /**
  * @name
  * @desc
- * @version 0.39.962
+ * @version 0.39.964
  *
  */
 //========================================================================
@@ -196,6 +196,42 @@ MAGPIE_PHYSICS.isValidCoords = function isValidCoords(coords) {
     return false;
   return true;
 };
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name 
+ * @desc 
+ * 
+ */
+//------------------------------------------------------------------------
+// #region > Distance
+//------------------------------------------------------------------------
+MAGPIE_PHYSICS._geod_distanceCoords = function(C0, C1, r) {
+  const P0 = this.geodeticToCartesian(C0);
+  const P1 = this.geodeticToCartesian(C1);
+  return this._geod_distanceTo(P0, P1, r)
+}
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name 
+ * @desc 
+ * 
+ */
+//------------------------------------------------------------------------
+// #region > Course
+//------------------------------------------------------------------------
+/**
+ * 
+ * @param {POVART_P} P0 
+ * @param {POVART_P} P1 
+ * @param {radius} r 
+ * @returns {heading}
+ */
+MAGPIE_PHYSICS._geod_getCourse = function(P0, P1, r) {
+  const V1 = this.targetVelocity(P0, P1, 0.5);
+  return this._get_V0_heading(P0, V1)
+}
 // #endregion
 //------------------------------------------------------------------------
 /**

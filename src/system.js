@@ -2,7 +2,7 @@
  * @name system
  * @desc systems repository
  * @author Matheraptor
- * @version 0.39.962 {@link MAGPIE_SYSTEM.meta.version}
+ * @version 0.39.964 {@link MAGPIE_SYSTEM.meta.version}
  */
 //========================================================================
 // #region - INDEX
@@ -2538,7 +2538,9 @@ MAGPIE_HIVE._get_all_contexts = function getAllContext() {
  * @returns {contextID[]}
  */
 MAGPIE_HIVE._get_entity_contextIDs = function getEntityContextIDs(entityID) {
-  return MAGPIE_HIVE._registry.get(entityID).contexts;
+  const contextIDs = MAGPIE_HIVE._registry.get(entityID).contexts;
+  if(!contextIDs) return false;
+  return contextIDs
 };
 /**
  *
@@ -2546,7 +2548,9 @@ MAGPIE_HIVE._get_entity_contextIDs = function getEntityContextIDs(entityID) {
  * @returns {MAGPIE_CONTEXT[]}
  */
 MAGPIE_HIVE._get_entity_contexts = function getEntityContexts(entityID) {
-  return MAGPIE_HIVE._get_entity_contextIDs(entityID).map((contextID) =>
+  const arr = MAGPIE_HIVE._get_entity_contextIDs(entityID);
+  if(!arr) return false
+  return arr.map((contextID) =>
     MAGPIE_HIVE._get_context(contextID),
   );
 };
@@ -2849,7 +2853,7 @@ MAGPIE_DATE.prototype.setup = async function setupDate() {
 };
 /**
  *
- * @param {epoch_game} epoch
+ * @param {EpochTimeStamp} epoch
  */
 MAGPIE_DATE.prototype.setupFromEpoch = function setupDateFromEpoch(epoch) {
   if (!epoch) epoch = this.epoch;
@@ -2861,7 +2865,7 @@ MAGPIE_DATE.prototype.setupFromEpoch = function setupDateFromEpoch(epoch) {
   const msPerYear = calendar.days * msPerDay;
   const yearRaw = epoch / msPerYear;
   this.year = Math.floor(yearRaw) + calendar.epochYear;
-  const dayRaw = (epoch % msPerYear) / msPerDay;
+  const dayRaw = (epoch % msPerYear) / msPerDay - 1; //@audit epoch corrected
   this._yearday = Math.floor(dayRaw) + 1;
   let accumulatedDays = 0;
   let monthIndex = 1;

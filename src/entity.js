@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.962
+ * @version 0.39.964
  * @desc
  * @param {{
  * name: String,
@@ -21,7 +21,7 @@ function MAGPIE_ENTITY(data = {}) {
   this.initialize(data);
 }
 const { MAGPIE } = require("./index");
-const { MAGPIE_SYSTEM } = require("./system");
+const { MAGPIE_SYSTEM, MAGPIE_DATE } = require("./system");
 const {
   MAGPIE_STATE,
   MAGPIE_EMOTE,
@@ -3904,54 +3904,66 @@ MAGPIE_ENTITY.prototype._target_queue_geodetic = async function (options) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
-// /**
-//  * @typedef {{
-//  * index: Number,
-//  * coords: vector3,
-//  * Vcruise: velocity,
-//  * distance: distance,
-//  * course: heading,
-//  * ETE: String,
-//  * }} waypoint
-//  * @param {vector3[]} coordsList
-//  * @param {{
-//  * ETE: Boolean,
-//  * ETA: Boolean,
-//  * geodetic: Boolean,
-//  * Vcruise: Number,
-//  * }} options
-//  * @returns {waypoint[]}
-//  */
-// MAGPIE_ENTITY.prototype._route_build = function (coordsList, options) {
-//   const ePrefix = `[ENTITY-${this.ID}].routeBuild: `;
-//   try {
-//     const r = this._get_celestial()._get_radius();
-//     const queue = options.geodetic
-//       ? coordsList.forEach((c) => MAGPIE_PHYSICS.cartesianToGeodetic(c, r))
-//       : coordsList;
-//     const route = [];
-//     const totDistance = 0;
-//     for (let i = 0; i < queue.length; i++) {
-//       const P0 = queue[i];
-//       const P1 = queue[i + 1];
-//       const courseRaw = P1 ? MAGPIE_PHYSICS._geod_getCourse(P0, P1) : undefined;
-//       const distanceRaw = P1
-//         ? MAGPIE_PHYSICS._geod_distanceTo(P0, P1, r)
-//         : undefined;
-//       const course = Math.floor(courseRaw).toString().padStart(3, "0");
-//       const distance = MAGPIE_PHYSICS._U_printDistance(distanceRaw);
-//       const ETE =
-//         options?.ETE && options?.Vcruise
-//           ? MAGPIE_PHYSICS._U_ETE(distance, options.Vcruise)
-//           : "";
-//       const entry = [i, coordsList[i], course, distance, ETE]
-//       route.push(entry)
-//     }
-//   } catch (e) {
-//     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
-//   }
-// };
-MAGPIE_ENTITY.prototype._target_all_from;
+MAGPIE_ENTITY.prototype._target_route = function(options) {
+  const ePrefix = "[ENTITY]._target_route: ";
+  try {
+    const target = this._get_target();
+    const exp = this._get_exps()[0];
+    const key = exp.getKeys().find(key => key.type === MAGPIE.KEY.INDEX.ROUTE);
+    const route = key ? MAGPIE_SYSTEM.Parsing.json(key.label)[1] : [];
+    const plan = [];
+    const P0 = this._get_P0();
+    const r = this._get_celestial()._get_radius();
+    const getDistCourse = (C1, C0) => {
+      if(!C0) C0 = this._get_C0();
+      const DP0 = MAGPIE_PHYSICS.geodeticToCartesian(C0);
+      const DP1 = MAGPIE_PHYSICS.geodeticToCartesian(C1);
+      const dist = Math.floor(MAGPIE_PHYSICS._geod_distanceTo(DP0, DP1, r));
+      const course = MAGPIE_PHYSICS._geod_getCourse(DP0, DP1, r)
+      return { dist, course }
+    }
+    let totDist = 0;
+    let totTime = 0;
+    const push = (raw, prevCoords) => {
+      if(!prevCoords) prevCoords = this._get_C0();
+      const coords = [raw[0], raw[1], raw[2]];
+      const speed = Number(raw[3]) || MAGPIE_PHYSICS.mag(this._get_V0());
+      const { dist, course } = getDistCourse(coords, prevCoords)
+      const distance = coords && prevCoords ? dist : 0;
+      totDist += distance;
+      totTime += (distance / speed);
+      const epoch = this.updated + totTime * 1000;
+      const date = new MAGPIE_DATE({epoch: epoch})
+      const wp = {
+        coords: coords,
+        distance: distance,
+        course: course,
+        speed: speed.toFixed(2) + " m/s",
+        ETE: MAGPIE_PHYSICS._U_ETE(distance, speed),
+        ETA: date.printDate()
+      }
+      plan.push(wp);
+      return coords
+    };
+    route.unshift(target._get_C0());
+    for(let i = 0; i < route.length; i++) {
+      push(route[i], route[i - 1])
+    }
+    const P1 = MAGPIE_PHYSICS.geodeticToCartesian(route.at(-1)?.slice(0,3))
+    const epoch = this.updated + totTime * 1000;
+    const date = new MAGPIE_DATE({epoch: epoch});
+    plan.push({
+      legs: plan.length,
+      GCdistance: P0 && P1 ? MAGPIE_PHYSICS._geod_distanceTo(P0, P1, r) : 0,
+      DTG: MAGPIE_PHYSICS._U_printDistance(totDist),
+      ETR: MAGPIE_SYSTEM.Utility.printETA(totTime),
+      ETA: date.printDate(),
+    })
+    return plan
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
