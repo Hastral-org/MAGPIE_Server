@@ -23,8 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.965 2026 06 27
+ * @version 0.39.966 2026 06 27
  * - ADDED: entity._target_route
+ * - FIXED: exp._key_nextRouteWp
  *
  * @version 0.39.962 2026 06 26
  * - FIXED: client.playerData
@@ -565,7 +566,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 965],
+  version: [0, 39, 966],
   firmwareName: "MAGPIE",
   firmwareDate: "20260627",
 };

@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.965
+ * @version 0.39.966
  */
 //========================================================================
 // #region - INDEX
@@ -1227,16 +1227,17 @@ MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
       throw new Error(`${coords} is invalid coords. `);
     if (coords.length < 1) return (key.type = MAGPIE.KEY.TYPE.SPAREKEY);
     target._set_C1([coords[0], coords[1], coords[2]]);
-    if (Number(coords[3])) {
-      const speedKey = this.getKeys().find(
-        (key) => key.type === MAGPIE.KEY.INDEX.VSPEED,
-      );
-      const speeds = MAGPIE_SYSTEM.Parsing.json(speedKey?.label)[1];
-      if (speeds) speeds.Vcruise = coords[3];
-      speedKey.label = JSON.stringify(speeds);
-    }
     route.shift();
     key.label = JSON.stringify(route);
+    if (!Number(coords[3])) return;
+    const speedKey = this.getKeys().find(
+      (key) => key.type === MAGPIE.KEY.INDEX.VSPEED,
+    );
+    if (!speedKey) return;
+    const speeds = MAGPIE_SYSTEM.Parsing.json(speedKey?.label)[1];
+    if (!speeds) return;
+    speeds.Vcruise = coords[3];
+    speedKey.label = JSON.stringify(speeds);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   } finally {

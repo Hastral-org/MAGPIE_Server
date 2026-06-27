@@ -1030,7 +1030,7 @@ MAGPIE_ENTITY.prototype.set = async function set() {
  * @returns {Promise<database_result>}
  */
 MAGPIE_ENTITY._set_relation = async function _set_relation(payload) {
-  return await MAGPIE_ENTITY.__hive("_set_database", ["_set_relationWorld", payload]);
+  return await MAGPIE_ENTITY.__hive("_set_databaseSync", ["_set_relationWorld", payload]);
 };
 /**
  * 
@@ -1038,7 +1038,7 @@ MAGPIE_ENTITY._set_relation = async function _set_relation(payload) {
  * @returns {Promise<database_result>}
  */
 MAGPIE_ENTITY._unset_relation = async function _unset_relation(payload) {
-  return await MAGPIE_ENTITY.__hive("_set_database", ["_unset_relationWorld", payload])
+  return await MAGPIE_ENTITY.__hive("_set_databaseSync", ["_unset_relationWorld", payload])
 }
 /**
  *
