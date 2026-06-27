@@ -1218,14 +1218,13 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
  * @returns {entityID} targetID
  */
 MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
-  const ePrefix = `[EXP-${this.ID}].keyTargetNextRouteWp: `;
+  const ePrefix = `[EXP-${this.ID}].keyNextRouteWp: `;
   try {
     if (!target || !key) throw new Error("invalid parameters. ");
     const route = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
     const coords = route[0];
-    if (!coords || !Array.isArray(coords))
-      throw new Error(`${coords} is invalid coords. `);
-    if (coords.length < 1) return (key.type = MAGPIE.KEY.TYPE.SPAREKEY);
+    if (!coords || !Array.isArray(coords) || coords.length < 1)
+      return (key.type = MAGPIE.KEY.TYPE.SPAREKEY);
     target._set_C1([coords[0], coords[1], coords[2]]);
     route.shift();
     key.label = JSON.stringify(route);
