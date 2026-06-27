@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.964
+ * @version 0.39.965
  */
 //========================================================================
 // #region - INDEX
@@ -1221,7 +1221,8 @@ MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
   const ePrefix = `[EXP-${this.ID}].keyTargetNextRouteWp: `;
   try {
     if (!target || !key) throw new Error("invalid parameters. ");
-    const coords = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
+    const route = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
+    const coords = route[0];
     if (!coords || !Array.isArray(coords))
       throw new Error(`${coords} is invalid coords. `);
     if (coords.length < 1) return (key.type = MAGPIE.KEY.TYPE.SPAREKEY);
@@ -1234,8 +1235,8 @@ MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
       if (speeds) speeds.Vcruise = coords[3];
       speedKey.label = JSON.stringify(speeds);
     }
-    coords.shift();
-    key.label = JSON.stringify(coords);
+    route.shift();
+    key.label = JSON.stringify(route);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   } finally {

@@ -23,7 +23,7 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
- * @version 0.39.964 2026 06 27
+ * @version 0.39.965 2026 06 27
  * - ADDED: entity._target_route
  *
  * @version 0.39.962 2026 06 26
@@ -565,7 +565,7 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 964],
+  version: [0, 39, 965],
   firmwareName: "MAGPIE",
   firmwareDate: "20260627",
 };

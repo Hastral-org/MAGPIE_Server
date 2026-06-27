@@ -1,7 +1,7 @@
 /**
  * @namespace database_worker
  * @author Matheraptor
- * @version 0.23.0
+ * @version 0.39.965
  *
  * @typedef {import("better-sqlite3").RunResult} database_result
  *
@@ -341,7 +341,10 @@ worker.setRow = function setRow(tableName, values, columns, db) {
     ` VALUES (${placeholders})`;
   const cacheKey = `SAVE:${tableName}:${columns.join(",")}`;
   const statement = worker.getStatement(cacheKey, sql, db);
-  return statement.run(...values);
+  const result = statement.run(...values);
+  if (!result)
+    throw new Error(`${tableName}, ${values}, ${columns}, ${db.name}`);
+  return result;
 };
 // #endregion
 //------------------------------------------------------------------------
