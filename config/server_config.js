@@ -23,4 +23,5 @@ module.exports = {
   /** @desc utility repository path */
   repo: process.env.repo,
   socket_io_admin_pass: process.env.PASS_HASH,
+  RUNTIME_DELTA: process.env.RUNTIME_DELTA.split(",").map(Number),
 };

@@ -1597,14 +1597,9 @@ MAGPIE.KEY.RUNTIME.meta = {
  * ultra: Number
  * ]}
  * */
-MAGPIE.KEY.RUNTIME.DELTA = new Float64Array([
-  0.001,
-  0.1,
-  1,
-  60,
-  60 ** 2,
-  60 ** 2 * 24,
-]);
+MAGPIE.KEY.RUNTIME.DELTA =
+  MAGPIE.config.RUNTIME_DELTA ||
+  new Float64Array([0.001, 0.1, 1, 60, 60 ** 2, 60 ** 2 * 24]);
 /**
  * @typedef {duration} layer_frequency how often the layer is refreshed
  * @typedef {duration} layer_dt the dT to pass on Guest.refresh(dt)
