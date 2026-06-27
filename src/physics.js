@@ -1813,7 +1813,7 @@ MAGPIE_PHYSICS._apply_forces = function _apply_forces(data) {
         ? [0, 0, 0]
         : this._forces_calculate2BodyGravityVector(P0, Cmass);
     const forces = [FG_mag];
-    const Af = [0,0,0]//Afg @audit DEBUG entity._getAt ASL?;
+    const Af = Afg //@audit DEBUG entity._getAt ASL?;
     const Tf = [0, 0, 0];
     return { Af, Tf, forces };
   } catch (e) {
