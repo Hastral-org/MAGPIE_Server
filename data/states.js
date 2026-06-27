@@ -197,7 +197,7 @@ INDEX.BIO_ALIVE = BIO_ALIVE.ID;
  *
  */
 //------------------------------------------------------------------------
-// #region >
+// #region > Growth
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const EMBRYO = {
@@ -294,6 +294,41 @@ const ELDER = {
 states.push(ELDER);
 /** @type {state_index}  */
 INDEX.ELDER = ELDER;
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Fertility
+//------------------------------------------------------------------------
+/** @type {state_data} */
+const INHABITING = {
+  ID: 111,
+  type: TYPE.PERMANENT,
+  name: "INHABITING",
+  description: "",
+  stack: 1,
+  onApply: () => {},
+  /**
+   *
+   * @param {MAGPIE_EXP} exp
+   * @param {MAGPIE_ENTITY} entity
+   * @param {Boolean} switchID
+   * @param {fitness_index} fitness_index
+   * @returns {state_output}
+   */
+  onUpdate: (exp, entity, switchID, fitness_index) => {
+    if (!exp || !entity || !fitness_index) return;
+    const population = entity.STATS[MAGPIE.KEY.STATS.MASSKG];
+    const evolution = entity.STATS[MAGPIE.KEY.STATS.EVO];
+    const fertility = population * evolution;
+  },
+  onRemove: () => {},
+  onExpire: () => {},
+};
 // #endregion
 //------------------------------------------------------------------------
 /**

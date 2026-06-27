@@ -235,6 +235,8 @@ MAGPIE_SYMBOL.meta = "";
 // #region > Proto
 //------------------------------------------------------------------------
 /**
+ * @typedef {import("../SERVER").MAGPIE_SERVER} MAGPIE_SERVER
+ * @typedef {import("./system").MAGPIE_HIVE} MAGPIE_HIVE
  * @typedef {Number} symbolID
  * @typedef {Number} symbol_type {@link MAGPIE.KEY.SYMBOL.TYPE.meta}
  * @typedef {import("./index").STAT} STAT aka static parameter
@@ -519,26 +521,60 @@ MAGPIE_SYMBOL.prototype._addElement = async function addElement(
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_SYMBOL.prototype._addRequirement = async function addRequirement(
-  symbolID,
-) {
-  return await this._addElement("requirement", symbolID);
+MAGPIE_SYMBOL.prototype._addRequirement = async function (symbolID) {
+  const ePrefix = `[SYMBOL-${this.ID}] `;
+  try {
+    const arr = Array.from(this.STATS);
+    const index = arr.indexOf(MAGPIE.KEY.INDEX.REQUIREMENTS);
+    arr.splice(index + 1, 0, symbolID);
+    const result = await server.DATABASE.call(
+      "saveWorldRow",
+      "symbol_recipes",
+      {
+        requirementID: symbolID,
+        recipeID: this.ID,
+      },
+    );
+    if (!result) throw new Error(`unable to set [REQUIREMENT-${symbolID}]`);
+    this.STATS = new Float64Array(arr);
+    return symbolID;
+  } catch (e) {
+    server.error(ePrefix + e.message, e);
+  }
 };
 /**
- *
+ * @param {MAGPIE_SERVER} server
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_SYMBOL.prototype._addCompound = async function addCompound(symbolID) {
-  return await this._addElement("requirement", symbolID);
+MAGPIE_SYMBOL.prototype._addCompound = async function (server, symbolID) {
+  const ePrefix = `[SYMBOL-${this.ID}] `;
+  try {
+    const arr = Array.from(this.STATS);
+    const index = arr.indexOf(MAGPIE.KEY.INDEX.COMPOUNDS);
+    arr.splice(index + 1, 0, symbolID);
+    const result = await server.DATABASE.call(
+      "saveWorldRow",
+      "symbol_components",
+      {
+        compoundID: symbolID,
+        componentID: this.ID,
+      },
+    );
+    if (!result) throw new Error(`unable to set [COMPOUND-${symbolID}]`);
+    this.STATS = new Float64Array(arr);
+    return symbolID;
+  } catch (e) {
+    server.error(ePrefix + e.message, e);
+  }
 };
 /**
- *
+ * @param {MAGPIE_HIVE} hive
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_SYMBOL.prototype._addRecipe = async function addRecipe(symbolID) {
-  const symbol = MAGPIE_SYMBOL.__get("_get_symbol", [symbolID]);
+MAGPIE_SYMBOL.prototype._addRecipe = async function (hive, symbolID) {
+  const symbol = hive._get_symbol(symbolID);
   if (!(symbol instanceof MAGPIE_SYMBOL)) return;
   const result = symbol._addRequirement(this.ID);
   if (!result) return;
@@ -546,15 +582,26 @@ MAGPIE_SYMBOL.prototype._addRecipe = async function addRecipe(symbolID) {
 };
 /**
  *
+ * @param {MAGPIE_SERVER} server
  * @param {symbolID} symbolID
  * @returns {Promise<database_result>}
  */
-MAGPIE_SYMBOL.prototype._addComponent = async function addComponent(symbolID) {
-  const symbol = MAGPIE_SYMBOL.__get("_get_symbol", [symbolID]);
+MAGPIE_SYMBOL.prototype._addComponent = async function (server, symbolID) {
+  const symbol = server.HIVE._get_symbol(symbolID);
   if (!(symbol instanceof MAGPIE_SYMBOL)) return;
-  const result = symbol._addCompound(this.ID);
+  const result = symbol._addCompound(server, this.ID);
   if (!result) return;
   return await result;
+};
+/**
+ *
+ * @param {keyID} statID
+ * @param {STAT} value
+ */
+MAGPIE_SYMBOL.prototype._addSTAT = function (statID, value) {
+  const arr = Array.from(this.STATS);
+  arr.push(statID, value);
+  this.STATS = new Float64Array(arr);
 };
 // #endregion
 //------------------------------------------------------------------------

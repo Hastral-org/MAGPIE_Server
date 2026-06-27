@@ -23,6 +23,8 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.963 2026 06 27
+ *
  * @version 0.39.962 2026 06 26
  * - FIXED: client.playerData
  *
@@ -562,9 +564,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
-  version: [0, 39, 962],
+  version: [0, 39, 963],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260626",
+  firmwareDate: "20260627",
 };
 /**
  *
@@ -589,6 +591,8 @@ MAGPIE.KEY.meta = {
   firmwareName: "MAGPIE_KEY",
 };
 MAGPIE.KEY.TYPE = {};
+/** @desc {@link MAGPIE.KEY.ECOSYSTEM.meta} */
+MAGPIE.KEY.ECOSYSTEM = {};
 /**
  * @desc {@link MAGPIE.KEY.meta}
  *
@@ -1715,6 +1719,18 @@ MAGPIE.KEY.INDEX.ROUTE = 105;
 // #endregion
 //------------------------------------------------------------------------
 /**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Ecosystem
+//------------------------------------------------------------------------
+MAGPIE.KEY.INDEX.FERTILITY = 1782514071340;
+MAGPIE.KEY.INDEX.PHYSIQUE = 1782516305100;
+// #endregion
+//------------------------------------------------------------------------
+/**
  *
  * @desc back to {@link }
  *
@@ -2812,6 +2828,23 @@ MAGPIE.KEY.SWITCHES.LEAP_YEAR = MAGPIE.KEY.SWITCHES.LEAP_MONTH + 1;
 //------------------------------------------------------------------------
 // #endregion
 //------------------------------------------------------------------------
+/**
+ *
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion -
+//========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//========================================================================
+// #region - ECOSYSTEM
+//========================================================================
+MAGPIE.KEY.ECOSYSTEM.meta = {};
 /**
  *
  * @desc back to {@link }

@@ -33,7 +33,7 @@ const ePrefix = "[ECOSYSTEM] ";
  *
  */
 //========================================================================
-// #region - MANAGER
+// #region - Manager
 //========================================================================
 /**
  * @name
@@ -75,7 +75,7 @@ function newCreature(server, creature_data) {
  *
  */
 //------------------------------------------------------------------------
-// #region > Population
+// #region > Pop.
 //------------------------------------------------------------------------
 
 // #endregion
@@ -86,7 +86,7 @@ function newCreature(server, creature_data) {
  *
  */
 //------------------------------------------------------------------------
-// #region > Adoption
+// #region > Adopt
 //------------------------------------------------------------------------
 /**
  *
@@ -130,7 +130,7 @@ MAGPIE_ECOSYSTEM._get_activeEmbryos = function (server, speciesID) {
  * @typedef {import("./component").symbol_data} archetype_data
  */
 //========================================================================
-// #region - GENERATOR
+// #region - Generator
 //========================================================================
 /**
  * @name
@@ -201,6 +201,14 @@ MAGPIE_ECOSYSTEM.generateSpecies = async function (server, aType, mutations) {
     error(server, e);
   }
 };
+MAGPIE_ECOSYSTEM.decompressSpecies = function (server, speciesID) {
+  const level = "[decompressSpecies] ";
+  try {
+    //
+  } catch (e) {
+    error(server, e);
+  }
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -222,18 +230,24 @@ MAGPIE_ECOSYSTEM.generateSpeciesOffspring = async function (server, species) {
   try {
     //@todo generateSpeciesOffspring
     const traits = MAGPIE_ECOSYSTEM.traitRoulette(server, species);
-    const creature_data = { fitness: traits };
+    const creature_data = { type: species.type, fitness: traits };
     const offspring = newCreature(server, creature_data);
     if (!(offspring instanceof MAGPIE_ENTITY))
       throw new Error(`${offspring} is invalid MAGPIE_CREATURE`);
+    offspring.STATS = species.STATS;
+    offspring.STATS[MAGPIE.KEY.POVART.E_ID] = offspring.ID;
     const saved = await creature.set();
     if (!saved) throw new Error(`unable to save [CREATURE-${offspring.ID}] `);
-    await offspring.setup(creature_data);
     return offspring;
   } catch (e) {
     error(server, e);
   }
 };
+/**
+ *
+ * @param {MAGPIE_SERVER} server
+ * @param {MAGPIE_ENTITY} species
+ */
 MAGPIE_ECOSYSTEM.traitRoulette = function (server, species) {
   const level = "[traitRoulette] ";
   try {
