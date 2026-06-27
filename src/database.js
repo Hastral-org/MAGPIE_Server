@@ -1371,6 +1371,40 @@ MAGPIE_DATABASE.loadEquipsSync = function loadEquipsSync(hostID) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+/**
+ *
+ * @param {symbolID} compoundID
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_DATABASE._get_symbolComponents = function (compoundID) {
+  const ePrefix = "[DATABASE]._get_symbolComponents ";
+  try {
+    const raw = MAGPIE_DATABASE.sync.getRow("symbol_components", {
+      compoundID: compoundID,
+    });
+    if (!raw || raw.length < 1) return [];
+    return raw.map((row) => MAGPIE_DATABASE.loadSymbolSync(row.componentID));
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
+ * @param {symbolID} requirementID
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_DATABASE._get_symbolRecipes = function (requirementID) {
+  const ePrefix = "[DATABASE]._get_symbolRecipes ";
+  try {
+    const raw = MAGPIE_DATABASE.sync.getRow("symbol_recipes", {
+      requirementID: requirementID,
+    });
+    if (!raw || raw.length < 1) return [];
+    return raw.map((row) => MAGPIE_DATABASE.loadSymbolSync(row.recipeID));
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
 // #endregion
 //------------------------------------------------------------------------
 /**

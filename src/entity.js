@@ -1030,7 +1030,7 @@ MAGPIE_ENTITY.prototype.set = async function set() {
  * @returns {Promise<database_result>}
  */
 MAGPIE_ENTITY._set_relation = async function _set_relation(payload) {
-  return await MAGPIE_ENTITY.__hive("_set_databaseSync", ["_set_relationWorld", payload]);
+  return await MAGPIE_ENTITY.__hiveSync("_set_databaseSync", ["_set_relationWorld", payload]);
 };
 /**
  * 
@@ -3737,7 +3737,7 @@ MAGPIE_ENTITY.prototype._set_exp_value = function _set_exp_value(expID, value) {
  * @returns {coords}
  */
 MAGPIE_ENTITY.prototype._set_ASL = function setASL(meters) {
-  if (!meters || !isNaN(meter)) return;
+  if (!meters || isNaN(meters)) return;
   const [lat, lon, ASL] = this._get_C0();
   const P1 = this._set_C1([lat, lon, meters]);
   if (P1) return [lat, lon, ASL];

@@ -123,6 +123,7 @@ MAGPIE_SERVER.registry = {
   MAGPIE_POWERTRAIN,
   MAGPIE_CONTAINER,
   MAGPIE_LOADBAR,
+  MAGPIE_ECOSYSTEM,
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -2114,6 +2115,7 @@ const main = async function main() {
   r.context.STATE = MAGPIE_STATE;
   r.context.EMOTE = MAGPIE_EMOTE;
   r.context.LOADBAR = MAGPIE_LOADBAR;
+  r.context.ECOSYSTEM = MAGPIE_ECOSYSTEM;
   r.context.io = io;
   await MAGPIE_SYSTEM.Utility.wait(100);
   bar.increment();

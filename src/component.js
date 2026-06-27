@@ -464,6 +464,24 @@ MAGPIE_SYMBOL.prototype._get_STATbyID = function getSymbolSTATbyID(statID) {
   const index = this.STATS.indexOf(statID);
   return this.STATS[index + 1];
 };
+/**
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_SYMBOL.prototype._get_components = function () {
+  MAGPIE_COMPONENT.__get("_get_databaseSync", [
+    "_get_symbolComponents",
+    [this.ID],
+  ]);
+};
+/**
+ * @returns {MAGPIE_SYMBOL[]}
+ */
+MAGPIE_SYMBOL.prototype._get_recipes = function () {
+  MAGPIE_COMPONENT.__get("_get_databaseSync", [
+    "_get_symbolRecipes",
+    [this.ID],
+  ]);
+};
 // #endregion
 //------------------------------------------------------------------------
 /**
