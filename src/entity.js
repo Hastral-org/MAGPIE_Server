@@ -761,7 +761,7 @@ MAGPIE_ENTITY.prototype._get_states = function getStates() {
 };
 /**
  *
- * @returns {entityID}
+ * @returns {entityID[]}
  */
 MAGPIE_ENTITY.prototype._get_equips = function _get_equips() {
   const K = MAGPIE.KEY.FITNESS;
@@ -771,6 +771,18 @@ MAGPIE_ENTITY.prototype._get_equips = function _get_equips() {
   const end = start + deckSize;
   return this.fitness.slice(start, end + 1);
 };
+/**
+ * 
+ * @returns {state_index[]}
+ */
+MAGPIE_ENTITY.prototype._get_tributes = function () {
+  const K = MAGPIE.KEY.FITNESS;
+  const deckSize = K.DECKSIZE;
+  const zone = K.TRIBUTE;
+  const start = K.TRAITS + deckSize * zone;
+  const end = start + deckSize;
+  return this.fitness.slice(start, end + 1)
+}
 /**
  *
  * @returns {MAGPIE_ENTITY[]}
@@ -4153,6 +4165,45 @@ MAGPIE_ENTITY.prototype._import_route = async function(filename) {
  */
 //========================================================================
 // #endregion -
+//========================================================================
+/**
+ * @name 
+ * @desc 
+ * @typedef {Number} fertility
+ */
+//========================================================================
+// #region - SPECIES
+//========================================================================
+/**
+ * 
+ * @returns {fertility}
+ */
+MAGPIE_ENTITY.prototype._get_fertility = function() {
+  return this.STATS[MAGPIE.KEY.STATS.MASSKG]
+}
+/**
+ * 
+ * @param {Number} amount
+ * @returns {fertility} 
+ */
+MAGPIE_ENTITY.prototype._set_fertility = function(amount) {
+  return this.STATS[MAGPIE.KEY.STATS.MASSKG] = amount
+}
+/**
+ * 
+ * @param {symbolID} symbolID 
+ * @returns {MAGPIE_SYMBOL}
+ */
+MAGPIE_ENTITY.prototype._get_symbol = function(symbolID) {
+  return MAGPIE_ENTITY.__hiveSync("_get_symbol", [symbolID])
+}
+/**
+ * 
+ * @desc back to {@link }
+ *
+ */
+//========================================================================
+// #endregion - 
 //========================================================================
 /**
  * @name

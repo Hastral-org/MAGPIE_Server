@@ -9,11 +9,11 @@ class MAGPIE_CLIENT {
   //
 }
 MAGPIE_CLIENT.meta = {
-  name: "M.A.G.P.I.E. WebClient",
+  name: `M.A.G.P.I.E.™`,
   desc: "",
-  version: [0, 39, 92],
+  version: [0, 39, 966],
   firmwareName: "MAGPIE_Client",
-  firmwareDate: "20260616",
+  firmwareDate: "20260628",
 };
 MAGPIE_CLIENT.params = new URLSearchParams(window.location.search);
 MAGPIE_CLIENT.pathParts = window.location.pathname.split("/");
@@ -80,7 +80,7 @@ class KEY {
  * @typedef {import("../handlers/account").playerRole} playerRole
  * @typedef {{
  * playerID: playerID,
- * username: username,
+ * playerUsername: username,
  * playerSlots: creatureID[],
  * playerRole: playerRole,
  * playerEVP: EVP,

@@ -48,7 +48,7 @@ const ePrefix = "[ECOSYSTEM] ";
  * @param {MAGPIE_SERVER} server
  * @param {Error} error
  */
-function error(server, error) {
+function error(server, level, e) {
   server.error(ePrefix + level + e.message, e);
 }
 /**
@@ -62,9 +62,9 @@ function newCreature(server, creature_data) {
   try {
     const dummy = false;
     /** @type {MAGPIE_ENTITY} */
-    return server.HIVE._new_creature(creature_data, dummy);
+    return server.HIVE._new_entity(creature_data, dummy);
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 }
 // #endregion
@@ -104,44 +104,56 @@ MAGPIE_ECOSYSTEM._get_activeEmbryos = function (server, speciesID) {
     };
     return server.DATABASE.sync.getRow("MAGPIE_ENTITY", criteria, db);
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
     return [];
   }
 };
 /**
  *
  * @param {MAGPIE_SERVER} server
- * @param {entityID} speciesID
+ * @param {MAGPIE_ENTITY} species
  * @returns {MAGPIE_ENTITY[]}
  */
-MAGPIE_ECOSYSTEM._generateEmbryos = function (server, speciesID) {
-  const level = "[_generateEmbryos] ";
+MAGPIE_ECOSYSTEM._get_adoptionList = async function (server, species) {
+  const level = "[get_adoptionList] ";
   try {
-    //
+    const activeEmbryos = MAGPIE_ECOSYSTEM._get_activeEmbryos(
+      server,
+      species.ID,
+    );
+    //@todo adoptionList
+    const generatedEmbryos = [];
+    return [...activeEmbryos, ...generatedEmbryos];
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 /**
  *
  * @param {MAGPIE_SERVER} server
  * @param {entityID} speciesID
- * @returns {MAGPIE_ENTITY[]}
+ * @returns {MAGPIE_ENTITY}
  */
-MAGPIE_ECOSYSTEM._get_adoptionList = function (server, speciesID) {
-  const level = "[get_adoptionList] ";
+MAGPIE_ECOSYSTEM.adoptCreature = async function (server, speciesID) {
+  const level = "[adoptCreature] ";
   try {
-    const activeEmbryos = MAGPIE_ECOSYSTEM._get_activeEmbryos(
-      server,
-      speciesID,
-    );
-    const generatedEmbryos = MAGPIE_ECOSYSTEM._generateEmbryos(
-      server,
-      speciesID,
-    );
-    return [...activeEmbryos, ...generatedEmbryos];
+    /** @type {MAGPIE_ENTITY} */
+    const species = server.HIVE._get_entity(speciesID);
+    const list = MAGPIE_ECOSYSTEM._get_adoptionList(server, species);
+    if (!list) throw new Error();
+    const fertility = species._get_fertility();
+    const embryoRatio = MAGPIE.KEY.ECOSYSTEM.EMBRYO_RATIO;
+    for (let i = 0; i < fertility * embryoRatio; i++) {
+      const embryo = await MAGPIE_ECOSYSTEM.generateSpeciesOffspring(
+        server,
+        species,
+      );
+      list.push(embryo);
+    }
+    const randomIndex = Math.floor(Math.random() * list.length);
+    return list[randomIndex];
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 // #endregion
@@ -208,7 +220,7 @@ MAGPIE_ECOSYSTEM.generateArchetype = async function (server, data) {
     const result = await archetype.set();
     if (!result) throw new Error(`unable to save [ARCHETYPE-${archetype.ID}. `);
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 // #endregion
@@ -234,7 +246,7 @@ MAGPIE_ECOSYSTEM.generateSpecies = async function (server, aType, mutations) {
     if (!aType?._firmware) throw new Error("invalid archetype");
     if (!mutations) mutations = [];
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 MAGPIE_ECOSYSTEM.decompressSpecies = function (server, speciesID) {
@@ -242,7 +254,7 @@ MAGPIE_ECOSYSTEM.decompressSpecies = function (server, speciesID) {
   try {
     //
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 // #endregion
@@ -266,21 +278,23 @@ MAGPIE_ECOSYSTEM.generateSpeciesOffspring = async function (server, species) {
   try {
     //@todo generateSpeciesOffspring
     const traits = MAGPIE_ECOSYSTEM.traitRoulette(server, species);
+    traits.push(MAGPIE.KEY.SYMBOL.EMBRYO);
     const creature_data = { type: species.type, fitness: traits };
     const offspring = newCreature(server, creature_data);
-    if (!(offspring instanceof MAGPIE_ENTITY))
+    if (!offspring?._firmware)
       throw new Error(`${offspring} is invalid MAGPIE_CREATURE`);
-    offspring.STATS = species.STATS;
+    offspring.name = species.name + "[OFFSPRING]";
+    offspring.STATS = new Float64Array(species.STATS);
     offspring.STATS[MAGPIE.KEY.POVART.E_ID] = offspring.ID;
-    const saved = await creature.set();
-    if (!saved) throw new Error(`unable to save [CREATURE-${offspring.ID}] `);
+    const index = offspring._get_traits().indexOf(MAGPIE.KEY.SYMBOL.EMBRYO);
+    offspring._get_states()[index] = MAGPIE.KEY.SYMBOL.EMBRYO;
     return offspring;
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 /**
- *
+ * @todo traitRoulette
  * @param {MAGPIE_SERVER} server
  * @param {MAGPIE_ENTITY} species
  */
@@ -288,8 +302,9 @@ MAGPIE_ECOSYSTEM.traitRoulette = function (server, species) {
   const level = "[traitRoulette] ";
   try {
     const speciesTraits = species._get_traits();
+    return [...speciesTraits];
   } catch (e) {
-    error(server, e);
+    error(server, level, e);
   }
 };
 // #endregion

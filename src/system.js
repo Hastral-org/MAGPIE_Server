@@ -898,6 +898,22 @@ MAGPIE_SYSTEM.Utility._import_route = function (filename) {
     return false;
   }
 };
+/**
+ * 
+ * @param {[]} array 
+ * @param {[]} elements 
+ * @returns {[any, Boolean][]}
+ */
+MAGPIE_SYSTEM.Utility.findMissingElements = function(array, elements) {
+  const ePrefix = "[SYSTEM].findMissingElements: ";
+  try {
+    if(!array || array?.length < 1 || !elements || elements?.length < 1)
+      return false
+    return elements.map(e => [`${e}: ${array.includes(e)}`])
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**

@@ -756,6 +756,7 @@ account.init = function (io, socket, server) {
     const success = http.STATUS_200.code;
     socket.emit("player_sync", { code: success, playerData });
   });
+  socket.on("adopt_creature", async (data) => {});
 };
 // #endregion
 //------------------------------------------------------------------------

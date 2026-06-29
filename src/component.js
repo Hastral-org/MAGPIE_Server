@@ -557,7 +557,7 @@ MAGPIE_SYMBOL.prototype._addRequirement = async function (symbolID) {
     this.STATS = new Float64Array(arr);
     return symbolID;
   } catch (e) {
-    server.error(ePrefix + e.message, e);
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
 /**
@@ -583,7 +583,7 @@ MAGPIE_SYMBOL.prototype._addCompound = async function (server, symbolID) {
     this.STATS = new Float64Array(arr);
     return symbolID;
   } catch (e) {
-    server.error(ePrefix + e.message, e);
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
 /**
@@ -1380,7 +1380,7 @@ MAGPIE_EXP.prototype._key_mapVspeeds = function mapVspeeds() {
   const K = MAGPIE.KEY.INDEX;
   const T = MAGPIE.KEY.TYPE;
   const keys = this.getKeys();
-  if (keys.length < 1) return;
+  if (!keys || keys?.length < 1) return;
   const Vspeeds = {};
   const speedsKey = keys.find((key) => key.type === MAGPIE.KEY.INDEX.VSPEED);
   // if (this.ID === 1782093138801)
@@ -1395,9 +1395,11 @@ MAGPIE_EXP.prototype._key_mapVspeeds = function mapVspeeds() {
     }
   }
   for (const key of keys) {
+    if (!key) continue;
     const isVSPEED = key.type >= K.VMAX && key.type <= K.TDOCK_Z;
     const type = MAGPIE.KEY.INDEX.VSPEEDS.get(key.type);
-    const value = MAGPIE_SYSTEM.Parsing.json(key.label)[1];
+    const parsed = MAGPIE_SYSTEM.Parsing.json(key.label);
+    const value = parsed && parsed?.length > 1 ? parsed[1] : null;
     if (isVSPEED && type && value) Vspeeds[type] = value;
   }
   return Vspeeds;

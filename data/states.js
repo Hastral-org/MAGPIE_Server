@@ -213,7 +213,7 @@ const EMBRYO = {
 };
 states.push(EMBRYO);
 /** @type {state_index}  */
-INDEX.EMBRYO = EMBRYO;
+INDEX.EMBRYO = EMBRYO.ID;
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const INFANT = {
@@ -229,7 +229,7 @@ const INFANT = {
 };
 states.push(INFANT);
 /** @type {state_index}  */
-INDEX.INFANT = INFANT;
+INDEX.INFANT = INFANT.ID;
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const JUVENILE = {
@@ -245,7 +245,7 @@ const JUVENILE = {
 };
 states.push(JUVENILE);
 /** @type {state_index}  */
-INDEX.JUVENILE = JUVENILE;
+INDEX.JUVENILE = JUVENILE.ID;
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const ADOLESCENT = {
@@ -261,7 +261,7 @@ const ADOLESCENT = {
 };
 states.push(ADOLESCENT);
 /** @type {state_index}  */
-INDEX.ADOLESCENT = ADOLESCENT;
+INDEX.ADOLESCENT = ADOLESCENT.ID;
 //------------------------------------------------------------------------
 /** @type {state_data} */
 const ADULT = {
@@ -293,7 +293,7 @@ const ELDER = {
 };
 states.push(ELDER);
 /** @type {state_index}  */
-INDEX.ELDER = ELDER;
+INDEX.ELDER = ELDER.ID;
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -320,15 +320,14 @@ const INHABITING = {
    * @param {fitness_index} fitness_index
    * @returns {state_output}
    */
-  onUpdate: (exp, entity, switchID, fitness_index) => {
-    if (!exp || !entity || !fitness_index) return;
-    const population = entity.STATS[MAGPIE.KEY.STATS.MASSKG];
-    const evolution = entity.STATS[MAGPIE.KEY.STATS.EVO];
-    const fertility = population * evolution;
-  },
+  onUpdate: (exp, entity, switchID, fitness_index) => {},
   onRemove: () => {},
   onExpire: () => {},
 };
+states.push(INHABITING);
+/** @type {state_index} */
+INDEX.INHABITING = INHABITING.ID;
+//------------------------------------------------------------------------
 // #endregion
 //------------------------------------------------------------------------
 /**

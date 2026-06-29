@@ -564,8 +564,8 @@ class MAGPIE {
 // #region - INDEX
 //========================================================================
 MAGPIE.meta = {
-  name: "M.A.G.P.I.E.",
-  desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine",
+  name: "M.A.G.P.I.E.™",
+  desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
   version: [0, 39, 966],
   firmwareName: "MAGPIE",
   firmwareDate: "20260627",
@@ -588,11 +588,13 @@ MAGPIE.meta = {
 //========================================================================
 MAGPIE.KEY = {};
 MAGPIE.KEY.meta = {
-  name: "M.A.G.P.I.E. semantic key dictionary",
+  name: `${MAGPIE.meta.name} semantic key dictionary`,
   desc: "",
   firmwareName: "MAGPIE_KEY",
 };
 MAGPIE.KEY.TYPE = {};
+/** @desc {@link MAGPIE.KEY.SYMBOL.meta} */
+MAGPIE.KEY.SYMBOL = {};
 /** @desc {@link MAGPIE.KEY.ECOSYSTEM.meta} */
 MAGPIE.KEY.ECOSYSTEM = {};
 /**
@@ -1561,6 +1563,8 @@ MAGPIE.KEY.SERVER.IS_DEV = !!MAGPIE.config.devMode && !MAGPIE.config.production;
 MAGPIE.KEY.SERVER.EVENT_REQUEST = "REQUEST";
 /** @desc socketEvent name for socket.emit() */
 MAGPIE.KEY.SERVER.EVENT_RESPONSE = "RESPONSE";
+MAGPIE.KEY.SERVER.STATUS_ON = "✅ RUNNING";
+MAGPIE.KEY.SERVER.STATUS_OFF = "⚠️ NOT RESPONDING";
 /**
  * @desc server preset messages
  *
@@ -1584,7 +1588,7 @@ MAGPIE.KEY.SERVER.MESSAGE.INVALID_CREDENTIALS = "<h1>Invalid credentials</h1>";
 //------------------------------------------------------------------------
 MAGPIE.KEY.RUNTIME.meta = {
   firmwareName: "MAGPIE_RUNTIME",
-  name: "M.A.G.P.I.E. runtime",
+  name: `${MAGPIE.meta.name} runtime`,
 };
 /**
  * @desc layer_frequency[]
@@ -1699,7 +1703,7 @@ MAGPIE.KEY.HIVE.REMOTE_SIZE = 3;
  */
 MAGPIE.KEY.SEMANTICS = {};
 MAGPIE.KEY.SEMANTICS.meta = {
-  name: "M.A.G.P.I.E. semantic keys",
+  name: `${MAGPIE.meta.name} semantic keys`,
 };
 /**
  * @name
@@ -1830,16 +1834,22 @@ MAGPIE.KEY.ENTITY.CONTAINER.SERIES = 4;
  */
 /** @type {state_index} */
 MAGPIE.KEY.STATE.EMBRYO = 101;
+MAGPIE.KEY.SYMBOL.EMBRYO = 1782596916966;
 /** @type {state_index} */
 MAGPIE.KEY.STATE.INFANT = 102;
+MAGPIE.KEY.SYMBOL.INFANT = 1782597357698;
 /** @type {state_index} */
 MAGPIE.KEY.STATE.JUVENILE = 103;
+MAGPIE.KEY.SYMBOL.JUVENILE = 1782597397319;
 /** @type {state_index} */
 MAGPIE.KEY.STATE.ADOLESCENT = 104;
+MAGPIE.KEY.SYMBOL.ADOLESCENT = 1782597441653;
 /** @type {state_index} */
 MAGPIE.KEY.STATE.ADULT = 105;
+MAGPIE.KEY.SYMBOL.ADULT = 1782597479281;
 /** @type {state_index} */
 MAGPIE.KEY.STATE.ELDER = 106;
+MAGPIE.KEY.SYMBOL.ELDER = 1782597509757;
 /** @desc Creature growth stats */
 MAGPIE.KEY.GROWTH = {};
 /**
@@ -2582,7 +2592,6 @@ MAGPIE.KEY.COMPONENT.STATE.ARRAY =
 //------------------------------------------------------------------------
 // #region > Symbol
 //------------------------------------------------------------------------
-MAGPIE.KEY.SYMBOL = {};
 /**
  * @typedef {Enumerator<Number>} symbol_type
  */
