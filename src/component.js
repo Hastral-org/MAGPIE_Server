@@ -1310,7 +1310,7 @@ MAGPIE_EXP.prototype._key_mapWPoptions = function (key) {
 MAGPIE_EXP.prototype._key_findWPoptions = function () {
   const K = MAGPIE.KEY.INDEX;
   const keys = this.getKeys();
-  if (keys.length < 1) return;
+  if (!keys || keys?.length < 1) return;
   return keys.find((key) => key.type === MAGPIE.KEY.INDEX.WP_OPTIONS);
 };
 // #endregion

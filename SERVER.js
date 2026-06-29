@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.962
+ * @version 0.39.967
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -1373,10 +1373,12 @@ MAGPIE_ENTITY.__socketEmit = function entitySocketEmit(
     const normP1 = MAGPIE_PHYSICS.normalizeVector(P1);
     const unitP1mag = MAGPIE_PHYSICS.mag(normP1);
     // MAGPIE_SERVER._debug(`O1: ${O1} | P1: ${P1}`);
-    const [roll, pitch, hdg] =
-      unitP1mag !== 1
-        ? [NaN, NaN, NaN]
-        : MAGPIE_PHYSICS._rotor_toEulerAbs(O1, P1);
+    // const [pitch, roll, hdg] =
+    //   unitP1mag !== 1
+    //     ? [NaN, NaN, NaN]
+    //     : MAGPIE_PHYSICS._rotor_toEulerAbs(O1, P1);
+    const { pitch, roll, hdg } =
+      unitP1mag !== 1 ? [NaN, NaN, NaN] : entity._get_eulerAbs();
     const target = entity._get_target();
     const Pt = target?.STATS?.slice(0, Kp.P_C) || [NaN, NaN, NaN];
     const validTarget = MAGPIE_PHYSICS.isValidVector(Pt);

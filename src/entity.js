@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.965
+ * @version 0.39.967
  * @desc
  * @param {{
  * name: String,
@@ -956,6 +956,104 @@ MAGPIE_ENTITY.prototype._get_data = function getData() {
   });
 };
 /**
+ *
+ * @typedef {{
+ * Vmax: velocity,
+ * Vsafe: velocity,
+ * Vcruise: velocity,
+ * Vcreep: velocity,
+ * Vdock: velocity,
+ * Rmax: omega,
+ * Rcruise: omega,
+ * Rcreep: omega,
+ * Rdock: omega,
+ * Amax: acceleration,
+ * Asafe: acceleration,
+ * Acruise: acceleration,
+ * Acreep: acceleration,
+ * Adock: acceleration,
+ * Tmax: alpha,
+ * Tsafe: alpha,
+ * Tcruise: alpha,
+ * Tcreep: alpha,
+ * Tdock: alpha
+ * }} entity_speeds
+ * @param {entity_speeds} overrideVspeed
+ */
+MAGPIE_ENTITY.prototype._get_speeds = function getSpeed(overrideVspeed) {
+  const symbol = this._get_type();
+  const Vspeeds = symbol.getVspeeds();
+  /** @type {entity_speeds} */
+  const speeds = {}
+  speeds.Vmax = overrideVspeed?.VMAX || Vspeeds?.VMAX || 0;
+  speeds.Vsafe = overrideVspeed?.VSAFE || Vspeeds?.VSAFE || speeds.Vmax * 0.85;
+  speeds.Vcruise = overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE || speeds.Vmax * 0.65;
+  speeds.Vcreep = overrideVspeed?.VCREEP || Vspeeds?.VCREEP || speeds.Vmax * 0.35;
+  speeds.Vdock = overrideVspeed?.VDOCK || Vspeeds?.VDOCK || speeds.Vmax * 0.05;
+  speeds.Amax = overrideVspeed?.AMAX || Vspeeds?.AMAX || 0;
+  speeds.Asafe = overrideVspeed?.ASAFE || Vspeeds?.ASAFE || speeds.Amax * 0.85;
+  speeds.Acruise = overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE || speeds.Amax * 0.65;
+  speeds.Acreep = overrideVspeed?.ACREEP || Vspeeds?.ACREEP || speeds.Amax * 0.35;
+  speeds.Adock = overrideVspeed?.ADOCK || Vspeeds?.ADOCK || speeds.Amax * 0.05;
+  speeds.Rmax = overrideVspeed?.RMAX || Vspeeds?.RMAX || 0;
+  speeds.Rsafe = overrideVspeed?.RSAFE || Vspeeds?.RSAFE || speeds.Rmax * 0.85;
+  speeds.Rcruise = overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE || speeds.Rmax * 0.65;
+  speeds.Rcreep = overrideVspeed?.RCREEP || Vspeeds?.RCREEP || speeds.Rmax * 0.35;
+  speeds.Rdock = overrideVspeed?.RDOCK || Vspeeds?.RDOCK || speeds.Rmax * 0.05;
+  speeds.Tmax = overrideVspeed?.TMAX || Vspeeds?.TMAX || 0;
+  speeds.Tsafe = overrideVspeed?.TSAFE || Vspeeds?.TSAFE || speeds.Tmax * 0.85;
+  speeds.Tcruise = overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE || speeds.Tmax * 0.65;
+  speeds.Tcreep = overrideVspeed?.TCREEP || Vspeeds?.TCREEP || speeds.Tmax * 0.35;
+  speeds.Tdock = overrideVspeed?.TDOCK || Vspeeds?.TDOCK || speeds.Tmax * 0.05;
+  speeds.Rmax_x = overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X || 0;
+  speeds.Rsafe_x = overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X || 0;
+  speeds.Rcruise_x = overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X || 0;
+  speeds.Rcreep_x = overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X || 0;
+  speeds.Rmax_y = overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y || 0;
+  speeds.Rsafe_y = overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y || 0;
+  speeds.Rcruise_y = overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y || 0;
+  speeds.Rcreep_y = overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y || 0;
+  speeds.Rmax_z = overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z || 0;
+  speeds.Rsafe_z = overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z || 0;
+  speeds.Rcruise_z = overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z || 0;
+  speeds.Rcreep_z = overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z || 0;
+  speeds.Tmax_x = overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X || 0;
+  speeds.Tsafe_x = overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X || 0;
+  speeds.Tcruise_x = overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X || 0;
+  speeds.Tcreep_x = overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X || 0;
+  speeds.Tmax_y = overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y || 0;
+  speeds.Tsafe_y = overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y || 0;
+  speeds.Tcruise_y = overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y || 0;
+  speeds.Tcreep_y = overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y || 0;
+  speeds.Tmax_z = overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z || 0;
+  speeds.Tsafe_z = overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z || 0;
+  speeds.Tcruise_z = overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z || 0;
+  speeds.Tcreep_z = overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z || 0;
+  return speeds;
+};
+/**
+ * 
+ * @returns 
+ */
+MAGPIE_ENTITY.prototype._decomp_POVART = function() {
+  const POVART0 = this._get_POVART();
+  return MAGPIE_ENTITY._get_decomp_POVART(POVART0)
+}
+/**
+ * 
+ * @returns {{ pitch: pitch, roll: roll, hdg: heading }}
+ */
+MAGPIE_ENTITY.prototype._get_eulerAbs = function() {
+  const ePrefix = `[ENTITY-${this.ID}]._get_eulerAbs: `;
+  try {
+    const { P0, O0 } = this._decomp_POVART();
+    const [pitch, roll, hdg] = MAGPIE_PHYSICS._rotor_toEulerAbs(O0, P0);
+    return { pitch, roll, hdg }
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
  * @name
  * @desc
  *
@@ -1158,6 +1256,7 @@ MAGPIE_ENTITY.prototype._set_P1 = function _set_P1(P1) {
 /**
  *
  * @param {rotor} O1
+ * @returns {rotor}
  */
 MAGPIE_ENTITY.prototype._set_O1 = function _set_O1(O1) {
   // if(!MAGPIE_PHYSICS.isValidRotor(O1))
@@ -1168,6 +1267,7 @@ MAGPIE_ENTITY.prototype._set_O1 = function _set_O1(O1) {
   this.STATS[K.O_XZ] = xz;
   this.STATS[K.O_XY] = xy;
   this.STATS[K.O_W] = w;
+  return O1
 };
 /**
  *
@@ -1222,81 +1322,50 @@ MAGPIE_ENTITY.prototype._set_T1 = function _set_T1(T1) {
   this.STATS[K.T_XY] = xy;
 };
 /**
- *
- * @typedef {{
- * Vmax: velocity,
- * Vsafe: velocity,
- * Vcruise: velocity,
- * Vcreep: velocity,
- * Vdock: velocity,
- * Rmax: omega,
- * Rcruise: omega,
- * Rcreep: omega,
- * Rdock: omega,
- * Amax: acceleration,
- * Asafe: acceleration,
- * Acruise: acceleration,
- * Acreep: acceleration,
- * Adock: acceleration,
- * Tmax: alpha,
- * Tsafe: alpha,
- * Tcruise: alpha,
- * Tcreep: alpha,
- * Tdock: alpha
- * }} entity_speeds
- * @param {entity_speeds} overrideVspeed
+ * 
+ * @param {angle_euler} angle_euler 
+ * @returns {rotor}
  */
-MAGPIE_ENTITY.prototype._get_speeds = function getSpeed(overrideVspeed) {
-  const symbol = this._get_type();
-  const Vspeeds = symbol.getVspeeds();
-  /** @type {entity_speeds} */
-  const speeds = {}
-  speeds.Vmax = overrideVspeed?.VMAX || Vspeeds?.VMAX || 0;
-  speeds.Vsafe = overrideVspeed?.VSAFE || Vspeeds?.VSAFE || speeds.Vmax * 0.85;
-  speeds.Vcruise = overrideVspeed?.VCRUISE || Vspeeds?.VCRUISE || speeds.Vmax * 0.65;
-  speeds.Vcreep = overrideVspeed?.VCREEP || Vspeeds?.VCREEP || speeds.Vmax * 0.35;
-  speeds.Vdock = overrideVspeed?.VDOCK || Vspeeds?.VDOCK || speeds.Vmax * 0.05;
-  speeds.Amax = overrideVspeed?.AMAX || Vspeeds?.AMAX || 0;
-  speeds.Asafe = overrideVspeed?.ASAFE || Vspeeds?.ASAFE || speeds.Amax * 0.85;
-  speeds.Acruise = overrideVspeed?.ACRUISE || Vspeeds?.ACRUISE || speeds.Amax * 0.65;
-  speeds.Acreep = overrideVspeed?.ACREEP || Vspeeds?.ACREEP || speeds.Amax * 0.35;
-  speeds.Adock = overrideVspeed?.ADOCK || Vspeeds?.ADOCK || speeds.Amax * 0.05;
-  speeds.Rmax = overrideVspeed?.RMAX || Vspeeds?.RMAX || 0;
-  speeds.Rsafe = overrideVspeed?.RSAFE || Vspeeds?.RSAFE || speeds.Rmax * 0.85;
-  speeds.Rcruise = overrideVspeed?.RCRUISE || Vspeeds?.RCRUISE || speeds.Rmax * 0.65;
-  speeds.Rcreep = overrideVspeed?.RCREEP || Vspeeds?.RCREEP || speeds.Rmax * 0.35;
-  speeds.Rdock = overrideVspeed?.RDOCK || Vspeeds?.RDOCK || speeds.Rmax * 0.05;
-  speeds.Tmax = overrideVspeed?.TMAX || Vspeeds?.TMAX || 0;
-  speeds.Tsafe = overrideVspeed?.TSAFE || Vspeeds?.TSAFE || speeds.Tmax * 0.85;
-  speeds.Tcruise = overrideVspeed?.TCRUISE || Vspeeds?.TCRUISE || speeds.Tmax * 0.65;
-  speeds.Tcreep = overrideVspeed?.TCREEP || Vspeeds?.TCREEP || speeds.Tmax * 0.35;
-  speeds.Tdock = overrideVspeed?.TDOCK || Vspeeds?.TDOCK || speeds.Tmax * 0.05;
-  speeds.Rmax_x = overrideVspeed?.RMAX_X || Vspeeds?.RMAX_X || 0;
-  speeds.Rsafe_x = overrideVspeed?.RSAFE_X || Vspeeds?.RSAFE_X || 0;
-  speeds.Rcruise_x = overrideVspeed?.RCRUISE_X || Vspeeds?.RCRUISE_X || 0;
-  speeds.Rcreep_x = overrideVspeed?.RCREEP_X || Vspeeds?.RCREEP_X || 0;
-  speeds.Rmax_y = overrideVspeed?.RMAX_Y || Vspeeds?.RMAX_Y || 0;
-  speeds.Rsafe_y = overrideVspeed?.RSAFE_Y || Vspeeds?.RSAFE_Y || 0;
-  speeds.Rcruise_y = overrideVspeed?.RCRUISE_Y || Vspeeds?.RCRUISE_Y || 0;
-  speeds.Rcreep_y = overrideVspeed?.RCREEP_Y || Vspeeds?.RCREEP_Y || 0;
-  speeds.Rmax_z = overrideVspeed?.RMAX_Z || Vspeeds?.RMAX_Z || 0;
-  speeds.Rsafe_z = overrideVspeed?.RSAFE_Z || Vspeeds?.RSAFE_Z || 0;
-  speeds.Rcruise_z = overrideVspeed?.RCRUISE_Z || Vspeeds?.RCRUISE_Z || 0;
-  speeds.Rcreep_z = overrideVspeed?.RCREEP_Z || Vspeeds?.RCREEP_Z || 0;
-  speeds.Tmax_x = overrideVspeed?.TMAX_X || Vspeeds?.TMAX_X || 0;
-  speeds.Tsafe_x = overrideVspeed?.TSAFE_X || Vspeeds?.TSAFE_X || 0;
-  speeds.Tcruise_x = overrideVspeed?.TCRUISE_X || Vspeeds?.TCRUISE_X || 0;
-  speeds.Tcreep_x = overrideVspeed?.TCREEP_X || Vspeeds?.TCREEP_X || 0;
-  speeds.Tmax_y = overrideVspeed?.TMAX_Y || Vspeeds?.TMAX_Y || 0;
-  speeds.Tsafe_y = overrideVspeed?.TSAFE_Y || Vspeeds?.TSAFE_Y || 0;
-  speeds.Tcruise_y = overrideVspeed?.TCRUISE_Y || Vspeeds?.TCRUISE_Y || 0;
-  speeds.Tcreep_y = overrideVspeed?.TCREEP_Y || Vspeeds?.TCREEP_Y || 0;
-  speeds.Tmax_z = overrideVspeed?.TMAX_Z || Vspeeds?.TMAX_Z || 0;
-  speeds.Tsafe_z = overrideVspeed?.TSAFE_Z || Vspeeds?.TSAFE_Z || 0;
-  speeds.Tcruise_z = overrideVspeed?.TCRUISE_Z || Vspeeds?.TCRUISE_Z || 0;
-  speeds.Tcreep_z = overrideVspeed?.TCREEP_Z || Vspeeds?.TCREEP_Z || 0;
-  return speeds;
-};
+MAGPIE_ENTITY.prototype._set_heading = function(angle_euler) {
+  const ePrefix = `[ENTITY-${this.ID}]._set_heading: `;
+  try {
+    const { P0, O0 } = this._decomp_POVART();
+    const [pitch, roll, hdg] = MAGPIE_PHYSICS._rotor_toEulerAbs(O0, P0)
+    return this._set_O1(MAGPIE_PHYSICS._rotor_fromEulerAbs(angle_euler, pitch, roll, P0))
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
+ * 
+ * @param {angle_euler} angle_euler 
+ * @returns {rotor}
+ */
+MAGPIE_ENTITY.prototype._set_pitch = function(angle_euler) {
+  const ePrefix = `[ENTITY-${this.ID}]._set_heading: `;
+  try {
+    const { P0, O0 } = this._decomp_POVART();
+    const [pitch, roll, hdg] = MAGPIE_PHYSICS._rotor_toEulerAbs(O0, P0)
+    return this._set_O1(MAGPIE_PHYSICS._rotor_fromEulerAbs(hdg, angle_euler, roll, P0))
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
+ * 
+ * @param {angle_euler} angle_euler 
+ * @returns {rotor}
+ */
+MAGPIE_ENTITY.prototype._set_roll = function(angle_euler) {
+  const ePrefix = `[ENTITY-${this.ID}]._set_heading: `;
+  try {
+    const { P0, O0 } = this._decomp_POVART();
+    const [pitch, roll, hdg] = MAGPIE_PHYSICS._rotor_toEulerAbs(O0, P0)
+    return this._set_O1(MAGPIE_PHYSICS._rotor_fromEulerAbs(hdg, pitch, angle_euler, P0))
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
