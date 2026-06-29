@@ -1130,6 +1130,8 @@ MAGPIE_PHYSICS._getAt = function _getAt(P0, V0, P1, params, options) {
  * @returns {vector3}
  */
 MAGPIE_PHYSICS._get_localUp = function getLocalUp(P0) {
+  if(this.mag(P0) < 1e-12)
+    return [0,0,1]
   return this.normalizeVector(P0);
 };
 /**
@@ -3204,6 +3206,14 @@ MAGPIE_PHYSICS.rotorFromBivector = function rotorFromBivector(B, dt) {
   ];
 };
 /**
+ * 
+ * @param {magnitude} mag 
+ * @returns {Boolean}
+ */
+MAGPIE_PHYSICS.isValidMagnitude = function (mag) {
+  return Math.abs(mag - 1) > 1e-6
+}
+/**
  * @method rotorFromVectors (a, b) — from-to rotation
  * @Math Rotor that rotates unit vector (a) to unit vector (b).
  * `R = a·b + a∧b` = `dot(a,b) + wedge(a,b)`
@@ -3222,9 +3232,9 @@ MAGPIE_PHYSICS.rotorFromVectors = function rotorFromVectors(a, b) {
     const mag_a = this.mag(a);
     const mag_b = this.mag(b);
     let check = [];
-    if (Math.abs(mag_a - 1) > 1e-9)
+    if (this.isValidMagnitude(mag_a))
       check.push(`a[${a}].mag(${mag_a}) must be 1`);
-    if (Math.abs(mag_b - 1) > 1e-9)
+    if (this.isValidMagnitude(mag_b))
       check.push(`b[${b}].mag(${mag_b}) must be 1`);
     if (check.length > 0) throw new Error(`${check[0]} | ${check[1]}`);
     const dot = this.dotProduct(a, b);
