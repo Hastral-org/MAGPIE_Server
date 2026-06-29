@@ -1232,7 +1232,7 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
 };
 /**
  * @desc @desc [key routes](https://github.com/Hastral-org/MAGPIE_Server/issues/210)
- * @audit [issue 207: exp._key_nextRoutWp eats all coords at once](https://github.com/Hastral-org/MAGPIE_Server/issues/207)
+ * @audit [issue #207: exp._key_nextRoutWp eats all coords at once](https://github.com/Hastral-org/MAGPIE_Server/issues/207)
  * @param {MAGPIE_KEY} key
  * @param {MAGPIE_ENTITY} target
  * @returns {entityID} targetID
