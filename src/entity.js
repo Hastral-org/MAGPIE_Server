@@ -1755,11 +1755,7 @@ MAGPIE_ENTITY.__socketEmit = function __socketEmit(
  * @param {Number} layer_frame
  * @returns {MAGPIE_EXP}
  */
-MAGPIE_ENTITY.prototype.processExp = function processExp(
-  switchID,
-  dt,
-  layer_frame,
-) {
+MAGPIE_ENTITY.prototype.processExp = function (switchID, dt, layer_frame) {
   const ePrefix = `[ENTITY-${this.ID}].processExp: `;
   const exps = this._get_array_expID();
   // return MAGPIE_SYSTEM._logging_debug(layer_frame)
@@ -2105,6 +2101,8 @@ MAGPIE_ENTITY.prototype.processKeys = function processKeys(exp) {
     const keyList = exp.keys;
     if (keyList.length < 1) return;
     const keys = exp.getKeys();
+    if(!keys || !Array.isArray(keys)) 
+      return this.selfKick(`corrupt keys in [EXP-${exp.ID}]`)
     if (keys.length < 1) return;
     const key = keys.find((key) => key.type === MAGPIE.KEY.TYPE.EMOTE);
     if (key) return key;
