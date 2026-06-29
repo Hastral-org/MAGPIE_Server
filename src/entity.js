@@ -3983,6 +3983,11 @@ MAGPIE_ENTITY.prototype._target_queue_geodetic = async function (options) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+/**
+ * @desc [key routes](https://github.com/Hastral-org/MAGPIE_Server/issues/210)
+ * @param {{}} options 
+ * @returns {String[]}
+ */
 MAGPIE_ENTITY.prototype._target_route = function(options) {
   const ePrefix = "[ENTITY]._target_route: ";
   try {
