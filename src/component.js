@@ -596,7 +596,7 @@ MAGPIE_SYMBOL.prototype._addRequirement = async function (symbolID) {
 /**
  * @param {MAGPIE_SERVER} server
  * @param {symbolID} symbolID
- * @returns {Promise<database_result>}
+ * @returns {Promise<symbolID>}
  */
 MAGPIE_SYMBOL.prototype._addCompound = async function (server, symbolID) {
   const ePrefix = `[SYMBOL-${this.ID}] `;
@@ -613,7 +613,9 @@ MAGPIE_SYMBOL.prototype._addCompound = async function (server, symbolID) {
       },
     );
     if (!result) throw new Error(`unable to set [COMPOUND-${symbolID}]`);
+    const saved = await this.set();
     this.STATS = new Float64Array(arr);
+    if (!saved) throw new Error("unable to save");
     return symbolID;
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);

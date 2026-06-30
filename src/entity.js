@@ -778,7 +778,8 @@ MAGPIE_ENTITY.prototype._get_equips = function _get_equips() {
   const zone = K.EQUIPS;
   const start = K.TRAITS + deckSize * zone;
   const end = start + deckSize;
-  return this.fitness.slice(start, end + 1);
+  const arr = Array.from(this.fitness);
+  return arr.slice(start, end + 1);
 };
 /**
  * 
@@ -796,7 +797,7 @@ MAGPIE_ENTITY.prototype._get_tributes = function () {
  *
  * @returns {MAGPIE_ENTITY[]}
  */
-MAGPIE_ENTITY.prototype._get_equipEntities = function () {
+MAGPIE_ENTITY.prototype._get_all_equips = function () {
   return this._get_equips().map((entityID) => {
     if (entityID) return MAGPIE_ENTITY.__hiveSync("_get_entity", [entityID]);
   });
@@ -3177,7 +3178,7 @@ MAGPIE_ENTITY.prototype._emote_seekNRG = function seekNRG(exp) {
       keys: [MAGPIE.KEY.INDEX.ECG_HUNGRY],
     });
     //@todo target food?
-    const equips = this._get_equipEntities();
+    const equips = this._get_all_equips();
     if (equips.length > 0) {
       const species = MAGPIE.KEY.SYMBOL.TYPE.SPECIES;
       const food = equips.find(
@@ -3530,20 +3531,21 @@ MAGPIE_ENTITY.prototype._get_Rstate = function getRstate() {
 };
 /**
  *
- * @param {stamina_index} stamina_index
+ * @param {trait_index} traitIndex
+ * @param {stateID} manualID
  * @returns {Boolean}
  */
-MAGPIE_ENTITY.prototype.addState = function addState(stamina_index) {
+MAGPIE_ENTITY.prototype.addState = function addState(traitIndex, manualID = 0) {
   const ePrefix = `[ENTITY-${this.ID}].addState: `;
   try {
-    if (!this.isValidStamina(stamina_index))
-      throw new Error(`${stamina_index} is invalid STA index (0-9)`);
-    const stateID = this._trait_getStateID(this._get_stamina(stamina_index));
-    const slot = this.fitness[index];
-    if (slot)
-      throw new Error(`fitness[${index}] is occupied by [STATE-${slot}]`);
-    this.fitness[index] = stateID;
-    return true;
+    const traitID = this._get_traits()[traitIndex];
+    const stateID = this._trait_getStateID(traitID);
+    const fitness_index = this._get_index_state(traitIndex);
+    const currentState = this.fitness[this.fitness_index]
+    if(currentState)
+      throw new Error(`fitness[${fitness_index}] is occupied by [STATE-${currentState}]`)
+    this.fitness[fitness_index] = manualID || stateID;
+    return this.fitness[fitness_index];
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
