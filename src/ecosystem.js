@@ -2,7 +2,7 @@
  *
  * @name ecosystem
  * @author Matheraptor
- * @version 0.39.962
+ * @version 0.39.968
  *
  */
 class MAGPIE_ECOSYSTEM {

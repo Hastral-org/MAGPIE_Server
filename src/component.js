@@ -1,7 +1,7 @@
 /**
  * @name INDEX
  * @desc
- * @version 0.39.966
+ * @version 0.39.968
  */
 //========================================================================
 // #region - INDEX
@@ -659,6 +659,7 @@ MAGPIE_SYMBOL.prototype._get_locomotion = function getLocomotion() {
 //------------------------------------------------------------------------
 // #region > Processor
 //------------------------------------------------------------------------
+
 /**
  *
  * @typedef {import("./index").Processors} Processors
@@ -1232,7 +1233,7 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
 };
 /**
  * @desc @desc [key routes](https://github.com/Hastral-org/MAGPIE_Server/issues/210)
- * @audit [issue #207: exp._key_nextRoutWp eats all coords at once](https://github.com/Hastral-org/MAGPIE_Server/issues/207)
+ * @audit [issue 207: exp._key_nextRoutWp eats all coords at once](https://github.com/Hastral-org/MAGPIE_Server/issues/207)
  * @param {MAGPIE_KEY} key
  * @param {MAGPIE_ENTITY} target
  * @returns {entityID} targetID
@@ -2011,7 +2012,10 @@ MAGPIE_TICKET.prototype.initialize = function initialize(data) {
 //------------------------------------------------------------------------
 // #region > Proto
 //------------------------------------------------------------------------
-
+/**
+ *
+ * @param {*} data
+ */
 MAGPIE_KEY.prototype.initialize = function initialize(data) {
   this._firmware = "MAGPIE_KEY";
   this.ID = Number(data?.ID) || Date.now();

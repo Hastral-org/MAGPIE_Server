@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.968 2026 06 30
+ * - TWEAKED: preparing for merge with 'main'
+ *
  * @version 0.39.967 2026 06 29
  * - FIXED: entity.getEmoteSeekOptions causing cascading errors
  *
@@ -569,9 +572,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 967],
+  version: [0, 39, 968],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260629",
+  firmwareDate: "20260630",
 };
 /**
  *
