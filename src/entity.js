@@ -769,12 +769,27 @@ MAGPIE_ENTITY.prototype._get_states = function getStates() {
   return MAGPIE_ENTITY._get_States(this);
 };
 /**
+ * 
+ * @returns {entityID[]}
+ */
+MAGPIE_ENTITY.prototype._get_equips = function () {
+  const ePrefix = `[ENTITY-${this.ID}]._get_equips: `;
+  try {
+    const db = MAGPIE_ENTITY.__get_database();
+    const result = db.sync.getRow("entity_equips", {hostID: this.ID}, db.sync.world);
+    if(!result || !Array.isArray(result)) throw new Error("unable to fetch equips");
+    return result.map(row => row.equipID)
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
  *
  * @returns {entityID[]}
  */
-MAGPIE_ENTITY.prototype._get_equips = function _get_equips() {
+MAGPIE_ENTITY.prototype._get_equipped = function () {
   const K = MAGPIE.KEY.FITNESS;
-  const deckSize = K.DECKSIZE;
+  const deckSize = this.fitness[K.DECKSIZE];
   const zone = K.EQUIPS;
   const start = K.TRAITS + deckSize * zone;
   const end = start + deckSize;
@@ -798,9 +813,8 @@ MAGPIE_ENTITY.prototype._get_tributes = function () {
  * @returns {MAGPIE_ENTITY[]}
  */
 MAGPIE_ENTITY.prototype._get_all_equips = function () {
-  return this._get_equips().map((entityID) => {
-    if (entityID) return MAGPIE_ENTITY.__hiveSync("_get_entity", [entityID]);
-  });
+  const db = MAGPIE_ENTITY.__get_database();
+  return this._get_equips().map(ID => db.loadEntitySync(ID));
 };
 /**
  *
