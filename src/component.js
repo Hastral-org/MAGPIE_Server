@@ -646,6 +646,23 @@ MAGPIE_SYMBOL.prototype._addComponent = async function (server, symbolID) {
 };
 /**
  *
+ * @param {MAGPIE_SERVER} server
+ * @param {symbol_data} data
+ * @returns {Promise<MAGPIE_SYMBOL>}
+ */
+MAGPIE_SYMBOL.prototype._setup_newComponent = async function (server, data) {
+  const ePrefix = `[SYMBOL-${this.ID}]._setup_newComponent: `;
+  try {
+    if (!data) throw new Error("no symbol data provided");
+    const component = new MAGPIE_SYMBOL(data);
+    if (!component?.ID) throw new Error("unable to create component");
+    return await this._addComponent(server, component.ID);
+  } catch (e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e);
+  }
+};
+/**
+ *
  * @param {keyID} statID
  * @param {STAT} value
  */

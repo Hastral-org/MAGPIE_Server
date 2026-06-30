@@ -1324,6 +1324,13 @@ MAGPIE_ENTITY.__hive = async function __hive(method, arguments) {
 };
 /**
  *
+ * @returns {MAGPIE_DATABASE}
+ */
+MAGPIE_ENTITY.__get_database = function () {
+  return MAGPIE_DATABASE;
+};
+/**
+ *
  * @param {Number[]} output
  * @param {MAGPIE_EXP} exp
  * @param {MAGPIE_ENTITY} entity

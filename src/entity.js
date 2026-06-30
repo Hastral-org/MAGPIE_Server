@@ -21,7 +21,7 @@ function MAGPIE_ENTITY(data = {}) {
   this.initialize(data);
 }
 const { MAGPIE } = require("./index");
-const { MAGPIE_SYSTEM, MAGPIE_DATE } = require("./system");
+const { MAGPIE_SYSTEM, MAGPIE_DATE } = require("./system.js");
 const {
   MAGPIE_STATE,
   MAGPIE_EMOTE,
@@ -550,6 +550,12 @@ MAGPIE_ENTITY.prototype.setupFitness = function setupFitness(fitness_data) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
   }
 };
+/**
+ * @returns {import("./database.js").MAGPIE_DATABASE} 
+ */
+MAGPIE_ENTITY.__get_database = function() {
+  //
+}
 // #endregion
 //------------------------------------------------------------------------
 /**
@@ -1365,6 +1371,57 @@ MAGPIE_ENTITY.prototype._set_roll = function(angle_euler) {
     const { P0, O0 } = this._decomp_POVART();
     const [pitch, roll, hdg] = MAGPIE_PHYSICS._rotor_toEulerAbs(O0, P0)
     return this._set_O1(MAGPIE_PHYSICS._rotor_fromEulerAbs(hdg, pitch, angle_euler, P0))
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+}
+/**
+ * 
+ * @param {entityID} equipID
+ * @returns {Promise<equip>} 
+ */
+MAGPIE_ENTITY.prototype._set_equip = async function(equipID) {
+  const ePrefix = `[ENTITY-${this.ID}]._set_equip: `;
+  try {
+    if(!Number(equipID)) throw new Error(`${equipID} is invalid equipID`)
+    const db = MAGPIE_ENTITY.__get_database();
+    const result = await db.sync.saveWorldRow("entity_equips", {
+      hostID: this.ID, 
+      equipID: equipID
+    });
+    if(!result) throw new Error(`unable to set [ENTITY-${equipID}] as equip`);
+    return db.loadEntitySync(equipID)
+  } catch(e) {
+    MAGPIE_SYSTEM.error(ePrefix + e.message, e)
+  }
+} 
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name 
+ * @desc 
+ * 
+ */
+//------------------------------------------------------------------------
+// #region > Adders 
+//------------------------------------------------------------------------
+/**
+ * 
+ * @param {entity_data} equip_data
+ * @returns {Promise<MAGPIE_ENTITY>} 
+ */
+MAGPIE_ENTITY.prototype._add_newEquip = async function(equip_data) {
+  const ePrefix = `[ENTITY-${this.ID}]._add_newEquip: `;
+  try {
+    const db = MAGPIE_ENTITY.__get_database();
+    if(!db) throw new Error("unable to fetch DATABASE")
+    const equip = new MAGPIE_ENTITY(equip_data);
+    if(!equip?._firmware) throw new Error(`${equip} is invalid MAGPIE_ENTITY`)
+    const setup = await equip.setup(equip_data);
+    if(!setup) throw new Error(`unable to setup [EQUIP-${equip.ID}]`)
+    const result = await equip.set();
+    if(!result) throw new Error(`unable to save [EQUIP-${equip.ID}]`)
+    return await this._set_equip(equip.ID);
   } catch(e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e)
   }
