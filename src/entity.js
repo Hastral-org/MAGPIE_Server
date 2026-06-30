@@ -2439,13 +2439,24 @@ MAGPIE_ENTITY.prototype._trait_add = function addTrait(symbolID) {
   try {
     if (isNaN(symbolID)) throw new Error(`${symbolID} is invalid traitID`);
     const arr = new Array(...this.fitness);
-    const traits_offset = MAGPIE.KEY.FITNESS.TRAITS;
-    const deckSize = MAGPIE.KEY.FITNESS.DECKSIZE;
+    const deckSize = + this._get_deckSize();
+    const K = MAGPIE.KEY.FITNESS;
+    const traits_offset = K.TRAITS + deckSize;
+    const state_offset = (deckSize * K.STATES) + traits_offset;
+    const equip_offset = (deckSize * K.EQUIPS) + traits_offset;
+    const injury_offset = (deckSize * K.INJURY) + traits_offset;
+    const waste_offset = (deckSize * K.WASTE) + traits_offset;
+    const tribute_offset = (deckSize * K.TRIBUTE) + traits_offset;
     const remove = 0;
-    arr.splice(traits_offset + this._get_deckSize(), remove, symbolID);
-    arr[deckSize]++;
+    arr[K.DECKSIZE]++;
+    arr.splice(traits_offset, remove, symbolID);
+    arr.splice(state_offset, remove, 0);
+    arr.splice(equip_offset, remove, 0);
+    arr.splice(injury_offset, remove, 0);
+    arr.splice(waste_offset, remove, 0);
+    arr.splice(tribute_offset, remove, 0);
     this.fitness = new Float64Array(arr);
-    return arr[deckSize];
+    return arr[K.DECKSIZE];
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);
     return false;
