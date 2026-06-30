@@ -2495,7 +2495,7 @@ MAGPIE_ENGINE.prototype.initialize = function (data) {
 //------------------------------------------------------------------------
 // #region > Propulsor
 //------------------------------------------------------------------------
-MAGPIE_ENGINE.prototype.MAGPIE_PROPULSOR.meta = {
+MAGPIE_PROPULSOR.meta = {
   name: "M.A.G.P.I.E. propulsor",
   desc: "thrust applier",
 };
