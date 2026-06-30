@@ -101,18 +101,43 @@ function MAGPIE_SYMBOL(data) {
 }
 /**
  *
+ * @param {component_data} data
+ * @returns {new MAGPIE_ENGINE}
  */
-class MAGPIE_ENGINE {
-  //
+function MAGPIE_ENGINE(data) {
+  this.initialize(data);
 }
-class MAGPIE_PROPULSOR {
-  //
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_PROPULSOR}
+ */
+function MAGPIE_PROPULSOR(data) {
+  this.initialize(data);
 }
-class MAGPIE_POWERTRAIN {
-  //
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_POWERTRAIN}
+ */
+function MAGPIE_POWERTRAIN(data) {
+  this.initialize(data);
 }
-class MAGPIE_CONTAINER {
-  //
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_CONTAINER}
+ */
+function MAGPIE_CONTAINER(data) {
+  this.initialize(data);
+}
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_PIPING}
+ */
+function MAGPIE_PIPING(data) {
+  this.initialize(data);
 }
 /**
  *
@@ -145,8 +170,16 @@ MAGPIE_COMPONENT.setup = function () {
   //
 };
 /**
- * @typedef {import("../data/components").component} component
- * @type {Map<String, component>}
+ * @typedef {{
+ * ID: Number,
+ * type: Number,
+ * owner: entityID,
+ * traitIndex: trait_index,
+ * keys: keyID[],
+ * data: {},
+ * }} component_data
+ *
+ * @type {Map<String, MAGPIE_COMPONENT>}
  * */
 MAGPIE_COMPONENT.INDEX = new Map();
 /**
@@ -952,6 +985,7 @@ MAGPIE_STATE.validateChange = function validateChange(state) {
  * @typedef {Number} emoteID
  * @typedef {import("./entity").entityID} entityID
  * @typedef {import("./entity").entity_data} entity_data
+ * @typedef {import("./entity").trait_index} trait_index
  * @typedef {import(".").keyID} keyID
  * @typedef {Number} key_value
  */
@@ -2254,13 +2288,14 @@ MAGPIE_KEY.prototype._U_hydrate = function () {
  * @name
  * @desc
  * @typedef {import("./entity").fitness_index} fitness_index this.fitness[index]
- * @typedef {import("./physics").power} power
- * @typedef {import("./physics").force} force
- * @typedef {import("./physics").percentage} regime %
- * @typedef {import("./physics").mass} mass in kg
- * @typedef {import("./physics").flow} flow
- * @typedef {import("./physics").coefficient} coefficient
- * @typedef {import("./physics").temperature} temperature in Kelvin (K)
+ * @typedef {import("./physics.js").force} force
+ * @typedef {force} power
+ * @typedef {import("./physics.js").percentage} regime %
+ * @typedef {import("./physics.js").mass} mass in kg
+ * @typedef {import("./physics.js").volume} volume in L
+ * @typedef {import("./physics.js").flow} flow
+ * @typedef {import("./physics.js").coefficient} coefficient
+ * @typedef {import("./physics.js").temperature} temperature in Kelvin (K)
  * @typedef {[]} environment
  */
 //========================================================================
@@ -2292,27 +2327,49 @@ MAGPIE_ENGINE.meta = {
  * Fsafe: coefficient,
  * Fcomfort: coefficient,
  * Fmin: coefficient,
- * processor: []
+ * processor: [],
+ * state: Float64Array
  * }} engine_data
+ * @typedef {{
+ * regime: regime,
+ * spool: regime,
+ * temp: temperature,
+ * stress: coefficient,
+ * damage: coefficient,
+ * keys: keyID[]
+ * }} engine_state
  *
  * @typedef {coefficient} process_rate
  * @typedef {coefficient} efficiency 1 - (degrade + damage)
- * @typedef {[power, process_rate, efficiency]} engine_output
- * @param {MAGPIE_ENTITY} entity
- * @param {engine_data} data
+ * @typedef {[power: power, process_rate: coefficient, efficiency: coefficient]} engine_output
+ *
  */
-MAGPIE_ENGINE.setup = function (entity, data) {
-  //@todo engine.setup
+/**
+ *
+ * @param {MAGPIE_COMPONENT} component
+ * @returns {MAGPIE_ENTITY}
+ */
+MAGPIE_COMPONENT._get_owner = function (component) {
+  const entityID = component?.owner;
+  if (!entityID) return false;
+  return MAGPIE_COMPONENT.__get("_get_entity", [entityID]);
 };
 /**
  *
- * @param {MAGPIE_ENTITY} entity
- * @param {fitness_index} fitness_index
+ * @returns {MAGPIE_ENTITY}
+ */
+MAGPIE_ENGINE.prototype._get_owner = function () {
+  return MAGPIE_COMPONENT._get_owner(this);
+};
+/**
+ *
+ *
  * @param {environment} env
  * @returns {engine_output}
  */
-MAGPIE_ENGINE.start = function start(entity, fitness_index, env) {
+MAGPIE_ENGINE.prototype.start = function start(env) {
   //@todo engine.start
+  this.state;
 };
 /**
  *
@@ -2340,8 +2397,7 @@ MAGPIE_ENGINE.stop = function stop(entity, fitness_index, env) {
  * @param {fitness_index} fitness_index
  * @param {percentage} amount
  * @param {environment} env
- * @returns {engine_data}
- * @returns {engine_data}
+ * @returns {engine_output}
  */
 MAGPIE_ENGINE.degrade = function degrade(entity, fitness_index, amount, env) {
   //@todo engine.degrade
@@ -2352,7 +2408,7 @@ MAGPIE_ENGINE.degrade = function degrade(entity, fitness_index, amount, env) {
  * @param {fitness_index} fitness_index
  * @param {percentage} amount
  * @param {environment} env
- * @returns {engine_data}
+ * @returns {engine_output}
  *
  */
 MAGPIE_ENGINE.damage = function damage(entity, fitness_index, amount, env) {
@@ -2364,10 +2420,46 @@ MAGPIE_ENGINE.damage = function damage(entity, fitness_index, amount, env) {
  * @param {fitness_index} fitness_index
  * @param {percentage} amount
  * @param {environment} env
- * @returns {engine_data}
+ * @returns {engine_output}
  */
 MAGPIE_ENGINE.spool = function spool(entity, fitness_index, amount, env) {
   //@todo engine.spool
+};
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_ENGINE}
+ */
+MAGPIE_ENGINE.prototype.initialize = function (data) {
+  this.ID = Date.now();
+  this.type = MAGPIE.KEY.COMPONENT.ENGINE;
+  this.owner = Number(data?.owner);
+  this.traitIndex = Number(data?.traitIndex);
+  this.keys = data?.keys || [];
+  /** @type {engine_data} */
+  this.data = data?.data || {
+    symbolID: NaN,
+    mass: NaN,
+    power: NaN,
+    Rmax: NaN,
+    Rsafe: NaN,
+    Rcomfort: NaN,
+    Rmin: NaN,
+    Fmax: NaN,
+    Fsafe: NaN,
+    Fcomfort: NaN,
+    Fmin: NaN,
+    processor: [],
+  };
+  /** @type {engine_state} */
+  this.state = {
+    regime: 0,
+    spool: 0,
+    temp: Number(data?.temp),
+    stress: 0,
+    damage: Number(data?.damage) || 0,
+    keys: data?.keys || [],
+  };
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -2378,40 +2470,100 @@ MAGPIE_ENGINE.spool = function spool(entity, fitness_index, amount, env) {
  * @typedef {coefficient} TWR thrust-to-weight ratio
  * @typedef {coefficient} propulsor_efficiency 1 - (thrust_losses / thrust)
  * @typedef {temperature} EGT
+ * @typedef {{
+ * symbolID: symbolID;
+ * mass: mass;
+ * thrust: thrust;
+ * Rmax: regime;
+ * Rsafe: regime;
+ * Rcomfort: regime;
+ * Rmin: regime;
+ * Fmax: coefficient;
+ * Fsafe: coefficient;
+ * Fcomfort: coefficient;
+ * Fmin: coefficient;
+ * processor: []
+ * }} propulsor_data
+ * @typedef {engine_state} propulsor_state
+ *
  * @typedef {[
  * thrust,
  * propulsor_efficiency,
  * EGT
- * ]} propulsor_data
+ * ]} propulsor_output
  */
 //------------------------------------------------------------------------
 // #region > Propulsor
 //------------------------------------------------------------------------
-MAGPIE_PROPULSOR.meta = {
+MAGPIE_ENGINE.prototype.MAGPIE_PROPULSOR.meta = {
   name: "M.A.G.P.I.E. propulsor",
   desc: "thrust applier",
 };
 /**
- * @param {MAGPIE_ENTITY} entity
- * @param {fitness_index} fitness_index
  * @param {percentage} amount
  * @param {environment} env
- * @returns {propulsor_data}
+ * @returns {propulsor_output}
  */
-MAGPIE_PROPULSOR.applyThrust = function applyThrust(
-  entity,
-  fitness_index,
-  amount,
-  env,
-) {
+MAGPIE_PROPULSOR.prototype.applyThrust = function (amount, env) {
   //@todo propulsor.applyThrust
+};
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_PROPULSOR}
+ */
+MAGPIE_PROPULSOR.prototype.initialize = function (data) {
+  this.ID = Date.now();
+  this.type = MAGPIE.KEY.COMPONENT.PROPULSOR;
+  this.owner = Number(data?.owner);
+  this.traitIndex = Number(data?.traitIndex);
+  /** @type {keyID[]} */
+  this.keys = data?.keys || [];
+  /** @type {propulsor_data} */
+  this.data = data?.data || {
+    symbolID: NaN,
+    mass: NaN,
+    thrust: NaN,
+    Rmax: NaN,
+    Rsafe: NaN,
+    Rcomfort: NaN,
+    Rmin: NaN,
+    Fmax: NaN,
+    Fsafe: NaN,
+    Fcomfort: NaN,
+    Fmin: NaN,
+    processor: [],
+  };
+  /** @type {propulsor_state} */
+  this.state = {
+    regime: 0,
+    spool: 0,
+    temp: Number(data?.temp),
+    stress: 0,
+    damage: Number(data?.damage) || 0,
+    keys: data?.keys || [],
+  };
 };
 // #endregion
 //------------------------------------------------------------------------
 /**
  * @name
  * @desc
- *
+ * @typedef {{
+ * symbolID: symbolID;
+ * mass: mass;
+ * thrust: thrust;
+ * Rmax: regime;
+ * Rsafe: regime;
+ * Rcomfort: regime;
+ * Rmin: regime;
+ * Fmax: coefficient;
+ * Fsafe: coefficient;
+ * Fcomfort: coefficient;
+ * Fmin: coefficient;
+ * processor: []
+ * }} powertrain_data
+ * @typedef {propulsor_state} powertrain_state
  */
 //------------------------------------------------------------------------
 // #region > Powertrain
@@ -2419,6 +2571,153 @@ MAGPIE_PROPULSOR.applyThrust = function applyThrust(
 MAGPIE_POWERTRAIN.meta = {
   name: "M.A.G.P.I.E. powertrain",
   desc: "combined engine/propulsor propulsion system",
+};
+/**
+ *
+ * @param {component_data} data
+ */
+MAGPIE_POWERTRAIN.prototype.initialize = function (data) {
+  this.ID = Date.now();
+  this.type = MAGPIE.KEY.COMPONENT.POWERTRAIN;
+  this.owner = Number(data?.owner);
+  this.traitIndex = Number(data?.traitIndex);
+  /** @type {keyID[]} */
+  this.keys = data?.keys || [];
+  /** @type {powertrain_data} */
+  this.data = data?.data || {
+    symbolID: NaN,
+    mass: NaN,
+    thrust: NaN,
+    Rmax: NaN,
+    Rsafe: NaN,
+    Rcomfort: NaN,
+    Rmin: NaN,
+    Fmax: NaN,
+    Fsafe: NaN,
+    Fcomfort: NaN,
+    Fmin: NaN,
+    processor: [],
+  };
+  /** @type {powertrain_state} */
+  this.state = {
+    regime: 0,
+    spool: 0,
+    temp: Number(data?.temp),
+    stress: 0,
+    damage: Number(data?.damage) || 0,
+    keys: data?.keys || [],
+  };
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ * @typedef {{
+ * symbolID: symbolID;
+ * mass: mass;
+ * capacity: mass;
+ * volume: volume
+ * Fmax: coefficient;
+ * Fsafe: coefficient;
+ * Fcomfort: coefficient;
+ * Fmin: coefficient;
+ * processor: []
+ * }} container_data
+ * @typedef {{
+ * resource: symbolID,
+ * amount: volume,
+ * keys: keyID[]
+ * }} container_state
+ */
+//------------------------------------------------------------------------
+// #region > Container
+//------------------------------------------------------------------------
+MAGPIE_CONTAINER.meta = {
+  name: "M.A.G.P.I.E. container",
+};
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_CONTAINER}
+ */
+MAGPIE_CONTAINER.prototype.initialize = function (data) {
+  this.ID = Date.now();
+  this.type = MAGPIE.KEY.COMPONENT.CONTAINER;
+  this.owner = Number(data?.owner);
+  this.traitIndex = Number(data?.traitIndex);
+  /** @type {keyID[]} */
+  this.keys = data?.keys || [];
+  /** @type {container_data} */
+  this.data = data?.data || {
+    symbolID: NaN,
+    mass: NaN,
+    capacity: NaN,
+    Fmax: NaN,
+    Fsafe: NaN,
+    Fcomfort: NaN,
+    Fmin: NaN,
+    processor: [],
+  };
+  /** @type {container_state} */
+  this.state = {
+    resource: Number(data?.resource),
+    amount: Number(data?.amount),
+    keys: data?.keys || [],
+  };
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ * @typedef {{
+ * symbolID: symbolID,
+ * mass: mass,
+ * flow: flow,
+ * ratedResources: symbolID[],
+ * Fmax: coefficient,
+ * Fsafe: coefficient,
+ * Fcomfort: coefficient,
+ * Fmin: coefficient,
+ * processor: []
+ * }} piping_data
+ * @typedef {container_state} piping_state
+ */
+//------------------------------------------------------------------------
+// #region > Piping
+//------------------------------------------------------------------------
+MAGPIE_PIPING.meta = {};
+/**
+ *
+ * @param {component_data} data
+ * @returns {new MAGPIE_PIPING}
+ */
+MAGPIE_PIPING.prototype.initialize = function (data) {
+  this.ID = Date.now();
+  this.type = MAGPIE.KEY.COMPONENT.PIPING;
+  this.owner = Number(data?.owner);
+  this.traitIndex = Number(data?.traitIndex);
+  /** @type {keyID[]} */
+  this.keys = data?.keys || [];
+  /** @type {piping_data} */
+  this.data = data?.data || {
+    symbolID: NaN,
+    mass: NaN,
+    flow: NaN,
+    ratedResources: [],
+    Fmax: NaN,
+    Fsafe: NaN,
+    Fcomfort: NaN,
+    Fmin: NaN,
+    processor: [],
+  };
+  /** @type {piping_state} */
+  this.state = {
+    resource: Number(data?.resource),
+    amount: Number(data?.amount),
+    keys: data?.keys || [],
+  };
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -2438,20 +2737,7 @@ MAGPIE_POWERTRAIN.meta = {
 //========================================================================
 // #region - LOGISTICS
 //========================================================================
-/**
- * @name
- * @desc
- *
- */
-//------------------------------------------------------------------------
-// #region > Container
-//------------------------------------------------------------------------
-MAGPIE_CONTAINER.meta = {
-  name: "M.A.G.P.I.E. container",
 
-  // #endregion
-  //------------------------------------------------------------------------
-};
 /**
  *
  * @desc back to {@link }

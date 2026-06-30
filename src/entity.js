@@ -335,8 +335,9 @@ MAGPIE_ENTITY._setDependency = async function setDependency(
  * }} entity_data
  *
  * @typedef {Number} fitness_index this.fitness[index]
+ * @typedef {Number} trait_index entity._get_traits()[index]
  * @typedef {import("../data/states").state_output} state_output
- *
+ * @typedef {import("./component.js").component} component
  *
  *
  * @typedef {import("./system").database_result} database_result
@@ -371,6 +372,8 @@ MAGPIE_ENTITY.prototype.initialize = function initialize(data) {
    *
    **/
   this.fitness = data?.fitness || [];
+  /** @type {MAGPIE_COMPONENT[]} */
+  this.components = [];
   /** @type {expID[]} */
   this.exps = data?.exps || [];
   // if(data && data?.STATS)

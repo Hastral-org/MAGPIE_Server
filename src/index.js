@@ -24,7 +24,8 @@
  * {@link MAGPIE.meta.desc}
  *
  * @version 0.39.968 2026 06 30
- * - TWEAKED: preparing for merge with 'main'
+ * - ADDED: entity.component handling
+ * - TWEAKED: mering with 'main'
  *
  * @version 0.39.967 2026 06 29
  * - FIXED: entity.getEmoteSeekOptions causing cascading errors
@@ -2568,7 +2569,17 @@ MAGPIE.KEY.COMPONENT = {};
 /** @type {Map<String, keyID>} */
 MAGPIE.KEY.COMPONENT.INDEX = new Map();
 /** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.ENGINE = 20100;
+/** @type {Enumerator<Number>} */
 MAGPIE.KEY.COMPONENT.PISTON_ENGINE = 20101;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.PROPULSOR = 21100;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.POWERTRAIN = 22100;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.CONTAINER = 23100;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.PIPING = 24100;
 MAGPIE.KEY.COMPONENT.STATE = {};
 /** @type {Enumerator<Number>} @desc {@link MAGPIE.KEY.STATUS.meta} */
 MAGPIE.KEY.COMPONENT.STATE.STATUS = 0;
