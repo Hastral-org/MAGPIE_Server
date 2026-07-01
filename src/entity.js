@@ -630,7 +630,7 @@ MAGPIE_ENTITY._get_States = function _get_States(entity) {
   const start = traitOffset + (stateOffset * deckSize);
   const end = start + deckSize;
   const arr = Array.from(entity.fitness);
-  return arr.slice(start, end);
+  return arr.slice(start, end).filter(n => !!n);
 };
 /**
  * @returns {MAGPIE_ENTITY}
