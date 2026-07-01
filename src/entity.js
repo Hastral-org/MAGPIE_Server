@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.968
+ * @version 0.39.969
  * @desc
  * @param {{
  * name: String,

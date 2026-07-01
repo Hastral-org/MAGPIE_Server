@@ -576,9 +576,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 968],
+  version: [0, 39, 969],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260630",
+  firmwareDate: "20260701",
 };
 /**
  *
