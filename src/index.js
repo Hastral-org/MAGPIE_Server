@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.969 2026 07 01
+ * - FIXED: entity._get_states() breaking with decksize > 1
+ *
  * @version 0.39.968 2026 06 30
  * - ADDED: entity.component handling
  * - TWEAKED: mering with 'main'
@@ -2570,6 +2573,63 @@ MAGPIE.KEY.COMPONENT = {};
 MAGPIE.KEY.COMPONENT.INDEX = new Map();
 /** @type {Enumerator<Number>} */
 MAGPIE.KEY.COMPONENT.ENGINE = 20100;
+/** @type {Enumerator<Number>} @desc power rating in kW */
+MAGPIE.KEY.COMPONENT.ENGINE_POWER = 20101;
+/**
+ * @type {Enumerator<Number>}
+ * @desc max (R)egime % where regime 1.0 is max rated power;
+ * maximum wear beyond this point
+ * */
+MAGPIE.KEY.COMPONENT.RMAX = 20201;
+/**
+ * @type {Enumerator<Number>}
+ * @desc safe / max-continuous (R)egime;
+ * wear coefficient increases 1.5x faster beyond this point
+ * */
+MAGPIE.KEY.COMPONENT.RSAFE = 20202;
+/**
+ * @type {Enumerator<Number>}
+ * @desc comfort / cruise (R)egime;
+ * standard operating wear
+ * */
+MAGPIE.KEY.COMPONENT.RCOMFORT = 20203;
+/**
+ * @type {Enumerator<Number>}
+ * @desc minimum (R)egime;
+ * will stall below this point; also, minimum wear
+ * */
+MAGPIE.KEY.COMPONENT.RMIN = 20204;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.TEMPERATURE = 30100;
+/**
+ * @type {Enumerator<Number>}
+ * @desc max K before damage
+ * */
+MAGPIE.KEY.COMPONENT.TEMP_MAX = 30101;
+/**
+ * @type {Enumerator<Number>}
+ * @desc K ceiling of 1.5x wear but no direct damage
+ * */
+MAGPIE.KEY.COMPONENT.TEMP_SAFE = 30102;
+/**
+ * @type {Enumerator<Number>}
+ * @desc K ceiling of 1.0x wear
+ * */
+MAGPIE.KEY.COMPONENT.TEMP_COMFORT = 30103;
+/**
+ * @type {Enumerator<Number>}
+ * @desc minimum K floor to keep engine operational;
+ * will stall below this point
+ * */
+MAGPIE.KEY.COMPONENT.TEMP_MIN = 30104;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.FMAX = 40101;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.FSAFE = 40101;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.FCOMFORT = 40101;
+/** @type {Enumerator<Number>} */
+MAGPIE.KEY.COMPONENT.FMIN = 40101;
 /** @type {Enumerator<Number>} */
 MAGPIE.KEY.COMPONENT.PISTON_ENGINE = 20101;
 /** @type {Enumerator<Number>} */

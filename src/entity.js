@@ -625,12 +625,12 @@ MAGPIE_ENTITY._get_decomp_POVART = function getDecompPOVART(POVART) {
 MAGPIE_ENTITY._get_States = function _get_States(entity) {
   const K = MAGPIE.KEY.FITNESS;
   const deckSize = entity.fitness[K.DECKSIZE];
-  const offset = K.TRAITS;
+  const traitOffset = K.TRAITS; 
   const stateOffset = K.STATES;
-  const states = Array.from(entity.fitness)
-    .slice(offset + deckSize, offset + deckSize * stateOffset + 1)
-    .filter((n) => !!n);
-  return states;
+  const start = traitOffset + (stateOffset * deckSize);
+  const end = start + deckSize;
+  const arr = Array.from(entity.fitness);
+  return arr.slice(start, end);
 };
 /**
  * @returns {MAGPIE_ENTITY}
