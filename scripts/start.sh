@@ -20,7 +20,7 @@ sleep 1
 
 # 2. Start Governor loop with nohup to fully isolate it from this script's process space
 if ! pgrep -f "throttle_node.sh" > /dev/null; then
-    nohup /home/hamedahastral/MAGPIE_Server/scripts/throttle_node.sh >> /home/hamedahastral/MAGPIE_Server/logs/governor_boot.log 2>&1 &
+    nohup /home/hamedahastral/MAGPIE_Server/scripts/throttle_node.sh 2>&1 | ts '[%Y%m%d%H%M%S]' >> /home/hamedahastral/MAGPIE_Server/logs/governor_boot.log &
 fi
 
 /usr/bin/find /tmp -type f -mtime +3 -delete 2>/dev/null

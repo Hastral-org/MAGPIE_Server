@@ -14,7 +14,7 @@ CPULIMIT_PID=""
 log_msg() {
     local level="$1"
     local message="$2"
-    echo "[$(date +'%Y%m%d%H%M%S')] [$level] $message"
+    echo "[$level] $message"
 }
 
 log_msg "THROTTLER" "Passive MAGPIE Governor v8 loaded. Waiting for manual node start..."
