@@ -2976,8 +2976,9 @@ MAGPIE_DATE.prototype.yearday = function yearday() {
  * @returns {Boolean}
  */
 MAGPIE_DATE.prototype.isLeapYear = function isLeapYear() {
-  const leapYear = this.calendar.leapYear || 4;
-  const epoch = this.calendar.epochYear || 0;
+  const calendar = this.getCalendar();
+  const leapYear = calendar.leapYear || 4;
+  const epoch = calendar.epochYear || 0;
   const leap = (this.year - epoch) % leapYear;
   return leap >= leapYear;
 };
@@ -2986,7 +2987,7 @@ MAGPIE_DATE.prototype.isLeapYear = function isLeapYear() {
  * @returns {binaryBoolean}
  */
 MAGPIE_DATE.prototype.leapDay = function leapDay() {
-  const leapMonth = this.calendar.leapMonth || 2;
+  const leapMonth = this.getCalendar().leapMonth || 2;
   if (this.isLeapYear() && this.month === leapMonth) return 1;
   return 0;
 };
