@@ -1,7 +1,7 @@
 /**
  * @namespace accountHandler
  * @author Matheraptor
- * @version 0.39.968
+ * @version 0.39.970
  *
  *
  */
@@ -180,7 +180,7 @@ account.processEmailConfirmation = async function (req, res, token, server) {
   try {
     const db = server.DATABASE;
     const decoded = server.JWT.verify(token, server.config.jwtSecret);
-    if (!decoded?.isRegistrationToken) return invalidToken();
+    if (!decoded?.isRegistrationToken) return invalidToken(res);
     const username = decoded?.username;
     const player = await db.getPlayerByUsername(username);
     if (!player) throw new Error(`unable to fetch [PLAYER-${username}]`);
@@ -634,7 +634,7 @@ account.playerRoles.set(9, "REYA");
 //------------------------------------------------------------------------
 // #region > Helpers
 //------------------------------------------------------------------------
-const invalidToken = () => {
+const invalidToken = (res) => {
   res.status(http.STATUS_401.code).send(`<h1>Invalid credentials</h1>
     <p>Please, request a new email confirmation link.`);
 };
@@ -861,7 +861,7 @@ router.get("/verify-email", async (req, res) => {
       `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
     );
     const { token } = req.query;
-    if (!token) return invalidToken();
+    if (!token) return invalidToken(res);
     const PLAYER = await account.processEmailConfirmation(
       req,
       res,
@@ -904,7 +904,7 @@ router.get("/reset-password", async (req, res) => {
       `default-src 'self' 'unsafe-inline'; connect-src 'self' ${MAGPIE.KEY.SERVER.DOMAIN} ${MAGPIE.KEY.SERVER.SOCKET_DOMAIN};`,
     );
     const { token } = req.query;
-    if (!token) return invalidToken();
+    if (!token) return invalidToken(res);
     const { playerID, isRecoveryToken } = jwt.verify(token);
     if (!playerID || !isRecoveryToken) {
       const code = http.STATUS_401.code;

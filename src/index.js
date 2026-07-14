@@ -23,6 +23,10 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.970 2026 07 14
+ * - FIXED: "res" not passed to handlers/account.invalidToken
+ * - TWEAKED: stronger whitelist-only ruleset on cloudflare
+ *
  * @version 0.39.969 2026 07 01
  * - FIXED: entity._get_states() breaking with decksize > 1
  *
@@ -576,9 +580,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 969],
+  version: [0, 39, 970],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260701",
+  firmwareDate: "20260714",
 };
 /**
  *
