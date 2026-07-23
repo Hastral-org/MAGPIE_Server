@@ -23,6 +23,10 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.971 2026 07 23
+ * - ADDED: WPname 'raw[4]' in entity._target_route
+ * - ADDED: WP textual Vspeed 'raw[3]' in WProute
+ *
  * @version 0.39.970 2026 07 14
  * - FIXED: "res" not passed to handlers/account.invalidToken
  * - TWEAKED: stronger whitelist-only ruleset on cloudflare
@@ -580,9 +584,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 970],
+  version: [0, 39, 971],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260714",
+  firmwareDate: "20260723",
 };
 /**
  *

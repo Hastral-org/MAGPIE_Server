@@ -1,6 +1,6 @@
 /**
  * @name MAGPIE_ENTITY
- * @version 0.39.969
+ * @version 0.39.971
  * @desc
  * @param {{
  * name: String,
@@ -2934,6 +2934,11 @@ MAGPIE_ENTITY.prototype._get_emoteSeekOptions = function(exp, data) {
     const WPoptions = exp._key_mapWPoptions(WPkey) || {};
     for(const [key, value] of Object.values(WPoptions)) {
       if(!isNaN(value)) options[key] = value;
+      if(typeof value === "string") {
+        const preset = speeds[value];
+        MAGPIE_SYSTEM._logging_debug(`${value}: ${preset}`)
+        if(Number(preset)) options[key] = preset;
+      }
     }
     return options
   } catch(e) {
@@ -4090,7 +4095,7 @@ MAGPIE_ENTITY.prototype._target_route = function(options) {
       const DP0 = MAGPIE_PHYSICS.geodeticToCartesian(C0);
       const DP1 = MAGPIE_PHYSICS.geodeticToCartesian(C1);
       const dist = Math.floor(MAGPIE_PHYSICS._geod_distanceTo(DP0, DP1, r));
-      const course = MAGPIE_PHYSICS._geod_getCourse(DP0, DP1, r)
+      const course = Math.floor(MAGPIE_PHYSICS._geod_getCourse(DP0, DP1, r));
       return { dist, course }
     }
     let totDist = 0;
@@ -4098,7 +4103,10 @@ MAGPIE_ENTITY.prototype._target_route = function(options) {
     const push = (raw, prevCoords) => {
       if(!prevCoords) prevCoords = this._get_C0();
       const coords = [raw[0], raw[1], raw[2]];
-      const speed = Number(raw[3]) || MAGPIE_PHYSICS.mag(this._get_V0());
+      const rawSpeed = raw[3];
+      const speeds = this._get_speeds();
+      const speed = Number(rawSpeed) || Number(speeds[rawSpeed]) || MAGPIE_PHYSICS.mag(this._get_V0());
+      const WPname = raw[4];
       const { dist, course } = getDistCourse(coords, prevCoords)
       const distance = coords && prevCoords ? dist : 0;
       totDist += distance;
@@ -4107,6 +4115,7 @@ MAGPIE_ENTITY.prototype._target_route = function(options) {
       const date = new MAGPIE_DATE({epoch: epoch})
       const wp = {
         coords: coords,
+        WPname: WPname || "undefined",
         distance: distance,
         course: course,
         speed: speed.toFixed(2) + " m/s",
