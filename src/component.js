@@ -1274,7 +1274,7 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
       throw new Error(`${target} is invalid target. `);
     const targetID = target.ID;
     if (this.targetID !== target.ID) this._set_target(target.ID, entity);
-    if (key.type === route) return this._key_nextRouteWp(key, target);
+    if (key.type === route) return this._key_nextRouteWp(key, target, entity);
     if (key.type === waypoint) return this._key_nextWp(key, target);
     key.type = MAGPIE.KEY.TYPE.SPAREKEY;
     key.setSync();
@@ -1289,9 +1289,10 @@ MAGPIE_EXP.prototype._key_target_next = function keyTargetNext(entity) {
  * @audit [issue 207: exp._key_nextRoutWp eats all coords at once](https://github.com/Hastral-org/MAGPIE_Server/issues/207)
  * @param {MAGPIE_KEY} key
  * @param {MAGPIE_ENTITY} target
+ * @param {MAGPIE_ENTITY} entity
  * @returns {entityID} targetID
  */
-MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
+MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target, entity) {
   const ePrefix = `[EXP-${this.ID}].keyNextRouteWp: `;
   try {
     if (!target || !key) throw new Error("invalid parameters. ");
@@ -1302,14 +1303,20 @@ MAGPIE_EXP.prototype._key_nextRouteWp = function (key, target) {
     target._set_C1([coords[0], coords[1], coords[2]]);
     route.shift();
     key.label = JSON.stringify(route);
-    if (!Number(coords[3])) return;
+    if (!coords[3]) return;
+    const extractSpeedString = (string) => {
+      const speeds = this._key_mapVspeeds();
+      return Number(speeds[string.toUpperCase()]);
+    };
+    const targetSpeed = Number(coords[3]) || extractSpeedString(coords[3]);
+    if (isNaN(targetSpeed)) return;
     const speedKey = this.getKeys().find(
       (key) => key.type === MAGPIE.KEY.INDEX.VSPEED,
     );
     if (!speedKey) return;
     const speeds = MAGPIE_SYSTEM.Parsing.json(speedKey?.label)[1];
     if (!speeds) return;
-    speeds.Vcruise = coords[3];
+    speeds.Vcruise = targetSpeed;
     speedKey.label = JSON.stringify(speeds);
   } catch (e) {
     MAGPIE_SYSTEM.error(ePrefix + e.message, e);

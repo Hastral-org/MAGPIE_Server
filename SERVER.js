@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.968
+ * @version 0.39.972
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -1910,9 +1910,13 @@ MAGPIE_SERVER.SESSION.active = new Map();
 MAGPIE_SERVER.SESSION.newVisit = function () {
   MAGPIE_SERVER.METASTATE.session = MAGPIE_SERVER.SESSION.active;
   const visitors = MAGPIE_SERVER.METASTATE.session.get("visitors");
-  if (!visitors)
+  const ePrefix = "[SESSION].newVisit: ";
+  if (!visitors) {
+    MAGPIE_SERVER.log(ePrefix + "visitors count reset", "session", true);
     return MAGPIE_SERVER.METASTATE.session.set("visitors", { count: 1 });
+  }
   visitors.count++;
+  MAGPIE_SERVER.log(ePrefix + "visitors count +1", "session", true);
 };
 /**
  *

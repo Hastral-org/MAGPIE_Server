@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Server
  * @name session
  * @desc session Manager
- * @version 0.39.968
+ * @version 0.39.972
  * @typedef {import("socket.io").Server} io
  * @typedef {import("socket.io").Socket} socket
  * @typedef {import("../SERVER").socketID} socketID

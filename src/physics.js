@@ -848,10 +848,12 @@ MAGPIE_PHYSICS._emote_seekTarget = function (entity, P1, options,) {
     const dR = this.rotorApply(O0_inv, dR_global);
     // const dR = this._getDeltaR_euler(O0, Ot, P0)	const dR = this._getDeltaR(dO);
     const dRmag = this.mag(dR);
-    /** @todo .getATpR */
-    const pR = this._U_clampRange(this._getATpR(dRmag, V0, R0, getAt.Vstate, options), 0.1, 0.9);
-    options.pR = pR;
     const getTt = this._getTt(dR, R0, O0, options);
+    options.getAt = getAt;
+    options.getTt = getTt;
+    /** @todo .getATpR */
+    const pR = this._U_clampRange(this._getATpR(dRmag, V0, R0, options), 0.1, 0.9);
+    options.pR = pR;
     options.state = pR > 0.5 ? getAt.Vstate : getTt.Rstate;
     const Tt = getTt.Tt;
     const Rstate = getTt?.Rstate;
@@ -958,20 +960,23 @@ MAGPIE_PHYSICS._smartSeek = function smartSeek(POVART0, params, P1, options) {
  * @param {magnitude} dRmag
  * @param {vector3} V0
  * @param {bivector} R0
- * @param {stateID} Vstate
  * @param {{
- * Vcreep: velocity
+ * Vcreep: velocity,
+ * getAt: {At_raw: vector3, Vstate: stateID},
+ * getTt: {Tt: bivector, Rstate: stateID, Bdist: distance},
  * }} options
  * @audit changing it to a new simpler implementation
  * @returns {ratio} pR
  */
-MAGPIE_PHYSICS._getATpR = function getATpR(dRmag, V0, R0, Vstate, options) {
+MAGPIE_PHYSICS._getATpR = function getATpR(dRmag, V0, R0, options) {
   // const Ae_abs = this._rotor_angle(dO, P0, O0);
   // // MAGPIE_SYSTEM._logging_debug(`Ae_abs: ${Ae_abs}`)
   // const Ae = Ae_abs > Math.PI - 0.1 ? 0 : Ae_abs
   // const alignRatio = this._U_clampRange(1.0 - (Ae / threshold), 0, 1);
   // if(isNaN(alignRatio)) throw new Error(`${alignRatio} is invalid pR`);
   // return alignRatio
+  const Vstate = options.getAt.Vstate;
+  const Rstate = options.getTt.Rstate;
   const lock = 1;
   const refine = 0.75;
   const split = 0.5;
@@ -979,7 +984,10 @@ MAGPIE_PHYSICS._getATpR = function getATpR(dRmag, V0, R0, Vstate, options) {
   const rotate = 0;
   const S0 = this.mag(V0);
   const R0mag = this.mag(R0);
-  if (Vstate === STATE_INDEX.ON_TARGET) return R0mag < 1e-6 ? lock : split;
+  const Rcreep = options?.Rcreep || 0.005
+  if(R0mag > Rcreep) return split;
+  const Rlow = R0mag < 1e-6;
+  if (Vstate === STATE_INDEX.ON_TARGET) return Rlow ? lock : split;
   if (Vstate === STATE_INDEX.REACHING_TARGET) return refine;
   const dRpR = Math.min(dRmag, 1);
   // MAGPIE_SYSTEM._logging_debug(`dRpR: ${dRpR}`)
@@ -1335,20 +1343,11 @@ MAGPIE_PHYSICS._getTt = function _getTt(dR, R0, O0, options) {
     if (!this.isValidVector(R0))
       throw new Error(`${R0} is invalid R₀ bivector`);
     const Tmax = Number(options.Tmax);
-    if (isNaN(options?.pR))
-      throw new Error(`${options?.pR} is invalid priority ratio`);
-    const priorityRatio = Number(options.pR);
-    const TorqueRatio = 1.0 - priorityRatio;
-    if (TorqueRatio <= 0.001)
-      return { Tt: [0, 0, 0], Rstate: STATE_INDEX.IDLING };
     const raw = this._getTt_local(dR, R0, O0, options);
     const { Tt: Tt_local } = raw;
     if (!this.isValidVector(Tt_local))
       throw new Error(`${Tt_local} is invalid Tt_local bivector`);
-    // const Tt = this.rotorApply(O0, Tt_local);
-    if (isNaN(TorqueRatio)) throw new Error(`${TorqueRatio} is invalid Tr`);
-    const Tt_scaled = this.scaleVector(Tt_local, TorqueRatio);
-    const Tt = this.vector_clamp_mag(Tt_scaled, Tmax);
+    const Tt = this.vector_clamp_mag(Tt_local, Tmax);
     // MAGPIE_SYSTEM._logging_debug(`Tt: ${this.mag(Tt_local)}`)
     if (!this.isValidVector(Tt))
       throw new Error(`${Tt} is invalid Tₜ bivector`);
@@ -1390,7 +1389,7 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const last_state = options?.Rstate;
     const Rmax = Number(options[`Rmax_${axisID}`]) || Number(options?.Rmax) || 0.001
     if (isNaN(Rmax)) return;
-    const hold_threshold = 0.1//@audit options?.hold_threshold ?? this._U_deg_to_rad(10);
+    const hold_threshold = 0.3//@audit options?.hold_threshold ?? this._U_deg_to_rad(10);
     const R0_abs = Math.abs(R0_comp);
     const Rsafe = Number(options[`Rsafe_${axisID}`]) || Number(options?.Rsafe) || Rmax * reserve;
     const Bdist = Math.min(Math.PI, R0_abs ** 2 / (2 * Tsafe)) || 0;
@@ -1409,10 +1408,12 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const sticky_align = dR_error < brake_threshold || last_state === STATE_INDEX.ALIGNING_TARGET;
     const align_trigger = dR_error < decel_threshold ? true : sticky_align;
     const HOLD = dR_error < hold_threshold;
-    const FACE = HOLD || align_trigger ? false : R0_abs < Rsafe;
-    const DRIFT = HOLD || FACE || align_trigger ? false : true;
+    const HOLD_BRAKE = HOLD && R0_abs > Rcrawl;
+    const FACE = HOLD || HOLD_BRAKE || align_trigger ? false : R0_abs < Rsafe;
+    const DRIFT = HOLD || HOLD_BRAKE || FACE || align_trigger ? false : true;
     const R_stop = R0_abs < 1e-6 ? 0 : R0_abs * -Tsafe;
     const Tt_brake = R0_abs < 1e-5 ? 0 : Math.sign(R0_comp) * -Tsafe;
+    MAGPIE_SYSTEM._logging_debug(`Tt_brake: ${Tt_brake}`)
     const decel =
       dR_error < 0.001 || R0_abs > Rsafe * 0.01
         ? Tt_brake * 0.25
@@ -1421,14 +1422,14 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const transit = options?.transit || 0.0001;
     const Tt_seek = Rcruise_margin > transit ? accel : decel;
     const adjust = R0_abs < Rcrawl ? accel * 0.25 : Tt_brake * 0.25;
-    const Tt_align = dR_error > aligned_deadzone || R0_abs < Rcrawl 
+    const Tt_align = dR_error > aligned_deadzone
       ? adjust 
       : R_stop;
     const distanceFactor = Math.min(dR_error / (Bdist * 2.0), 1.0);
     let Tt = 0;
     let state = STATE_INDEX.SPOOFED;
     if (HOLD) {
-      Tt = Tt_align;
+      Tt = R0_abs > Rcrawl ? Tt_brake : Tt_align;
       state = STATE_INDEX.LOCKING_TARGET;
     } else if (FACE && last_state !== STATE_INDEX.ALIGNING_TARGET) {
       Tt = Tt_seek;
@@ -1440,6 +1441,7 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
       Tt = Tt_brake;
       state = STATE_INDEX.ALIGNING_TARGET;
     }
+    // MAGPIE_SYSTEM._logging_debug(`HOLD_BRAKE: ${HOLD_BRAKE}, state: ${state}`)
     // if(state === STATE_INDEX.ALIGNING_TARGET) Tt = Tt_brake
     // if(state === STATE_INDEX.LOCKING_TARGET) Tt = Tt_align;
     // if(state === STATE_INDEX.FACING_TARGET) Tt = Tt_seek;
@@ -1499,7 +1501,7 @@ MAGPIE_PHYSICS._getTt_local = function getLocalTt(dR, R0, O0, options) {
     raw.Bdist = [pitch.Bdist, roll.Bdist, heading.Bdist];
     const Rstate = [pitch?.state || 0, roll?.state || 0, heading?.state || 0];
     /** @type {stateID} */
-    raw.Rstate = Math.max(...Rstate);
+    raw.Rstate = Math.min(...Rstate);
     //@audit inverted pitch/roll [r,p,h] => [p,r,h]
     //@audit inverted roll [p, r, h] => [p, -r, h]
     //@audit-ok [0,0,Tt_heading]

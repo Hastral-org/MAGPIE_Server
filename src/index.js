@@ -23,6 +23,10 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.972 2026 07 24
+ * - TWEAKED: trying new physics.getTt and .getATpR logic
+ * - TWEAKED: debugging visitor count changes to 'session'
+ *
  * @version 0.39.971 2026 07 23
  * - ADDED: WPname 'raw[4]' in entity._target_route
  * - ADDED: WP textual Vspeed 'raw[3]' in WProute
@@ -584,9 +588,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 971],
+  version: [0, 39, 972],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260723",
+  firmwareDate: "20260724",
 };
 /**
  *
