@@ -1413,7 +1413,7 @@ MAGPIE_PHYSICS._getTt_axis = function getTtAxis(
     const DRIFT = HOLD || HOLD_BRAKE || FACE || align_trigger ? false : true;
     const R_stop = R0_abs < 1e-6 ? 0 : R0_abs * -Tsafe;
     const Tt_brake = R0_abs < 1e-5 ? 0 : Math.sign(R0_comp) * -Tsafe;
-    MAGPIE_SYSTEM._logging_debug(`Tt_brake: ${Tt_brake}`)
+    // MAGPIE_SYSTEM._logging_debug(`Tt_brake: ${Tt_brake}`)
     const decel =
       dR_error < 0.001 || R0_abs > Rsafe * 0.01
         ? Tt_brake * 0.25
