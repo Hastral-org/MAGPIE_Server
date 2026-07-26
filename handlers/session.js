@@ -56,7 +56,7 @@ session_manager.connect = function (socket, server) {
  * @param {MAGPIE_SERVER} server
  */
 session_manager.newVisit = function (server) {
-  const ePrefix = "[SESSION].newVisit: ";
+  const level = "[newVisit]: ";
   try {
     if (!server) throw new Error("invalid 'server'");
     const state = server?.METASTATE;
@@ -71,9 +71,9 @@ session_manager.newVisit = function (server) {
       throw new Error("unable to fetch visitors");
     }
     visitors.count++;
-    server.log(ePrefix + "visitors count +1", "session", true);
+    server.log(ePrefix + level + "visitors count +1", "session", true);
   } catch (e) {
-    server.error(ePrefix + e.message, e);
+    server.error(ePrefix + level + e.message, e);
   }
 };
 /**
@@ -115,7 +115,7 @@ module.exports = function (io, socket, server) {
     }
     server.log(`Total players: ${session.size - 1}`);
     socket.on("new_visit", () => {
-      console.log(ePrefix + "[new_visit]. ");
+      // console.log(ePrefix + "[new_visit]. ");
       session_manager.newVisit(server);
     });
     socket.on("disconnect", (reason) => {
