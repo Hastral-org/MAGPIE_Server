@@ -2,7 +2,7 @@
  * @namespace MAGPIE_Server
  * @name session
  * @desc session Manager
- * @version 0.39.972
+ * @version 0.39.973
  * @typedef {import("socket.io").Server} io
  * @typedef {import("socket.io").Socket} socket
  * @typedef {import("../SERVER").socketID} socketID
@@ -51,6 +51,32 @@ session_manager.connect = function (socket, server) {
   //@todo session_manager.connect
 };
 /**
+ * @desc when socket.on("new_visit"), check session validity,
+ * and visitors count +1
+ * @param {MAGPIE_SERVER} server
+ */
+session_manager.newVisit = function (server) {
+  const ePrefix = "[SESSION].newVisit: ";
+  try {
+    if (!server) throw new Error("invalid 'server'");
+    const state = server?.METASTATE;
+    if (!state) throw new Error(`${state} is invalid METASTATE`);
+    const session = state?.session;
+    if (!session) throw new Error(`${session} is invalid SESSION`);
+    if (Object.prototype.toString.call(session) !== "[object Map]");
+    throw new Error(`'session' is invalid SESSION Map`);
+    const visitors = session.get("visitors");
+    if (!visitors) {
+      session.set("visitors", { count: 1 });
+      throw new Error("unable to fetch visitors");
+    }
+    visitors.count++;
+    server.log(ePrefix + "visitors count +1", "session", true);
+  } catch (e) {
+    server.error(ePrefix + e.message, e);
+  }
+};
+/**
  *
  * @desc back to {@link }
  *
@@ -90,7 +116,7 @@ module.exports = function (io, socket, server) {
     server.log(`Total players: ${session.size - 1}`);
     socket.on("new_visit", () => {
       console.log(ePrefix + "[new_visit]. ");
-      server.SESSION.newVisit();
+      session_manager.newVisit(server);
     });
     socket.on("disconnect", (reason) => {
       // const playerID = auth?.playerID;

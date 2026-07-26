@@ -23,6 +23,9 @@
  * ------------------------------------------------------------------------
  * {@link MAGPIE.meta.desc}
  *
+ * @version 0.39.973 2026 07 26
+ * - TWEAKED: SERVER.SESSION.newVisit moved to session handler
+ *
  * @version 0.39.972 2026 07 24
  * - TWEAKED: trying new physics.getTt and .getATpR logic
  * - TWEAKED: debugging visitor count changes to 'session'
@@ -588,9 +591,9 @@ class MAGPIE {
 MAGPIE.meta = {
   name: "M.A.G.P.I.E.™",
   desc: "(M)odular (A)lgorithmic (G)eneral-(P)urpose (I)ntelligence (E)ngine ™",
-  version: [0, 39, 972],
+  version: [0, 39, 973],
   firmwareName: "MAGPIE",
-  firmwareDate: "20260724",
+  firmwareDate: "20260726",
 };
 /**
  *

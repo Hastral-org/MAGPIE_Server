@@ -2,7 +2,7 @@
  * @name MAGPIE_Server
  * @desc
  * @author Matheraptor
- * @version 0.39.972
+ * @version 0.39.973
  * @typedef {MAGPIE_SERVER} MAGPIE_SERVER
  */
 class MAGPIE_SERVER {
@@ -692,8 +692,6 @@ MAGPIE_RUNTIME.prototype.loadMetastate = function loadMetastate() {
     if (!(state instanceof MAGPIE_METASTATE))
       throw new Error(`${state} is invalid MAGPIE_METASTATE`);
     if (!(state.date instanceof MAGPIE_DATE)) state.date = new MAGPIE_DATE();
-    if (Object.prototype.toString.call(state) === "[Object map]")
-      MAGPIE_SERVER.SESSION.active = state.session;
   } catch (e) {
     MAGPIE_SERVER.error(ePrefix + e.message, e);
     state = new MAGPIE_METASTATE();
@@ -1907,17 +1905,6 @@ MAGPIE_SERVER.SESSION.meta = {
  * @type {player_cache}
  */
 MAGPIE_SERVER.SESSION.active = new Map();
-MAGPIE_SERVER.SESSION.newVisit = function () {
-  MAGPIE_SERVER.METASTATE.session = MAGPIE_SERVER.SESSION.active;
-  const visitors = MAGPIE_SERVER.METASTATE.session.get("visitors");
-  const ePrefix = "[SESSION].newVisit: ";
-  if (!visitors) {
-    MAGPIE_SERVER.log(ePrefix + "visitors count reset", "session", true);
-    return MAGPIE_SERVER.METASTATE.session.set("visitors", { count: 1 });
-  }
-  visitors.count++;
-  MAGPIE_SERVER.log(ePrefix + "visitors count +1", "session", true);
-};
 /**
  *
  * @desc back to {@link MAGPIE_SERVER.meta}
