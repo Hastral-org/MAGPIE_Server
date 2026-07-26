@@ -63,8 +63,8 @@ session_manager.newVisit = function (server) {
     if (!state) throw new Error(`${state} is invalid METASTATE`);
     const session = state?.session;
     if (!session) throw new Error(`${session} is invalid SESSION`);
-    if (Object.prototype.toString.call(session) !== "[object Map]");
-    throw new Error(`'session' is invalid SESSION Map`);
+    if (Object.prototype.toString.call(session) !== "[object Map]")
+      throw new Error(`'session' is invalid SESSION Map`);
     const visitors = session.get("visitors");
     if (!visitors) {
       session.set("visitors", { count: 1 });
