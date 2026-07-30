@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>M.A.G.P.I.E.™ Shelder Evolution™</title>
+        <title>Shelder Evolution™</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,23 +13,41 @@
     <body class="logged-out" style="background-color: black;">
         <nav id="nav-breadcrumbs">
             <span id="nav-buttons">
-                <button id="nav-buttom-home"  onclick="router.go('home')" class="nav-button">HOME</button>
-                <!-- <button id="nav-button-test" onclick="router.go('test')" class="nav-button">TEST</button> -->
-								<button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>								
+                <button id="nav-buttom-home"  onclick="router.go('home')" class="nav-button">HOME</button>						
                 <button id="nav-button-monitor" onclick="router.go('monitor')" class="nav-button">MONITOR</button>
                 <button id="nav-button-login" onclick="router.go('login')" class="nav-button show-logged-out">LOGIN</button>
                 <button id="nav-button-account" onclick="router.go('account')" class="nav-button show-logged-in">PLAYER HUB</button>
 								<button id="nav-button-logout" onclick="router.logout('nav-button-logout')" class="nav-button show-logged-in">LOGOUT</button> 
             </span>
-            <span id="nav-title" class="retro-counter">M.A.G.P.I.E.™ Shelder Evolution™</span>
         </nav>
         <nav id="view-crt" class="crt-scrollable" style="display: block;">
             <!-- "crt-style" body | 'view-' sections -->
             <main id="view-container">
-                <img src="SEtitle.png" alt="ShelderEvolution">
             </main>
             <template id="view-home" style="display: block;">
-            <img src="SEtitle.png" alt="ShelderEvolution">
+							<div id="visitor-counter" class="odometer-container">
+								<span>Visitors: </span>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<div class="digit-slot">
+									<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+								</div>
+								<script>MAGPIE_CLIENT.updateVisitorCounter(localStorage.getItem("visitor-count"))</script>
+							</div>
+            	<img src="SEtitle.png" alt="ShelderEvolution">
             </template>
             <template id="view-monitor" class="monitor-box">
 							<h1 class="view-heading">ENTITY Data Monitor</h1>
@@ -180,7 +198,10 @@
 						</template>
 						<template id="view-account">
 							<h1 class="view-heading">PLAYER Hub</h1>
-							<div class="monitor-box" style="width: 50%;">
+							<div>
+								<button id="nav-button-adoption" onclick="router.go('adoption')" class="nav-button">ADOPTION STORE</button>	
+							</div>
+							<div class="view-box" style="width: 100%;">
 								<h2 class="view-heading">PLAYER data</h2>
 								<h4>PLAYER ID: </h4>
 								<span id="playerID">loading...</span>
@@ -203,42 +224,22 @@
 								<h4>SERVER status: </h4>
 								<span id="serverStatus">loading...</span>
 								<br><br>
-								<h4>PLAYER slots: </h4>
+								<h4 style="padding-bottom: 5px;">CREATURE slots: </h4>
 								<span id="playerSlots">loading...</span>
 								<br><br>
 								<script>router.refreshPlayerHub();</script>
 							</div>
 						</template>
+						<template id="view-hoc">
+							<h1 class="view-heading">H.O.C. Feed</h1>
+							<h2>[CREATURE-undefined]</h2>
+							<nav>
+								<button>test</button>
+							</nav>
+						</template>
         </nav>
         <nav id="nav-status">
-            <span id="metadate" class="cli-status">Waiting for server...</span>
-            <!-- <span id="visitor-counter" class="retro-counter">
-                <div id="visitor-counter" class="odometer">
-									<div class="digit-slot"><div class="digit-strip" data-value="0">0123456789</div></div>
-									<div class="digit-slot"><div class="digit-strip" data-value="0">0123456789</div></div>
-								</div>
-            </span> -->
-						<div id="visitor-counter" class="odometer-container">
-							<span>Visitors: </span>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-							<div class="digit-slot">
-								<div class="digit-strip"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
-							</div>
-						</div>
+            <div id="metadate" class="cli-status">Waiting for server...</div>
         </nav>
         <script src="/socket.io/socket.io.js"></script>
         <script type="text/javascript" src="/main.js"></script>

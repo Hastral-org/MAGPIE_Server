@@ -229,24 +229,17 @@ socket.on("metastate", (data) => {
   const minute = pad(date.minute);
   const second = pad(date.second);
   const weekDay = data.weekDayName;
-  const timestring = `📅︎ [CALENDAR-${data?.calendarName} | ◴ ${weekDay} — ${year}/${month}/${day} — ${hour}:${minute}:${second} UTC]`;
-  document.getElementById("metadate").textContent =
-    `server metadate: ${timestring}`;
+  const calendar = `[CALENDAR-${data?.calendarName}]`;
+  const timestring = `📅︎ ${weekDay} — ${year}/${month}/${day} ◴ ${hour}:${minute}:${second} UTC`;
+  document.getElementById("metadate").textContent = timestring;
 });
 socket.on("visitor_counter_update", (data) => {
   const ePrefix = "[SOCKET] [visitor_counter_update] ";
   try {
     const count = data?.count;
     if (isNaN(count)) return;
-    const value = count.toString().padStart(6, "0");
-    const strips = document.querySelectorAll(".digit-strip");
-    value.split("").forEach((digit, index) => {
-      if (strips[index]) {
-        const offset = digit * 1.2;
-        strips[index].style.transform = `translateY(-${offset}rem)`;
-      }
-    });
-    console.log(ePrefix + count);
+    localStorage.setItem("visitor-count", count);
+    MAGPIE_CLIENT.updateVisitorCounter(count);
   } catch (e) {
     console.error(ePrefix + e.message, e);
   }
@@ -496,6 +489,7 @@ router.go = function routerGo(view, serverData = null) {
       throw new Error(`${view} is invalid view. `);
     const container = document.getElementById("view-container");
     const template = document.getElementById(`view-${view}`);
+    const navButton = document.getElementById(`nav-button-${view}`);
     if (!template) throw new Error(`could not find [view-${view}].\n`);
     container.innerHTML = "";
     const content = template.content.cloneNode(true);
@@ -518,21 +512,39 @@ router.fillPlayerData = function () {
   const status = document.getElementById("playerStatus");
   const serverStatus = document.getElementById("serverStatus");
   if (playerID) playerID.textContent = localStorage.getItem("playerID");
-  if (username) username.textContent = localStorage.getItem("playerUsername");
+  if (username)
+    router.renderIconField({
+      iconIndex: MAGPIE_CLIENT.UI.ICON_PLAYER,
+      field: localStorage.getItem("playerUsername"),
+      element: username,
+    });
   if (role) role.textContent = localStorage.getItem("playerRole");
   if (slots) {
     slots.textContent = "";
-    const playerSlots = localStorage.getItem("playerSlots");
+    // const playerSlots = localStorage.getItem("playerSlots");
+    const playerSlots = "1773811141134,1782497262611";
     if (playerSlots) {
       const renderedSlots = playerSlots.split(",").map(Number);
+      console.log(`renderedSlots: ${renderedSlots}`);
       renderedSlots.forEach((slot) => {
         const btn = router.renderSlotButton(slot);
         slots.appendChild(btn);
       });
     }
   }
-  if (EVP) EVP.textContent = localStorage.getItem("playerEVP");
-  if (CLOUT) CLOUT.textContent = localStorage.getItem("playerCLOUT");
+  if (EVP) {
+    router.renderIconField({
+      iconIndex: MAGPIE_CLIENT.UI.ICON_EVOLUTION,
+      field: Number(localStorage.getItem("playerEVP")) || 0,
+      element: EVP,
+    });
+  }
+  if (CLOUT)
+    router.renderIconField({
+      iconIndex: MAGPIE_CLIENT.UI.ICON_CLOUT,
+      field: Number(localStorage.getItem("playerCLOUT")) || 0,
+      element: CLOUT,
+    });
   if (status) {
     const playerStatus = localStorage.getItem("playerStatus");
     status.textContent = playerStatus ? "ONLINE" : "OFFLINE";
@@ -546,10 +558,37 @@ router.renderSlotButton = function (slot) {
   btn.classList.add("nav-button");
   const icon = router.renderIcon(MAGPIE_CLIENT.UI.ICON_CREATURE);
   icon.style.marginRight = "8px";
-  const textLabel = document.createTextNode(`[CREATURE-${slot}]`);
+  const textLabel = document.createTextNode(`[${slot}]`);
   btn.appendChild(icon);
   btn.appendChild(textLabel);
-  btn.onclick = (e) => router.pop("slot", slot, e);
+  const popupType = "slot";
+  const creature = {
+    name: "creatureName",
+    coords: "[lat, lon, ASL]",
+    states: "[SLEEPING]",
+  };
+  const slotWindow = document.createElement("div");
+  slotWindow.classList.add("slot-window");
+  slotWindow.innerHTML = `
+    <strong>[CREATURE-${slot}]</strong>
+    <p>name: ${creature.name}</p>
+    <p>coords: ${creature.coords}</p>
+    <p>states: ${creature.states}</p>
+    <hr>
+    `;
+  const slotConnect = document.createElement("button");
+  slotConnect.id = `slot-${slot}-connect`;
+  slotConnect.textContent = "CONNECT";
+  slotConnect.classList.add("nav-button");
+  slotConnect.onclick = () => {
+    document.getElementById("popup-overlay").remove();
+    router.go("hoc");
+  };
+  localStorage.setItem("selectedSlot", slot);
+  // slotWindow.appendChild(slotStats);
+  slotWindow.appendChild(slotConnect);
+  const content = slotWindow;
+  btn.onclick = (event) => router.pop({ content, popupType, event });
   return btn;
 };
 /**
@@ -566,21 +605,27 @@ router.renderIcon = function (iconIndex) {
 };
 /**
  *
- * @param {popupType} popupType
- * @param {creatureID} slot
- * @param {MouseEvent} event
+ * @param {{
+ * popupType: popupType,
+ * content: HTMLElement,
+ * event: MouseEvent
+ * }} options
  */
-router.pop = function (popupType, slot, event) {
-  const buttonRect = event.currentTarget.getBoundingClientRect();
+router.pop = function (options) {
+  const popupType = options?.popupType;
+  const content = options?.content;
+  const event = options?.event;
+  const eventRect = event.currentTarget.getBoundingClientRect();
   const overlay = document.createElement("div");
+  overlay.id = "popup-overlay";
   overlay.classList.add("popup-overlay");
   const contentBox = document.createElement("div");
+  contentBox.id = `popup-${popupType}`;
   contentBox.classList.add(`popup-${popupType}`);
-  contentBox.style.top = `${buttonRect.bottom + window.scrollY + 4}px`;
-  contentBox.style.left = `${buttonRect.left + window.scrollX}px`;
-  contentBox.innerHTML = `
-    <strong>[CREATURE-${slot}]</strong>
-    <p style="margin: 4px 0 0 0;">Type: ${popupType}</p>`;
+  contentBox.style.top = `${eventRect.bottom + window.scrollY + 4}px`;
+  // contentBox.style.left = `${eventRect.left + window.scrollX}px`;
+  contentBox.style.left = "32px";
+  contentBox.appendChild(content);
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
   };
@@ -624,6 +669,33 @@ router.getIconStyles = function (iconIndex) {
   return {
     backgroundPosition: `-${x}px -${y}px`,
   };
+};
+// #endregion
+//------------------------------------------------------------------------
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Stats
+//------------------------------------------------------------------------
+router.renderIconField = function (options) {
+  const ePrefix = "[ROUTER].renderIconField: ";
+  try {
+    const element = options?.element;
+    if (!element) return;
+    element.innerHTML = "";
+    const iconIndex = Number(options?.iconIndex);
+    const icon = router.renderIcon(iconIndex);
+    icon.style.marginRight = "3px";
+    element.appendChild(icon);
+    const amount = options?.field ?? "undefined";
+    const textLabel = document.createTextNode(amount);
+    element.appendChild(textLabel);
+  } catch (e) {
+    console.error(ePrefix + e.message, e);
+  }
 };
 // #endregion
 //------------------------------------------------------------------------
@@ -1261,6 +1333,29 @@ MAGPIE_CLIENT.UI.registerSubmit = () =>
 //========================================================================
 // #region - UTILITY
 //========================================================================
+/**
+ * @name
+ * @desc
+ *
+ */
+//------------------------------------------------------------------------
+// #region > Visitors
+//------------------------------------------------------------------------
+MAGPIE_CLIENT.updateVisitorCounter = function (count) {
+  const ePrefix = "[CLIENT].updateVisitorCounter: ";
+  if (isNaN(count)) return;
+  const value = count.toString().padStart(6, "0");
+  const strips = document.querySelectorAll(".digit-strip");
+  value.split("").forEach((digit, index) => {
+    if (strips[index]) {
+      const offset = digit * 1.2;
+      strips[index].style.transform = `translateY(-${offset}rem)`;
+    }
+  });
+  console.log(ePrefix + count);
+};
+// #endregion
+//------------------------------------------------------------------------
 /**
  * @name
  * @desc
